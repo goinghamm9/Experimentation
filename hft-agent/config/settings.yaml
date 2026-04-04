@@ -1,0 +1,139 @@
+# HFT Agent Configuration
+# ========================
+
+app:
+  name: "hft-agent"
+  mode: "paper"  # paper | live
+  log_level: "INFO"
+  tick_interval_ms: 100
+
+# Broker Configuration
+brokers:
+  primary: "alpaca"  # alpaca | robinhood | ibkr
+  robinhood:
+    # Credentials loaded from environment variables
+    # ROBINHOOD_USERNAME, ROBINHOOD_PASSWORD, ROBINHOOD_MFA_CODE
+    account_type: "cash"  # cash | margin
+  alpaca:
+    # ALPACA_API_KEY, ALPACA_SECRET_KEY
+    base_url: "https://paper-api.alpaca.markets"  # paper trading default
+    data_feed: "iex"  # iex | sip (sip requires paid plan)
+  ibkr:
+    # Interactive Brokers TWS/Gateway
+    host: "127.0.0.1"
+    port: 7497  # 7497=paper, 7496=live
+    client_id: 1
+
+# Database Configuration
+database:
+  timescaledb:
+    host: "localhost"
+    port: 5432
+    dbname: "hft_agent"
+    user: "hft"
+    password: "${TIMESCALE_PASSWORD}"
+    pool_size: 10
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    # Used for: order book cache, signal cache, rate limiting
+
+# Data Feeds
+data:
+  symbols:
+    - "SPY"
+    - "QQQ"
+    - "AAPL"
+    - "MSFT"
+    - "NVDA"
+    - "TSLA"
+    - "AMD"
+    - "AMZN"
+  bar_interval: "1Min"
+  orderbook_depth: 10
+
+# Probability & Statistics Engine (Taleb-informed)
+probability:
+  # Return distribution: Student-t with power-law tail exponent ~3
+  return_distribution: "student_t"
+  tail_exponent_prior: 3.0
+  tail_exponent_min: 2.0  # Metaprobability floor (Taleb 2012)
+  asymmetry_factor: 1.15  # Left tail 15% fatter than right
+  # Use MAD instead of std dev for dispersion
+  dispersion_metric: "mad"  # mad | std | iqr
+  # Rolling window for distribution estimation
+  estimation_window: 5000  # ticks
+
+# Signal Generation
+signals:
+  ofi:
+    enabled: true
+    lookback_ticks: 50
+    smoothing_window: 10
+  hurst:
+    enabled: true
+    window: 500
+    regime_threshold_persistence: 0.55
+    regime_threshold_mean_reversion: 0.45
+  vpin:
+    enabled: true
+    bucket_size: 50  # volume buckets
+    n_buckets: 50
+    toxicity_threshold: 0.7
+  multifractal:
+    enabled: true
+    scales: [16, 32, 64, 128, 256]
+
+# Risk Management (Ergodicity + Kelly + Tail Risk)
+risk:
+  # Fractional Kelly: 0.25-0.5x recommended under fat tails
+  kelly_fraction: 0.25
+  # Maximum position size as fraction of portfolio
+  max_position_pct: 0.05
+  # Maximum total exposure
+  max_total_exposure_pct: 0.30
+  # CVaR confidence level
+  cvar_confidence: 0.99
+  # Maximum acceptable CVaR as fraction of portfolio
+  max_cvar_pct: 0.02
+  # Daily loss limit (hard stop)
+  daily_loss_limit_pct: 0.03
+  # Drawdown limit - halt trading
+  max_drawdown_pct: 0.10
+  # Fragility detection (Taleb antifragility framework)
+  fragility:
+    enabled: true
+    vol_sensitivity_threshold: -0.5  # negative = fragile
+
+# Strategy Configuration
+strategy:
+  name: "adaptive_microstructure"
+  # Regime-adaptive: momentum when Hurst > 0.55, mean-revert when < 0.45
+  regime_adaptive: true
+  # Minimum signal strength to trade
+  min_signal_strength: 0.6
+  # Order types
+  prefer_limit_orders: true
+  # Spread capture parameters
+  min_spread_bps: 2.0
+  # Maximum orders per second (rate limiting)
+  max_orders_per_second: 5
+
+# Execution
+execution:
+  # Slippage model
+  slippage_model: "power_law"  # power_law | linear | none
+  # Maximum retry attempts for order placement
+  max_retries: 3
+  # Order timeout in seconds
+  order_timeout_s: 5
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+  health_check:
+    enabled: true
+    port: 8080
