@@ -1,0 +1,140 @@
+version: "3.8"
+
+services:
+  # ========================================
+  # HFT Agent
+  # ========================================
+  hft-agent:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: hft-agent
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - APP_MODE=paper
+      - TIMESCALE_PASSWORD=${TIMESCALE_PASSWORD:-hft_secret}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"   # Health check
+      - "9090:9090"   # Prometheus metrics
+    networks:
+      - hft-network
+
+  # ========================================
+  # TimescaleDB (Time-series database)
+  # ========================================
+  # TimescaleDB is the optimal database for HFT because:
+  # - Native hypertable partitioning for time-series data
+  # - 10-20x compression on tick data
+  # - Continuous aggregates for real-time OHLCV rollups
+  # - Sub-ms query performance on time-range scans
+  # - Full SQL support (joins, window functions, CTEs)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: hft-timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hft_agent
+      POSTGRES_USER: hft
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD:-hft_secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hft -d hft_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hft-network
+    # Performance tuning for HFT workloads
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "work_mem=64MB"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+      - "-c"
+      - "effective_cache_size=512MB"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "synchronous_commit=off"  # Faster writes (acceptable for market data)
+
+  # ========================================
+  # Redis (Real-time cache & pub/sub)
+  # ========================================
+  # Redis provides:
+  # - Sub-millisecond order book cache reads
+  # - Signal caching for inter-component communication
+  # - Rate limiting for order submission
+  # - Pub/sub for real-time event distribution
+  redis:
+    image: redis:7-alpine
+    container_name: hft-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hft-network
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ========================================
+  # Prometheus (Metrics collection)
+  # ========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hft-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - hft-network
+
+  # ========================================
+  # Grafana (Monitoring dashboard)
+  # ========================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hft-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - timescaledb
+    networks:
+      - hft-network
+
+volumes:
+  timescale-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  hft-network:
+    driver: bridge
