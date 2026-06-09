@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core.config import settings  # noqa: E402
 from core.db import init_db, session_scope  # noqa: E402
-from core.generate import generate_candidate  # noqa: E402
+from core.generate import generate_candidates  # noqa: E402
 from core.ingest import ingest_message  # noqa: E402
 from core.llm import AnthropicClient, StubLLM  # noqa: E402
 from core.projects import load_all, match_project  # noqa: E402
@@ -41,11 +41,15 @@ def run_fixture(session, path: Path, llm) -> str:
     if not created:
         return f"{path.name}: already ingested, skipped"
     project = match_project(email.sender, load_all(), settings.default_project_key)
-    candidate = generate_candidate(session, email, project, llm)
-    if candidate is None:
+    candidates = generate_candidates(session, email, project, llm)
+    if not candidates:
         return f"{path.name}: generation failed — surfaced in dashboard as needs-review"
-    return (f"{path.name}: candidate #{candidate.id} [{candidate.project_key}/{candidate.issue_type}] "
-            f"\"{candidate.summary}\" (confidence {candidate.confidence:.2f})")
+    lines = [
+        f"{path.name}: candidate #{c.id} [{c.project_key}/{c.issue_type}] "
+        f"\"{c.summary}\" (confidence {c.confidence:.2f})"
+        for c in candidates
+    ]
+    return "\n".join(lines)
 
 
 def main() -> None:

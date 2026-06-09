@@ -3,6 +3,11 @@
 
 <h1>Review queue</h1>
 
+{% if jira_dry_run %}
+<p class="dryrun">Jira dry-run mode is ON — approving creates a DRY-* key, not a
+real issue. Set <code>JIRA_DRY_RUN=false</code> in .env to go live.</p>
+{% endif %}
+
 {% if needs_review %}
 <section class="warn">
   <h2>Needs manual handling ({{ needs_review|length }})</h2>

@@ -1,5 +1,6 @@
 """Jira Cloud REST API v3 client. Only called from the explicit Approve path."""
 import base64
+import itertools
 
 import httpx
 
@@ -9,6 +10,18 @@ from core.projects import ProjectConfig
 
 class JiraError(Exception):
     pass
+
+
+_dry_run_counter = itertools.count(1)
+
+
+class DryRunJiraClient:
+    """Testing mode (JIRA_DRY_RUN=true): the approve flow runs end-to-end —
+    payload built, candidate marked approved, audit written — but no request
+    leaves the machine. Issue keys are minted as DRY-<board>-<n>."""
+
+    def create_issue(self, fields: dict) -> str:
+        return f"DRY-{fields['project']['key']}-{next(_dry_run_counter)}"
 
 
 class JiraClient:

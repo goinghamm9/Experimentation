@@ -17,16 +17,31 @@ make test       # run the test suite
 `make harness` is the test harness: it runs the fixture emails in
 `tests/fixtures/emails/` through ingest → candidate generation with a
 deterministic offline stub, so you can exercise the whole review flow —
-including a Meet transcript — before adding any credentials. Add your own
-fixtures as JSON files in that directory to build test cases.
+including a Meet transcript, which drafts multiple candidates — before adding
+any credentials. Add your own fixtures as JSON files in that directory to
+build test cases.
+
+**Jira dry-run is ON by default** (`JIRA_DRY_RUN=true`): the Approve button
+runs the entire flow — payload built, candidate approved, audit written — but
+mints a `DRY-MSA-1`-style key instead of creating a real issue. The dashboard
+shows a banner while dry-run is active. That means you can test everything
+today with a single credential: an Anthropic API key.
+
+## Testing mode, today
+
+1. `cp .env.example .env`, set `ANTHROPIC_API_KEY` (console.anthropic.com).
+2. `make harness-live` — real Claude drafts from the fixtures.
+3. `make dev` — review, edit, approve (dry-run), reject in the dashboard.
+4. Paste a real client email or a Meet transcript via the dashboard forms and
+   see what it drafts. Transcripts produce one candidate per commitment.
+5. Add 2-3 few-shot examples (see below) and re-paste the same source — this
+   is the fastest way to watch quality respond to examples.
 
 ## Going live
 
-1. Copy `.env.example` to `.env` and fill in:
-   - `ANTHROPIC_API_KEY` + `ANTHROPIC_MODEL` — the runtime drafting model.
-     Keep it cheap (Haiku/Sonnet-class); it runs on every email.
+1. Fill in the rest of `.env`:
    - `JIRA_EMAIL` + `JIRA_API_TOKEN` — an [API token](https://id.atlassian.com/manage-profile/security/api-tokens)
-     for `samprand.atlassian.net`.
+     for `samprand.atlassian.net` — and set `JIRA_DRY_RUN=false`.
    - `DASHBOARD_USER` / `DASHBOARD_PASS` — change these.
 2. `make harness-live` — same fixtures, real Claude. Sanity-check draft quality.
 3. Gmail (label on your existing inbox):
@@ -46,14 +61,15 @@ fixtures as JSON files in that directory to build test cases.
 ## How it flows
 
 ```
-Gmail label ──poller──▶ emails table ──Claude──▶ candidate (pending)
-paste transcript ──┘        │ (idempotent)            │
-                            ▼                         ▼
+Gmail label ──poller──▶ emails table ──Claude──▶ candidates (pending)
+paste transcript ──┘        │ (idempotent)            │  1 per work item;
+                            ▼                         ▼  meetings yield several
                       needs-review queue   dashboard: edit / reject(reason)
                       (on parse failure)              │
                                               [Approve click]  ◀── the only
                                                       ▼            Jira path
                                             Jira issue (ADF) + audit entry
+                                            (or DRY-* key in dry-run mode)
 ```
 
 Every state change (ingested, drafted, edited, approved → issue key,
@@ -70,13 +86,28 @@ set `enabled: true` when ready. Two real rules ship as examples:
   PV0 sub-tasks (they inherit the parent's sprint).
 - `PV0.yaml`'s glossary pins the Pearme coaching agent's name to **"Lea"**.
 
-The few-shot examples are the main quality lever: paste real
-"email/transcript → ideal ticket" pairs (including drafts you made in
-ChatGPT/Claude historically) into the board's YAML.
+### Few-shot examples — the main quality lever
+
+How tickets get written per board is learned from examples, not code. Each
+board's examples live in two merged places: inline in `projects/<KEY>.yaml`
+and in `projects/examples/<KEY>.yaml` (written by the dashboard). Three ways
+to grow them:
+
+1. **Dashboard → Examples page**: paste a source email/transcript + the ideal
+   ticket. This is where your past Claude/ChatGPT drafting chats go — open an
+   old chat, copy the client email you pasted in as the *source*, and the
+   final ticket you settled on as the *ticket* fields. 2-3 good pairs per
+   board move quality more than any prompt tweak.
+2. **"Save as few-shot example"** button on any candidate: after you edit and
+   approve a draft, one click stores the source → final-ticket pair. Reviewing
+   tickets grows the example base as a side effect.
+3. Edit the YAML files directly (`projects/examples/README.md` has the format).
 
 Prompt fragments live in `prompts/` and are assembled at runtime
-(global rules + board YAML + few-shots + output schema), so tuning needs no
-code changes. Each candidate stores the exact prompt and raw model response.
+(global rules + board YAML + merged few-shots + output schema), so tuning
+needs no code changes. Each candidate stores the exact prompt and raw model
+response, and rejection reasons are captured — so you can see exactly why a
+draft came out wrong and which example would fix it.
 
 ## Deferred features (interfaces only, not implemented)
 

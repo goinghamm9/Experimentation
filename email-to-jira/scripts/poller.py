@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core.config import settings  # noqa: E402
 from core.db import init_db, session_scope  # noqa: E402
-from core.generate import generate_candidate  # noqa: E402
+from core.generate import generate_candidates  # noqa: E402
 from core.ingest import ingest_message  # noqa: E402
 from core.projects import load_all, match_project  # noqa: E402
 
@@ -40,8 +40,11 @@ def poll_once(session, gmail, llm) -> dict:
             continue
         stats["ingested"] += 1
         project = match_project(email.sender, configs, settings.default_project_key)
-        candidate = generate_candidate(session, email, project, llm)
-        stats["drafted" if candidate else "needs_review"] += 1
+        candidates = generate_candidates(session, email, project, llm)
+        if candidates:
+            stats["drafted"] += len(candidates)
+        else:
+            stats["needs_review"] += 1
     return stats
 
 

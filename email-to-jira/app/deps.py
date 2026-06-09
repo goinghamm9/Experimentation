@@ -3,8 +3,9 @@ from typing import Iterator
 
 from sqlmodel import Session
 
+from core.config import settings
 from core.db import get_engine
-from core.jira_client import JiraClient
+from core.jira_client import DryRunJiraClient, JiraClient
 from core.llm import AnthropicClient
 
 
@@ -15,6 +16,8 @@ def get_session() -> Iterator[Session]:
 
 
 def get_jira():
+    if settings.jira_dry_run:
+        return DryRunJiraClient()
     return JiraClient()
 
 

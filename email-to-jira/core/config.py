@@ -29,6 +29,9 @@ class Settings:
     jira_base_url: str = field(default_factory=lambda: os.getenv("JIRA_BASE_URL", "https://samprand.atlassian.net"))
     jira_email: str = field(default_factory=lambda: os.getenv("JIRA_EMAIL", ""))
     jira_api_token: str = field(default_factory=lambda: os.getenv("JIRA_API_TOKEN", ""))
+    # Safe-by-default: approvals mint DRY-* keys instead of real issues until
+    # the operator explicitly sets JIRA_DRY_RUN=false.
+    jira_dry_run: bool = field(default_factory=lambda: os.getenv("JIRA_DRY_RUN", "true").lower() in ("1", "true", "yes"))
 
     gmail_label: str = field(default_factory=lambda: os.getenv("GMAIL_LABEL", "jira-intake"))
     gmail_credentials_path: str = field(default_factory=lambda: os.getenv("GMAIL_CREDENTIALS_PATH", "credentials.json"))

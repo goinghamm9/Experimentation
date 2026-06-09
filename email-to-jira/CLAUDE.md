@@ -44,9 +44,10 @@ Real rules that MUST be expressible per-board:
 Boards to support (enable incrementally, wire ONE first): MSA, PV0, MS, OR, KBS, OLAW, NAMA.
 
 ## Candidate generation contract
-- Assemble the system prompt from: global rules + the matched board's YAML + that board's few-shot examples.
-- Output strict JSON: `summary, description, issue_type, project_key, priority, labels[], acceptance_criteria[], confidence (0–1), rationale, source_email_id`.
+- Assemble the system prompt from: global rules + the matched board's YAML + that board's few-shot examples (inline YAML merged with `projects/examples/<KEY>.yaml`, which the dashboard's Examples page and "Save as example" button write to).
+- Output strict JSON: one object with `summary, description, issue_type, project_key, priority, labels[], acceptance_criteria[], confidence (0–1), rationale, source_email_id` — or an array of such objects (one per work item; meeting transcripts typically yield several, capped at 10).
 - Strip code fences, parse defensively. On parse failure or an API refusal, store the raw response and surface the email for manual handling — never crash, never silently drop.
+- `JIRA_DRY_RUN` (default true) makes Approve mint a `DRY-*` key instead of calling Jira — testing mode; set false to go live.
 
 ## How to run / verify
 - One-command dev run (add a `make dev` or documented command).

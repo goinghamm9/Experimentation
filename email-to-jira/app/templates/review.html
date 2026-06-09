@@ -66,9 +66,10 @@
 
     {% if not locked %}
     <div class="actions">
+      {% if jira_dry_run %}<p class="dryrun">Dry-run mode: Approve mints a DRY-* key, no real Jira issue.</p>{% endif %}
       <form method="post" action="/candidates/{{ c.id }}/approve"
             onsubmit="return confirm('Create this issue in Jira ({{ c.project_key }})?');">
-        <button type="submit" class="approve">Approve → create Jira issue</button>
+        <button type="submit" class="approve">Approve → create Jira issue{{ " (dry run)" if jira_dry_run }}</button>
       </form>
       <form method="post" action="/candidates/{{ c.id }}/reject" class="stack">
         <input name="reason" placeholder="Why is this wrong? (training signal)" required>
@@ -77,6 +78,13 @@
     </div>
     {% elif c.status == "rejected" %}
     <p class="meta">Rejected: {{ c.reject_reason }}</p>
+    {% endif %}
+    {% if c.project_key %}
+    <form method="post" action="/candidates/{{ c.id }}/save-example" class="actions">
+      <button type="submit" title="Store this source → ticket pair as few-shot material for {{ c.project_key }}">
+        Save as few-shot example
+      </button>
+    </form>
     {% endif %}
   </section>
 </div>

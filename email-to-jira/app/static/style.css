@@ -17,6 +17,7 @@ h1 { font-size: 1.4rem; } h2 { font-size: 1.05rem; margin-top: 1.6rem; }
 .badge.rejected { color: var(--bad); border-color: var(--bad); }
 .badge.pending, .badge.edited { color: var(--accent); border-color: var(--accent); }
 .warn { border-left: 4px solid var(--bad); padding-left: .8rem; }
+.dryrun { background: #fff8e1; border: 1px solid #e6c200; border-radius: 6px; padding: .4rem .7rem; font-size: .85rem; }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
 .email-body { white-space: pre-wrap; background: #f6f8fa; padding: .7rem; border-radius: 6px; font-size: .85rem; max-height: 420px; overflow: auto; }

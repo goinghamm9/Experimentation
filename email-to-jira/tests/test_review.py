@@ -4,9 +4,9 @@ import pytest
 
 from core.adf import candidate_description_adf, text_to_adf
 from core.audit import actions_for
-from core.generate import generate_candidate
+from core.generate import generate_candidates
 from core.ingest import ingest_message
-from core.jira_client import JiraError, build_issue_fields
+from core.jira_client import DryRunJiraClient, JiraError, build_issue_fields
 from core.models import CandidateStatus
 from core.projects import load_project
 from core.review import approve, reject, save_edits
@@ -23,7 +23,7 @@ def msa():
 @pytest.fixture
 def candidate(session, msa):
     email, _ = ingest_message(session, "msg-rev", "client@mpr.org", "Login broken", "Safari loops.")
-    return generate_candidate(session, email, msa, FakeLLM(response=good_candidate_json(email.id)))
+    return generate_candidates(session, email, msa, FakeLLM(response=good_candidate_json(email.id)))[0]
 
 
 def test_text_to_adf_paragraphs_headings_bullets():
@@ -84,6 +84,26 @@ def test_save_edits_marks_edited_and_audits(session, candidate):
     assert candidate.labels_list == ["auth"]
     log = actions_for(session, "candidate", candidate.id)
     assert log[-1].action == "edited"
+
+
+def test_dry_run_client_mints_dry_keys_and_approve_flow_works(session, candidate, msa):
+    jira = DryRunJiraClient()
+    approve(session, candidate, msa, jira)
+    assert candidate.status == CandidateStatus.APPROVED.value
+    assert candidate.jira_issue_key.startswith("DRY-MSA-")
+    log = [a.action for a in actions_for(session, "candidate", candidate.id)]
+    assert log == ["drafted", "approved"]
+
+
+def test_get_jira_honors_dry_run_setting(monkeypatch):
+    from app.deps import get_jira
+    from core.config import settings
+    from core.jira_client import JiraClient
+
+    monkeypatch.setattr(settings, "jira_dry_run", True)
+    assert isinstance(get_jira(), DryRunJiraClient)
+    monkeypatch.setattr(settings, "jira_dry_run", False)
+    assert isinstance(get_jira(), JiraClient)
 
 
 def test_pv0_subtask_sprint_rule():

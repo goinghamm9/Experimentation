@@ -24,8 +24,14 @@ class ProjectConfig:
     @classmethod
     def from_yaml(cls, path: Path) -> "ProjectConfig":
         data = yaml.safe_load(path.read_text()) or {}
+        key = data.get("project_key", path.stem)
+        # Few-shots come from two places: inline in the board YAML (hand-edited)
+        # and projects/examples/<KEY>.yaml (written by the dashboard's
+        # "Save as example" / paste form). Both feed the prompt identically.
+        examples = list(data.get("few_shot_examples") or [])
+        examples += _load_example_store(path.parent, key)
         return cls(
-            key=data.get("project_key", path.stem),
+            key=key,
             name=data.get("name", ""),
             enabled=bool(data.get("enabled", False)),
             allowed_issue_types=data.get("allowed_issue_types") or ["Task"],
@@ -34,9 +40,32 @@ class ProjectConfig:
             conventions=data.get("conventions", "") or "",
             board_rules=data.get("board_rules", "") or "",
             glossary=data.get("glossary") or {},
-            few_shot_examples=data.get("few_shot_examples") or [],
+            few_shot_examples=examples,
             sender_domains=data.get("sender_domains") or [],
         )
+
+
+def _example_store_path(projects_dir: Path, key: str) -> Path:
+    return projects_dir / "examples" / f"{key}.yaml"
+
+
+def _load_example_store(projects_dir: Path, key: str) -> list[dict]:
+    path = _example_store_path(projects_dir, key)
+    if not path.exists():
+        return []
+    return yaml.safe_load(path.read_text()) or []
+
+
+def append_example(key: str, source: str, ticket: dict, projects_dir: Path | None = None) -> int:
+    """Append a few-shot example (source text -> ideal ticket) to the board's
+    example store. Returns the new example count for the board."""
+    directory = projects_dir or settings.projects_dir
+    path = _example_store_path(directory, key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    examples = _load_example_store(directory, key)
+    examples.append({"source": source, "ticket": ticket})
+    path.write_text(yaml.safe_dump(examples, allow_unicode=True, sort_keys=False))
+    return len(examples)
 
 
 def load_all(projects_dir: Path | None = None) -> dict[str, ProjectConfig]:

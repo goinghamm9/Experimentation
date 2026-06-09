@@ -55,9 +55,19 @@ def build_system_prompt(project: ProjectConfig, prompts_dir: Optional[Path] = No
 
 
 def build_user_prompt(email: Email) -> str:
-    kind = "meeting transcript" if email.source_type == "transcript" else "client email"
+    if email.source_type == "transcript":
+        instruction = (
+            "Extract Jira ticket candidates from this meeting transcript — one per "
+            "distinct commitment or decision (typically 1-5). Ignore discussion that "
+            "did not land on a commitment."
+        )
+    else:
+        instruction = (
+            "Draft Jira ticket candidate(s) from this client email. Usually ONE "
+            "ticket; only split if it contains clearly separate actionable requests."
+        )
     return (
-        f"Draft one Jira ticket candidate from this {kind}.\n"
+        f"{instruction}\n"
         f"source_email_id: {email.id}\n"
         f"From: {email.sender}\n"
         f"Subject: {email.subject}\n\n"
@@ -65,34 +75,56 @@ def build_user_prompt(email: Email) -> str:
     )
 
 
-def parse_candidate_json(raw: str) -> dict:
-    """Strip code fences / surrounding prose and parse the JSON object."""
+MAX_TICKETS_PER_SOURCE = 10
+
+
+def _extract_json_payload(raw: str) -> str:
+    """Strip code fences / surrounding prose around a JSON object or array."""
     text = raw.strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", text, re.DOTALL)
     if fence:
         text = fence.group(1).strip()
-    if not text.startswith("{"):
-        start, end = text.find("{"), text.rfind("}")
-        if start == -1 or end <= start:
-            raise ValueError("no JSON object found in model output")
-        text = text[start : end + 1]
-    data = json.loads(text)
-    if not isinstance(data, dict):
-        raise ValueError("model output is not a JSON object")
-    missing = [f for f in REQUIRED_FIELDS if not data.get(f)]
-    if missing:
-        raise ValueError(f"candidate JSON missing fields: {missing}")
-    return data
+    if text.startswith(("{", "[")):
+        return text
+    starts = [i for i in (text.find("{"), text.find("[")) if i != -1]
+    if not starts:
+        raise ValueError("no JSON found in model output")
+    start = min(starts)
+    end = text.rfind("}" if text[start] == "{" else "]")
+    if end <= start:
+        raise ValueError("no JSON found in model output")
+    return text[start : end + 1]
 
 
-def generate_candidate(
+def parse_candidates_json(raw: str) -> list[dict]:
+    """Parse one ticket object, an array of them, or {"tickets": [...]} —
+    transcripts routinely yield several work items per meeting."""
+    data = json.loads(_extract_json_payload(raw))
+    if isinstance(data, dict) and isinstance(data.get("tickets"), list):
+        data = data["tickets"]
+    items = data if isinstance(data, list) else [data]
+    if not items:
+        raise ValueError("model returned an empty ticket list")
+    if len(items) > MAX_TICKETS_PER_SOURCE:
+        raise ValueError(f"model returned {len(items)} tickets (max {MAX_TICKETS_PER_SOURCE})")
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ValueError(f"ticket {i} is not a JSON object")
+        missing = [f for f in REQUIRED_FIELDS if not item.get(f)]
+        if missing:
+            raise ValueError(f"ticket {i} missing fields: {missing}")
+    return items
+
+
+def generate_candidates(
     session: Session,
     email: Email,
     project: ProjectConfig,
     llm: LLMClient,
     prompts_dir: Optional[Path] = None,
-) -> Optional[Candidate]:
-    """Returns the pending Candidate, or None if the email needs manual review."""
+) -> list[Candidate]:
+    """Returns the pending Candidates (a transcript often yields several), or
+    an empty list if the email was routed to manual review."""
     system_prompt = build_system_prompt(project, prompts_dir)
     user_prompt = build_user_prompt(email)
     prompt_used = f"[system]\n{system_prompt}\n\n[user]\n{user_prompt}"
@@ -101,14 +133,17 @@ def generate_candidate(
         raw = llm.complete(system_prompt, user_prompt)
     except LLMError as exc:
         _mark_needs_review(session, email, prompt_used, raw="", reason=f"llm_error: {exc}")
-        return None
+        return []
 
     try:
-        data = parse_candidate_json(raw)
-        return _build_candidate(session, email, project, data, prompt_used, raw)
+        items = parse_candidates_json(raw)
+        return [
+            _build_candidate(session, email, project, item, prompt_used, raw)
+            for item in items
+        ]
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         _mark_needs_review(session, email, prompt_used, raw=raw, reason=f"parse_error: {exc}")
-        return None
+        return []
 
 
 def _as_str_list(value) -> list[str]:
