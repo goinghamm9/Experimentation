@@ -1,0 +1,8 @@
+{
+  "gmail_message_id": "fixture-feature-001",
+  "thread_id": "fixture-thread-2",
+  "sender": "j.alvarez@mpr.org",
+  "subject": "Request: CSV export for the admin reports",
+  "body": "Hello,\n\nOur finance team asked whether the monthly usage report in the admin panel could be exported as CSV. Right now they copy the table by hand into Excel.\n\nNo hard deadline, but before end of quarter would be great.\n\nBest,\nJulia",
+  "source_type": "email"
+}

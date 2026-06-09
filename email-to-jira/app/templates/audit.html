@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Audit log</h1>
+<table>
+  <tr><th>When</th><th>Entity</th><th>Action</th><th>Detail</th></tr>
+  {% for a in entries %}
+  <tr>
+    <td>{{ a.created_at }}</td>
+    <td>{{ a.entity_type }} #{{ a.entity_id }}</td>
+    <td>{{ a.action }}</td>
+    <td>{{ a.detail }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

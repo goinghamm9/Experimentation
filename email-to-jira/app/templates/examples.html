@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Few-shot examples</h1>
+<p class="meta">
+  These pairs (source → ideal ticket) are sent to the model with every draft for
+  their board — they are the main quality lever. Paste material from your past
+  Claude/ChatGPT drafting chats here, or click “Save as few-shot example” on a
+  reviewed candidate. Saved to <code>projects/examples/&lt;BOARD&gt;.yaml</code>.
+</p>
+
+<section>
+  <h2>Coverage by board</h2>
+  <table>
+    <tr><th>Board</th><th>Status</th><th>Examples</th></tr>
+    {% for key, p in projects.items() %}
+    <tr>
+      <td>{{ key }} — {{ p.name }}</td>
+      <td>{{ "wired" if p.enabled else "not wired" }}</td>
+      <td>{{ p.few_shot_examples|length }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+
+<section>
+  <h2>Add an example</h2>
+  <form method="post" action="/examples" class="stack">
+    <label>Board
+      <select name="project_key">
+        {% for key, p in projects.items() %}
+        <option value="{{ key }}">{{ key }} — {{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Source (the raw client email or transcript excerpt)
+      <textarea name="source" rows="6" required
+        placeholder="Paste the original email/transcript text the ticket came from…"></textarea>
+    </label>
+    <label>Ideal ticket — summary
+      <input name="summary" required placeholder="e.g. Fix login redirect loop on Safari">
+    </label>
+    <label>Ideal ticket — description
+      <textarea name="description" rows="5"
+        placeholder="The final ticket description as you actually wrote it…"></textarea>
+    </label>
+    <label>Issue type
+      <input name="issue_type" value="Task">
+    </label>
+    <label>Priority
+      <select name="priority">
+        {% for p in ["Highest", "High", "Medium", "Low", "Lowest"] %}
+        <option value="{{ p }}" {{ "selected" if p == "Medium" }}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Labels (comma-separated)
+      <input name="labels">
+    </label>
+    <label>Acceptance criteria (one per line)
+      <textarea name="acceptance_criteria" rows="3"></textarea>
+    </label>
+    <button type="submit">Save example</button>
+  </form>
+</section>
+
+{% endblock %}

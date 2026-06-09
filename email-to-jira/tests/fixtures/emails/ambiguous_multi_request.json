@@ -1,0 +1,8 @@
+{
+  "gmail_message_id": "fixture-ambiguous-001",
+  "thread_id": "fixture-thread-4",
+  "sender": "d.keller@mpr.org",
+  "subject": "a few things",
+  "body": "hey — couple things from our side: the dashboard feels slower lately (maybe since the last release?), we still need that user-roles discussion at some point, and marketing wants the logo on the login screen swapped for the new one (attached last week). also are invoices going out this month? thanks!",
+  "source_type": "email"
+}

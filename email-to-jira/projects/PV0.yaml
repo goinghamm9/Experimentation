@@ -1,0 +1,28 @@
+# PearMe v2.0 — disabled until MSA is solid. Real board rules already captured.
+project_key: PV0
+name: "PearMe v2.0"
+enabled: false
+
+allowed_issue_types: [Task, Bug, Story, Sub-task]
+default_issue_type: Task
+
+# Jira rejects sprints on PV0 sub-tasks ("subtasks cannot be associated to a
+# sprint") — they inherit the parent's sprint. MUST stay false.
+set_sprint_on_subtasks: false
+
+sender_domains: []
+  # TODO: pearme client domain(s)
+
+conventions: |
+  TODO: replace with real PV0 conventions.
+
+board_rules: |
+  - Sub-tasks inherit their sprint from the parent; never set the sprint field
+    on a Sub-task.
+  TODO: other PV0 mechanics.
+
+glossary:
+  Lea: 'The Pearme coaching agent is always "Lea" — never "Leia".'
+
+few_shot_examples: []
+  # TODO: paste real "email/transcript -> ideal PV0 ticket" pairs.

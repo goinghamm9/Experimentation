@@ -1,0 +1,8 @@
+{
+  "gmail_message_id": "fixture-transcript-001",
+  "thread_id": "fixture-thread-3",
+  "sender": "meet-recordings-noreply@google.com",
+  "subject": "Transcript: Weekly sync — MPR x Samprand (2026-06-08)",
+  "body": "Attendees: Dana (MPR), Julia (MPR), James (Samprand)\n\nDana: ...so the main thing for this week is the notifications backlog.\nJames: Understood. And the push notification opt-out?\nDana: Yes — we agreed legal needs an explicit opt-out toggle in user settings before the July release. That's a commitment now, not a nice-to-have.\nJulia: I'll send the copy for the toggle label by Wednesday.\nJames: Great, we'll ticket the opt-out toggle and schedule it ahead of the release.\nDana: Perfect. Nothing else from us.",
+  "source_type": "transcript"
+}
