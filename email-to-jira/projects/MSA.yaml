@@ -1,0 +1,29 @@
+# MPR Staff Augmentation — the first wired board.
+project_key: MSA
+name: "MPR Staff Augmentation"
+enabled: true
+
+allowed_issue_types: [Task, Bug, Story, Sub-task]
+default_issue_type: Task
+
+set_sprint_on_subtasks: true
+
+sender_domains: []
+  # TODO: add the client's email domain(s) so MSA mail routes here, e.g.:
+  # - mpr.org
+
+conventions: |
+  TODO: replace with real MSA conventions. Until then:
+  - Summary: imperative, mentions the affected app/area.
+  - Description: Context / Request / Notes sections.
+  - Bugs include reproduction steps when the email provides them.
+
+board_rules: |
+  TODO: MSA-specific mechanics (components, triage owner, required fields).
+
+glossary: {}
+  # TODO: client-specific terminology, verbatim.
+
+few_shot_examples: []
+  # TODO: paste 2-3 real "client email -> ideal MSA ticket" pairs here.
+  # This is the main quality lever; the model sees these on every MSA email.

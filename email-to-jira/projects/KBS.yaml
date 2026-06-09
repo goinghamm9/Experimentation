@@ -1,0 +1,41 @@
+# KBS Products — template; fill TODOs and set enabled: true when ready to wire.
+project_key: KBS
+name: "KBS Products"
+enabled: false
+
+allowed_issue_types: [Task, Bug, Story, Sub-task]
+default_issue_type: Task
+
+# PV0-style boards reject sprints on sub-tasks; set false there.
+set_sprint_on_subtasks: true
+
+# Emails from these domains route to this board (poller matching).
+sender_domains: []
+  # - clientdomain.com
+
+conventions: |
+  TODO: how tickets are written on this board (summary style, required
+  description sections, estimation habits, definition of done...).
+
+board_rules: |
+  TODO: board-specific mechanics the model and the Jira client must respect
+  (sprint behavior, required fields, components, who triages...).
+
+glossary: {}
+  # TermUsedByClient: "Exact verbatim term to use in tickets"
+
+# Few-shot examples are the highest-leverage tuning surface. Paste real
+# email/transcript -> ideal ticket pairs here (including content exported from
+# past ChatGPT/Claude drafting sessions).
+few_shot_examples: []
+  # - source: |
+  #     TODO: paste the raw client email or transcript excerpt
+  #   ticket:
+  #     summary: "TODO"
+  #     description: |
+  #       TODO
+  #     issue_type: Task
+  #     priority: Medium
+  #     labels: []
+  #     acceptance_criteria:
+  #       - "TODO"
