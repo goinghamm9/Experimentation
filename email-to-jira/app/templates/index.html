@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Review queue</h1>
+
+{% if needs_review %}
+<section class="warn">
+  <h2>Needs manual handling ({{ needs_review|length }})</h2>
+  <p>Generation failed for these sources — re-draft or handle by hand.</p>
+  {% for email in needs_review %}
+  <div class="card">
+    <strong>{{ email.subject or "(no subject)" }}</strong>
+    <span class="meta">{{ email.sender }} · {{ email.source_type }}</span>
+    <form method="post" action="/emails/{{ email.id }}/generate" class="inline">
+      <select name="project_key">
+        {% for key, p in projects.items() %}{% if p.enabled %}
+        <option value="{{ key }}">{{ key }}</option>
+        {% endif %}{% endfor %}
+      </select>
+      <button type="submit">Re-draft</button>
+    </form>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section>
+  <h2>Pending candidates ({{ pending|length }})</h2>
+  {% if not pending %}<p class="meta">Nothing waiting for review.</p>{% endif %}
+  {% for c in pending %}
+  <a class="card row" href="/candidates/{{ c.id }}">
+    <span class="key">{{ c.project_key }} · {{ c.issue_type }}</span>
+    <strong>{{ c.summary }}</strong>
+    <span class="confidence" title="model confidence">{{ "%.0f"|format(c.confidence * 100) }}%</span>
+    <span class="badge {{ c.status }}">{{ c.status }}</span>
+  </a>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Add a meeting transcript</h2>
+  <p class="meta">Paste a Google Meet / Drive transcript; it joins the queue like an email.</p>
+  <form method="post" action="/transcripts" class="stack">
+    <input name="title" placeholder="Meeting title, e.g. Weekly sync with MPR 2026-06-09" required>
+    <textarea name="text" rows="6" placeholder="Paste the transcript…" required></textarea>
+    <button type="submit">Ingest transcript</button>
+  </form>
+</section>
+
+{% if processed %}
+<section>
+  <h2>Recently processed</h2>
+  {% for c in processed %}
+  <a class="card row" href="/candidates/{{ c.id }}">
+    <span class="key">{{ c.project_key }}</span>
+    <strong>{{ c.summary }}</strong>
+    <span class="badge {{ c.status }}">{{ c.jira_issue_key or c.status }}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% endblock %}

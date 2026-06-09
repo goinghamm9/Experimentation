@@ -1,0 +1,32 @@
+:root { --ink: #1b1f24; --muted: #6a737d; --line: #d8dde3; --accent: #0b5fff; --ok: #1a7f37; --bad: #b42318; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--ink); }
+header { display: flex; gap: 1rem; align-items: baseline; padding: .8rem 1.2rem; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; text-decoration: none; color: var(--ink); }
+nav a { margin-right: .8rem; color: var(--muted); text-decoration: none; }
+main { max-width: 1100px; margin: 0 auto; padding: 1rem 1.2rem 4rem; }
+h1 { font-size: 1.4rem; } h2 { font-size: 1.05rem; margin-top: 1.6rem; }
+.meta { color: var(--muted); font-size: .85rem; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: .7rem .9rem; margin: .5rem 0; }
+.card.row { display: flex; gap: .8rem; align-items: baseline; text-decoration: none; color: inherit; }
+.card.row:hover { border-color: var(--accent); }
+.key { font-family: ui-monospace, monospace; color: var(--muted); white-space: nowrap; }
+.confidence { margin-left: auto; color: var(--muted); }
+.badge { font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--line); }
+.badge.approved { color: var(--ok); border-color: var(--ok); }
+.badge.rejected { color: var(--bad); border-color: var(--bad); }
+.badge.pending, .badge.edited { color: var(--accent); border-color: var(--accent); }
+.warn { border-left: 4px solid var(--bad); padding-left: .8rem; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+@media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+.email-body { white-space: pre-wrap; background: #f6f8fa; padding: .7rem; border-radius: 6px; font-size: .85rem; max-height: 420px; overflow: auto; }
+.stack { display: flex; flex-direction: column; gap: .6rem; }
+.stack label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; color: var(--muted); }
+input, select, textarea { font: inherit; padding: .4rem .5rem; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); }
+button { font: inherit; padding: .45rem .9rem; border-radius: 6px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+button.approve { background: var(--ok); border-color: var(--ok); color: #fff; font-weight: 600; }
+button.reject { border-color: var(--bad); color: var(--bad); }
+.actions { display: flex; flex-direction: column; gap: .8rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--line); }
+.inline { display: inline-flex; gap: .4rem; margin-left: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+td, th { border-bottom: 1px solid var(--line); padding: .35rem .5rem; text-align: left; vertical-align: top; }
