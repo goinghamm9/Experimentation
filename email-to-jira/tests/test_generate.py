@@ -74,6 +74,16 @@ def test_generate_clamps_disallowed_issue_type_and_priority(session, email, msa)
     assert candidate.priority == "Medium"
 
 
+def test_generate_tolerates_sloppy_field_types(session, email, msa):
+    llm = FakeLLM(response=good_candidate_json(
+        email.id, confidence="high", labels="auth", acceptance_criteria="it works"))
+    candidate = generate_candidate(session, email, msa, llm)
+    assert candidate is not None  # never crash on malformed-but-parseable output
+    assert candidate.confidence == 0.0
+    assert candidate.labels_list == ["auth"]  # bare string wrapped, not split into chars
+    assert candidate.acceptance_criteria_list == ["it works"]
+
+
 def test_unparseable_output_surfaces_for_manual_review(session, email, msa):
     llm = FakeLLM(response="I cannot produce JSON for this, sorry.")
     candidate = generate_candidate(session, email, msa, llm)

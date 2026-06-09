@@ -105,10 +105,36 @@ def generate_candidate(
 
     try:
         data = parse_candidate_json(raw)
-    except (ValueError, json.JSONDecodeError) as exc:
+        return _build_candidate(session, email, project, data, prompt_used, raw)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
         _mark_needs_review(session, email, prompt_used, raw=raw, reason=f"parse_error: {exc}")
         return None
 
+
+def _as_str_list(value) -> list[str]:
+    """Model fields that should be lists sometimes arrive as a bare string."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    return [str(item) for item in value]
+
+
+def _as_confidence(value) -> float:
+    try:
+        return max(0.0, min(1.0, float(value)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _build_candidate(
+    session: Session,
+    email: Email,
+    project: ProjectConfig,
+    data: dict,
+    prompt_used: str,
+    raw: str,
+) -> Candidate:
     issue_type = data.get("issue_type", project.default_issue_type)
     if issue_type not in project.allowed_issue_types:
         issue_type = project.default_issue_type
@@ -123,14 +149,14 @@ def generate_candidate(
         summary=str(data.get("summary", ""))[:255],
         description=str(data.get("description", "")),
         priority=priority,
-        confidence=max(0.0, min(1.0, float(data.get("confidence") or 0.0))),
+        confidence=_as_confidence(data.get("confidence")),
         rationale=str(data.get("rationale", "")),
         prompt_used=prompt_used,
         raw_response=raw,
         status=CandidateStatus.PENDING.value,
     )
-    candidate.labels_list = [str(l) for l in data.get("labels") or []]
-    candidate.acceptance_criteria_list = [str(c) for c in data.get("acceptance_criteria") or []]
+    candidate.labels_list = _as_str_list(data.get("labels"))
+    candidate.acceptance_criteria_list = _as_str_list(data.get("acceptance_criteria"))
     session.add(candidate)
 
     email.status = EmailStatus.DRAFTED.value

@@ -28,6 +28,13 @@ def _split_lines(value: str) -> list[str]:
     return [line.strip() for line in value.splitlines() if line.strip()]
 
 
+def _candidate_or_404(session: Session, candidate_id: int) -> Candidate:
+    candidate = session.get(Candidate, candidate_id)
+    if not candidate:
+        raise HTTPException(404)
+    return candidate
+
+
 @router.get("/")
 def index(request: Request, session: Session = Depends(get_session)):
     pending = session.exec(
@@ -55,16 +62,16 @@ def index(request: Request, session: Session = Depends(get_session)):
 
 @router.get("/candidates/{candidate_id}")
 def review_view(candidate_id: int, request: Request, session: Session = Depends(get_session)):
-    candidate = session.get(Candidate, candidate_id)
-    if not candidate:
-        raise HTTPException(404)
+    candidate = _candidate_or_404(session, candidate_id)
     email = session.get(Email, candidate.email_id)
-    project = load_all().get(candidate.project_key)
+    if not email:
+        raise HTTPException(404, f"source email {candidate.email_id} missing")
+    projects = load_all()
     return templates.TemplateResponse(request, "review.html", {
         "c": candidate,
         "email": email,
-        "project": project,
-        "projects": load_all(),
+        "project": projects.get(candidate.project_key),
+        "projects": projects,
         "audit": actions_for(session, "candidate", candidate.id),
     })
 
@@ -81,9 +88,9 @@ def edit_candidate(
     labels: str = Form(""),
     acceptance_criteria: str = Form(""),
 ):
-    candidate = session.get(Candidate, candidate_id)
-    if not candidate:
-        raise HTTPException(404)
+    candidate = _candidate_or_404(session, candidate_id)
+    if project_key not in load_all():
+        raise HTTPException(400, f"unknown board {project_key!r}")
     save_edits(session, candidate, {
         "project_key": project_key,
         "issue_type": issue_type,
@@ -103,9 +110,7 @@ def approve_candidate(
     jira=Depends(get_jira),
 ):
     """The explicit human approval step — the only path that touches Jira."""
-    candidate = session.get(Candidate, candidate_id)
-    if not candidate:
-        raise HTTPException(404)
+    candidate = _candidate_or_404(session, candidate_id)
     try:
         project = load_project(candidate.project_key)
     except FileNotFoundError:
@@ -125,9 +130,7 @@ def reject_candidate(
     reason: str = Form(...),
     session: Session = Depends(get_session),
 ):
-    candidate = session.get(Candidate, candidate_id)
-    if not candidate:
-        raise HTTPException(404)
+    candidate = _candidate_or_404(session, candidate_id)
     try:
         reject(session, candidate, reason)
     except ValueError as exc:

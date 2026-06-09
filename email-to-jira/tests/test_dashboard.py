@@ -90,6 +90,15 @@ def test_nothing_reaches_jira_without_approve(client, jira, candidate_id):
     assert jira.created == []  # v1 invariant
 
 
+def test_edit_rejects_unknown_board(client, candidate_id):
+    response = client.post(f"/candidates/{candidate_id}/edit", headers=AUTH, data={
+        "project_key": "NOSUCHBOARD", "issue_type": "Bug", "summary": "s",
+        "description": "d", "priority": "Medium",
+        "labels": "", "acceptance_criteria": "",
+    }, follow_redirects=False)
+    assert response.status_code == 400
+
+
 def test_reject_with_reason(client, candidate_id, session):
     response = client.post(f"/candidates/{candidate_id}/reject", headers=AUTH,
                            data={"reason": "duplicate of MSA-3"}, follow_redirects=False)
