@@ -1,0 +1,8 @@
+{
+  "gmail_message_id": "fixture-bug-001",
+  "thread_id": "fixture-thread-1",
+  "sender": "ops@mpr.org",
+  "subject": "Login page broken on Safari",
+  "body": "Hi team,\n\nSince yesterday several of our staff can't log in from Safari — after entering credentials they're bounced back to the login page in a loop. Chrome works fine.\n\nThis is blocking the morning shift, so it's fairly urgent.\n\nThanks,\nDana (MPR ops)",
+  "source_type": "email"
+}
