@@ -61,10 +61,32 @@ def alpha_eff(alpha: float, m_hypotheses: int) -> float:
 
 
 def max_spurious_correlation(m_hypotheses: int, n_observations: int) -> float:
-    """Expected largest |r| under the null across m comparisons: √(2·ln m / n)."""
+    """Expected largest |r| under the null across m comparisons: √(2·ln m / n).
+
+    **Approximation limit.** This is an asymptotic result valid when ``n`` is large
+    relative to ``ln m``. When ``m`` is large and ``n`` small the raw expression
+    exceeds 1, which is impossible for a correlation; the value is clamped and
+    :func:`search_is_saturated` reports that the bound has gone uninformative.
+
+    A clamped 1.0 is not a reassuring number — it means the search space is so
+    large relative to the sample that chance alone can produce *any* apparent
+    relationship, and no correlation from this run carries information.
+    """
     if m_hypotheses <= 1 or n_observations <= 0:
         return 0.0
-    return math.sqrt(2 * math.log(m_hypotheses) / n_observations)
+    return min(1.0, math.sqrt(2 * math.log(m_hypotheses) / n_observations))
+
+
+def search_is_saturated(m_hypotheses: int, n_observations: int) -> bool:
+    """True when the search space has outgrown the sample entirely.
+
+    At that point the expected largest chance correlation reaches 1.0: the data
+    cannot discriminate signal from noise at all, and findings must be reported as
+    hypothesis-generating only.
+    """
+    if m_hypotheses <= 1 or n_observations <= 0:
+        return False
+    return 2 * math.log(m_hypotheses) / n_observations >= 1.0
 
 
 @dataclass
@@ -93,8 +115,14 @@ class SearchLedger:
 
     def summary(self, n_observations: int, alpha: float = 0.05) -> str:
         r = self.report(n_observations, alpha)
-        return (
+        line = (
             f"m={int(r['m_hypotheses'])} hypotheses considered; "
             f"nominal α={alpha:.2f} → effective α={r['alpha_effective']:.3f}; "
             f"expected largest spurious |r|={r['expected_max_spurious_r']:.3f}"
         )
+        if search_is_saturated(self.hypotheses_considered, n_observations):
+            line += (
+                " — SATURATED: the search space has outgrown the sample, so chance "
+                "alone can produce any apparent relationship. Hypothesis-generating only."
+            )
+        return line

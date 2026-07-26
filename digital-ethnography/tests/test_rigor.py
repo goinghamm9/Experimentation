@@ -210,6 +210,19 @@ def test_max_spurious_correlation_matches_worked_example():
     assert max_spurious_correlation(20_000, 500) == pytest.approx(0.199, abs=0.01)
 
 
+def test_max_spurious_correlation_is_clamped_to_a_possible_value():
+    """The asymptotic formula exceeds 1 when m is large and n small.
+
+    A correlation above 1 is impossible; reporting one destroys credibility. The
+    clamped value means the search space has outgrown the sample entirely.
+    """
+    from ethnography.rigor.honesty import search_is_saturated
+
+    assert max_spurious_correlation(105, 5) == pytest.approx(1.0)
+    assert search_is_saturated(105, 5)
+    assert not search_is_saturated(20_000, 500)
+
+
 def test_search_ledger_accumulates_and_reports():
     led = SearchLedger()
     led.record("open_coding", 12)
