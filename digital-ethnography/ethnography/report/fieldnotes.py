@@ -36,6 +36,9 @@ class ReportInputs:
     personas: list[Persona]
     descriptions: list[ThickDescription]
     audit: AuditLog
+    saturation: object | None = None
+    reliability: object | None = None
+    search: object | None = None
 
 
 def render_markdown(data: ReportInputs) -> str:
@@ -77,6 +80,61 @@ def render_markdown(data: ReportInputs) -> str:
     add(f"- **Retention horizon:** {s.retention_days} days from observation")
     add(f"- **Audit chain integrity:** {'VERIFIED ✅' if data.audit.verify() else 'BROKEN ❌'}")
     add(f"- **Audit events recorded:** {len(data.audit.events())}")
+    add("")
+
+    # --- Rigor: the numbers that qualify every claim below. ---
+    add("## Methodological Rigor")
+    add("")
+    sat = data.saturation
+    if sat is not None:
+        add("### Saturation")
+        add("")
+        add(f"- **Sampling units (participants):** {sat.n_units}")
+        add(f"- **Codes observed:** {sat.n_codes_observed} "
+            f"(seen once: {sat.f1}, seen twice: {sat.f2})")
+        add(f"- **Good–Turing unseen mass (`f₁/n`):** {sat.unseen_mass:.3f}")
+        add(f"- **Chao1 projected richness:** {sat.chao1_bias_corrected:.1f} "
+            f"→ ~{sat.projected_unseen:.1f} code(s) not yet observed")
+        add("")
+        if sat.is_saturated:
+            add("_Singleton rate below 0.05 — consistent with approaching saturation. "
+                "This is evidence, not proof; saturation is asymptotic and never reached._")
+        else:
+            add("⚠️ _Singleton rate at or above 0.05 — **not saturated**. New codes were "
+                "still emerging when collection stopped, so absent themes cannot be "
+                "interpreted as absent from the population._")
+        add("")
+
+    rel = data.reliability
+    if rel is not None:
+        add("### Coder reliability")
+        add("")
+        if rel.alpha is None:
+            add(f"- **Krippendorff's α:** not computable ({rel.n_coders} coder)")
+            add(f"- ⚠️ {rel.note}")
+        else:
+            add(f"- **Krippendorff's α:** {rel.alpha:.3f} ({rel.interpretation()})")
+            add(f"- **Coders:** {rel.n_coders} nominal → "
+                f"**{rel.n_eff:.2f} effective** (ρ={rel.rho:.2f})")
+            add(f"- _{rel.note}_")
+        add("")
+
+    if data.search is not None:
+        r = data.search.report(len(data.corpus.observations))
+        add("### Search-space accounting")
+        add("")
+        add(f"- **Hypotheses considered (`m`):** {int(r['m_hypotheses'])}")
+        add(f"- **Nominal α:** {r['alpha_nominal']:.2f} → "
+            f"**effective α: {r['alpha_effective']:.3f}**")
+        add(f"- **Expected largest spurious \\|r\\| under the null:** "
+            f"{r['expected_max_spurious_r']:.3f}")
+        add("")
+        add("_A system that does not log `m` cannot state what its findings mean._")
+        add("")
+
+    add("> **These findings are a ranked queue, not a set of conclusions.** They are "
+        "interpretive claims qualified by the numbers above, and every estimator here "
+        "takes the coding scheme as given.")
     add("")
 
     # --- Findings. ---

@@ -21,6 +21,9 @@ from .analysis import axial_code, describe, open_code, reconstruct, synthesize
 from .ethics import AuditLog, ConsentRegistry, GateReport, GovernanceGate, Pseudonymizer
 from .llm.client import LLMClient, build_client
 from .report import ReportInputs, render_markdown
+from .rigor import SearchLedger, assess_reliability, assess_saturation
+from .rigor.reliability import ReliabilityReport
+from .rigor.saturation import SaturationReport
 from .schema import (
     Code,
     Corpus,
@@ -43,6 +46,9 @@ class StudyResult:
     descriptions: list[ThickDescription]
     audit: AuditLog
     report_markdown: str
+    saturation: SaturationReport
+    reliability: ReliabilityReport
+    search: SearchLedger
 
     @property
     def review_queue(self) -> list[str]:
@@ -89,6 +95,29 @@ class EthnographyPipeline:
         codes = open_code(corpus, codebook=self.codebook, llm=self.llm)
         themes = axial_code(codes)
 
+        # 3b. RIGOR — saturation, reliability, and search-space accounting.
+        # Deterministic computation; never a model judgement.
+        search = SearchLedger()
+        search.record("open_coding", len(codes))
+        search.record("axial_coding", len(themes))
+
+        obs_to_pid = {o.id: o.pid for o in corpus.observations}
+        code_to_units: dict[str, set[str]] = {
+            c.label: {obs_to_pid[oid] for oid in c.observation_ids if oid in obs_to_pid}
+            for c in codes
+        }
+        saturation = assess_saturation(code_to_units, n_units=len(corpus.participants))
+        self.audit.record(
+            "saturation",
+            self.study.id,
+            unseen_mass=round(saturation.unseen_mass, 4),
+            projected_unseen=round(saturation.projected_unseen, 2),
+        )
+
+        # One deterministic coder in this pipeline: reliability is reported as
+        # UNKNOWN rather than assumed. Multi-coder runs supply `coder_answers`.
+        reliability = assess_reliability(units=[], n_coders=1)
+
         # 4. Journeys.
         journeys = reconstruct(corpus)
 
@@ -107,6 +136,9 @@ class EthnographyPipeline:
             personas=personas,
             descriptions=descriptions,
             audit=self.audit,
+            saturation=saturation,
+            reliability=reliability,
+            search=search,
         )
         report_md = render_markdown(report_inputs)
         self.audit.record("study_complete", self.study.id, themes=len(themes))
@@ -121,4 +153,7 @@ class EthnographyPipeline:
             descriptions=descriptions,
             audit=self.audit,
             report_markdown=report_md,
+            saturation=saturation,
+            reliability=reliability,
+            search=search,
         )
