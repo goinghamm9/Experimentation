@@ -18,6 +18,19 @@ number about nothing.*
 
 from .consensus import ConsensusReport, competence_weighted_answer, marchenko_pastur_edge
 from .consensus import assess as assess_consensus
+from .panel import (
+    Coder,
+    CoderKind,
+    Disagreement,
+    PanelReport,
+    RoutingAction,
+    assess_panel,
+    estimate_rho_from_agreement,
+    estimate_rho_from_shared_error,
+    frequency_label,
+    probability_sample,
+    route_disagreements,
+)
 from .honesty import (
     SearchLedger,
     alpha_eff,
@@ -47,4 +60,8 @@ __all__ = [
     "competence_weighted_answer",
     "ppv", "rule_of_three", "detection_floor", "alpha_eff",
     "max_spurious_correlation", "SearchLedger",
+    "assess_panel", "PanelReport", "Coder", "CoderKind", "RoutingAction",
+    "Disagreement", "probability_sample", "frequency_label",
+    "estimate_rho_from_agreement", "estimate_rho_from_shared_error",
+    "route_disagreements",
 ]
