@@ -1326,6 +1326,123 @@ multi-agent claim is made in marketing.
 
 ---
 
+## 14. The graph layer — three graphs, and only two of them earn their keep
+
+"Should this be graph-based?" is really three questions with three different answers. The architectural
+error is treating them as one.
+
+| | Nodes | Edges | Purpose | Verdict |
+|---|---|---|---|---|
+| **A. Derivation graph** | observations · codes · themes · claims | *derived-from* | Citations + cascading erasure | ✅ **Load-bearing — already decided** (§11.5) |
+| **B. Conceptual graph** | codes · themes | co-occurrence, subsumption | Axial coding, saturation, drift | ✅ **Load-bearing — it's what coding produces** |
+| **C. Social graph** | actors · **associations** | ties (multiplex) | The ethnographic object: structure, roles, culture | ✅ **Load-bearing — and the one I under-served** |
+| **D. Agent orchestration graph** | agents | control flow | Running the pipeline | ❌ **Decoration** |
+| **E. GraphRAG retrieval** | entities | extracted relations | Retrieval augmentation | ❌ **Redundant** |
+
+### 14.1 Where graph structure does *not* help
+
+**Agent orchestration (D) — no.** §13 just pruned the roster to four agents. A graph framework to sequence
+four nodes is exactly the decoration LOOPS.md warns about, and Temporal already gives durable fan-out/fan-in
+with a real state machine underneath. LangGraph is additionally licence-blocked for a hosted product
+(`langgraph-api` is Elastic-2.0, §11.3). **Control flow stays plain typed code inside Temporal activities.**
+
+**GraphRAG as a retrieval bolt-on (E) — no**, for a sharper reason than cost:
+
+> **The multi-agent coding pipeline already *is* a domain-specific GraphRAG.** Open coding extracts entities,
+> axial coding relates them, and the derivation graph records provenance. Bolting on a generic
+> entity-relation extractor would build a *second, worse* graph over the same corpus — one with no
+> methodological warrant and no provenance.
+
+### 14.2 Where it genuinely helps — and where I under-served it
+
+**(C) is the one worth taking seriously**, because the corpus is emphatic that blockmodeling is *"the most
+developed formal apparatus anthropology and sociology have for the thing ethnographers most often claim to
+have found: social structure"* (§14). Three consequences the architecture must absorb:
+
+**Positions are not communities — and picking the wrong instrument returns a confidently wrong answer.**
+
+```
+cohesion  →  who is densely connected to whom  →  community detection, modularity
+position  →  who occupies the same role        →  blockmodeling, equivalence
+```
+
+*Two village moneylenders who never interact are in the same position and different communities.* Modularity
+will never group them; a blockmodel will. So if the claim is about **brokers, gatekeepers, moderators,
+patrons** — role language — community detection is the wrong tool. This matters commercially: "find the
+communities" is what every social-listening product does, and **role structure is the thing none of them
+recover.**
+
+**Regular, not structural, equivalence.** Structural equivalence requires the *same* alters, so two moderators
+of two different servers are never equivalent — useless for cross-community comparison. **Regular
+equivalence** ("equivalent actors relate equivalently to equivalent others") is what "moderator" or "broker"
+actually means as a structural claim.
+
+**Multiplex or nothing.** The Manchester-school contribution was blockmodeling *several relations
+simultaneously*; Mauss's total social fact is the same argument — collapsing relations to one tie type
+destroys the phenomenon. **Which ties matter is a fieldwork finding, not a schema default**, and a blockmodel
+over the wrong tie set is precise nonsense.
+
+### 14.3 The node-set decision comes first (§14.4 Milofsky)
+
+> **A community is constituted by its associations, not by its residents.**
+
+The blockmodel over persons and the blockmodel over associations are **different objects answering different
+questions**. This is a support decision (`Θ`), not a data-collection detail — get it wrong and no amount of
+network mathematics recovers the structure, because the structure was never represented. It is the network
+form of the bias floor `min_θ KL(p* ‖ p_θ)`.
+
+For this product the entities are plausibly **subreddits, servers, moderator teams, repos, working groups and
+their overlapping memberships** — *not* an aggregate of individual posters. Sampling posters and aggregating
+produces a description of a **population**, not a community.
+
+⚠️ **This is currently unresolved and is listed as an open question.** It is also the highest-leverage
+unresolved question in the architecture, because it determines the schema.
+
+### 14.4 Statistical discipline — the part that stops graph theatre
+
+Graph analysis is where apophenia is easiest, so the gates come *before* the algorithm:
+
+1. **Marchenko–Pastur first (§12.2).** If the eigenvalue structure sits inside the noise bulk, **there is no
+   block structure to find** — stop. This single check prevents the standard failure of reading meaning into
+   the second and third eigenvectors of a small sample.
+2. **Degree-correct, always.** Real ethnographic networks have a few actors connected to nearly everyone.
+   Without degree correction an SBM recovers a high-degree block and a low-degree block and calls that
+   structure. Use **degree-corrected** and prefer **mixed-membership** — people occupy several roles at once,
+   which a hard partition denies by construction.
+3. **Choose block count by criterion, not inspection** (integrated classification likelihood / marginal
+   likelihood).
+4. **Confirmatory mode exists — use it.** Generalized blockmodeling lets you *pre-specify* the image matrix
+   fieldwork predicts, then test it. That is the format for a confirmatory ethnographic hypothesis about
+   structure, and it converts §7's process-tracing logic into something runnable on a network.
+5. **Survivorship bites hardest here (§11.4).** Associations form and dissolve invisibly; a network of the
+   *still-operating* ones is conditioned on `s(x)` in the strongest way, so **surviving structures look far
+   more adaptive than they are.** Sample the graveyard: dead servers, archived repos, abandoned forums.
+6. **Sampling reaches the well-connected** (§6.1). Chain referral is a random walk whose stationary
+   distribution is proportional to degree — correct by inverse degree, and note that under strong homophily
+   `λ₂ → 1` and the sample never leaves the first cluster *however large it gets*.
+
+### 14.5 Implementation — no graph database
+
+Consistent with §11.5: **bi-temporal edge tables in Postgres**, not a graph DB. Graphs A and B are small,
+write-once, and traversed in bounded walks; graph C is analysed in batch by pulling an edge list into
+`graph-tool`/`igraph` and fitting an SBM. Neither justifies a second store to isolate, back up, audit and
+erase from — and the candidates are hostile anyway (Apache AGE has unanswered PG17/PG18 support issues;
+FalkorDB is SSPLv1).
+
+Bi-temporal edges (`valid_from`/`valid_to` × `recorded_at`) are what make *"how culture evolves"* a query
+rather than a new subsystem — and they are what a **holonomy / measurement-invariance check** (§12.5) runs
+against when the schema changes.
+
+### 14.6 Net answer
+
+**Yes to graphs as the analytical and provenance substrate; no to graphs as an agent framework.** The
+derivation graph is already decided; the conceptual graph is what coding emits; the **social graph is a real
+gap** — and closing it with regular-equivalence blockmodeling over the *right node set* is plausibly the
+sharpest technical differentiator in the product, because it recovers **role structure**, which no
+social-listening or insight tool currently does.
+
+---
+
 ## 10. Top risks & how the architecture answers them
 
 | Risk | Mitigation (where) |

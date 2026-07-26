@@ -121,6 +121,29 @@ Six controls must be **architectural, not procedural**: search-space accounting,
 both axes, holonomy/invariance check on every schema migration, survivorship correction (sample the graveyard —
 churned users, dead communities, refusals), conformal intervals.
 
+## The graph layer (strategy §14)
+
+Three different graphs. Conflating them is the error.
+
+| Graph | Purpose | Verdict |
+|---|---|---|
+| **Derivation** (observation→code→theme→claim) | Citations + cascading erasure | ✅ decided (§11.5) |
+| **Conceptual** (code↔theme co-occurrence) | Axial coding, saturation, drift | ✅ it's what coding emits |
+| **Social** (actors/**associations**, multiplex ties) | Structure, roles, culture — the ethnographic object | ✅ **real gap, highest leverage** |
+| Agent-orchestration graph | Sequencing agents | ❌ decoration — 4 agents, Temporal handles it; LangGraph licence-blocked |
+| GraphRAG bolt-on | Retrieval | ❌ redundant — the coding pipeline *already is* a domain GraphRAG with provenance |
+
+**If you build the social graph, these are not optional:**
+- **Positions ≠ communities.** Role claims (broker, moderator, gatekeeper) need **blockmodeling with regular
+  equivalence** — modularity/community detection returns a confidently wrong answer. This is also the
+  differentiator: social listening finds communities; nobody recovers *roles*.
+- **Multiplex or nothing** — which ties matter is a fieldwork finding, not a schema default.
+- **Marchenko–Pastur before fitting.** Eigenvalues inside the noise bulk ⇒ **no structure to find; stop.**
+- **Degree-correct always**, prefer mixed-membership (people hold several roles); choose block count by
+  criterion, not inspection.
+- **Sample the graveyard** — surviving structures look far more adaptive than they are.
+- **No graph database.** Bi-temporal edge tables in Postgres (Apache AGE lags PG17/18; FalkorDB is SSPL).
+
 ## Hard scope boundaries
 
 - 🚫 **No law-enforcement / non-consenting collection.** It is *a different system, not a different setting*
