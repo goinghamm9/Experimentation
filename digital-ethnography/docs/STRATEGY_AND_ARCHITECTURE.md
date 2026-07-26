@@ -226,11 +226,24 @@ flowchart TD
    "same meaning, different label"). κ<0.4 poor · 0.4–0.6 moderate · 0.6–0.8 substantial · >0.8
    excellent. **Low agreement auto-escalates** to the debate moderator or a human. Agreement is both a
    quality gate and a headline trust metric shown to customers — *with the epistemology caveat of §2.4*.
-   > ⚠️ **AMENDMENT — the independence assumption largely does not hold.** Later adversarial research
-   > found that **LLM coder panels have severely correlated errors**: nine frontier judges drawn from
-   > seven model families supplied only ~**2 independent votes' worth** of information; panel accuracy
-   > fell **8–22pp short** of true independent voting; and the **best single judge often matched or beat
-   > the panel.** Multiple models are *not* multiple researchers.
+   > ⚠️ **AMENDMENT — the independence assumption does not hold.** Multiple models are *not* multiple
+   > researchers.
+   >
+   > ❓ **Evidence status, stated precisely.** The striking quantities first reported here — *nine judges ≈
+   > 2 independent votes, 8–22pp short of true independent voting, best single judge matching the panel* —
+   > are **UNVERIFIED**. They rest on one paper reached only through search extraction, and the independent
+   > fact-checker could not confirm the paper exists as described (arXiv, OpenReview, Semantic Scholar all
+   > egress-blocked). **Do not cite those figures.**
+   >
+   > ✅ **The conclusion survives anyway, on independent grounds** — the supplied formal corpus reaches it
+   > from first principles at §8.1/§10.6: correlated sources deflate effective sample size by
+   > `n_eff = k/(1+(k−1)ρ)`, and *"judges sharing a base model or a prompt lineage are correlated sources…
+   > ensembling them produces confidence rather than evidence."* That argument needs no benchmark. Report
+   > **Kish `n_eff`** alongside any agreement statistic.
+   >
+   > **Design consequence worth stating positively:** if lineage correlation is the binding constraint, then
+   > **pretrain-lineage diversity is the scarce resource** — deliberately recruit coders from *different
+   > base models*, and vary prompt frame and elicitation order, rather than adding more of the same family.
    >
    > **The redesign this forces:** κ is demoted from a *reliability claim* to a **disagreement-surfacing
    > router** — its job is to find the units humans must look at, not to certify correctness. Concretely:
@@ -591,6 +604,31 @@ other agents depend on* — a durable moat in the agent ecosystem, and the liter
 > **Every dollar figure here is directional and must be re-quoted before it enters a financial model** —
 > the research environment had egress blocked to most vendor hosts.
 
+### 11.0 Evidence status — read before quoting anything in §11
+
+All six research dives were put through an independent adversarial fact-check (14 agents, 0 errors). The
+single most important finding is about **the research environment itself**:
+
+> **Egress policy blocked most authoritative sources.** arXiv, ACL Anthology, OpenReview, Semantic Scholar,
+> every NVIDIA property, AWS/GCP/Azure docs, curia/EUR-Lex/EDPB, and most vendor sites returned HTTP 403 to
+> *both* the researcher and the fact-checker. Much of what reads as fact below is **search-extraction**, not
+> primary sourcing.
+
+This produces a hard stratification, and it should drive how much weight each claim carries:
+
+| Tier | What it covers | Trust |
+|---|---|---|
+| ✅ **Verified from primary artifacts** — GitHub raw, PyPI JSON, decompiled wheels | `langgraph-api` 0.11.1 = **Elastic-2.0** (vs `langgraph` 1.2.9 = MIT) · Arize Phoenix = **ELv2**, limitation clause read verbatim · Langfuse `oss` entitlements file · Temporal LangGraph plugin is **experimental**, all sub-claims hold · Temporal payload-codec crypto-shredding mechanism (verified by decompiling `temporalio` 1.30.0) · pgvector post-filtering README text · OWASP LLM08:2025 · Postgres RLS bypass semantics · Llama licence string | **High** |
+| ⚠️ **Directionally sound, numbers unusable** | NVIDIA/NIM pricing · inference share of COGS · Hostinger's feature gaps · self-hosting break-even · EU region/model availability | Act on the *direction*; re-quote every figure |
+| ❓ **Unverifiable — do not cite** | Presidio recall figures · the correlated-LLM-panel quantities · published refusal rates · EDPB endorsement of crypto-shredding · DPF appeal status | Conclusions may still hold on *other* grounds — say which |
+
+**Two corrections worth carrying forward on their own:**
+- ⚠️ **Model IDs were stale on arrival** (Qwen3.6 superseded Qwen 3.5 in April 2026). Treat tier logic as
+  durable and every model ID as config to re-verify.
+- ⚠️ **Temporal / DBOS / Restate are not interchangeable** — the hosting brief treated them as a
+  substitutable set, which the fact-checker flagged as its biggest error. §11.3 recommends Temporal
+  specifically, on requirements Temporal specifically meets.
+
 ### 11.1 The two decisions that are one-way doors
 
 Everything else is reversible. These two cost days now and six months later:
@@ -604,28 +642,56 @@ Add a third, specific to this product: **provenance edges from commit #1** (§11
 
 ### 11.2 Inference — the answer on Hermes and NIM
 
-**Hermes: don't build on it.** ⚠️ *(direction sound; some specifics unverified)*
-Hermes 4 (70B/405B) are **Llama-3.1 derivatives** — a 2024 base, 128K context, 8 officially supported
-languages, one hosted provider, and low independent intelligence-index scores. Two disqualifiers for
-*this* product specifically:
-- The **Llama 3.1 Community License** obliges prominent "Built with Meta Llama 3.1" display on the
-  product UI — on a *governance-branded* enterprise product.
-- Its two selling points have eroded: trained schema adherence is **commoditized by constrained
-  decoding** (XGrammar-class, >96–98% conformance on any model, default backend in vLLM/SGLang), and
-  its low-refusal behavior is matched by Gemma 4 / Qwen 3.5 at ~0.3–0.5% over-refusal — **without** the
+**Hermes: don't build the cascade on it — but it earns exactly one seat.** ⚠️ *(corrected after verification)*
+
+> ⚠️ **Naming hazard, flagged first.** In 2026 "Hermes" in an infrastructure conversation most often refers
+> to an **agent framework**, not the Nous Research model family. This section answers the *models*. If the
+> intended referent was the framework, this is the wrong answer — re-ask.
+
+**The nuance an earlier draft flattened.** "Hermes" is not one thing, and only *some* variants carry the
+licence problem:
+
+| Variant | Base | Licence | Context |
+|---|---|---|---|
+| Hermes 4 70B / 405B | Llama-3.1 | **Llama 3.1 Community** | 128K |
+| Hermes 4 14B | **Qwen3-14B** | **Apache-2.0** | 128K |
+| Hermes 4.3 36B | **ByteDance Seed-OSS-36B** | Apache-2.0 *(inferred from base — verify)* | **512K** |
+
+So the blanket "don't build on Hermes" was **too broad**. The Llama-derived 70B/405B carry the branding
+obligation; the Qwen- and Seed-OSS-derived variants do not.
+
+- ⚠️ **Licence string corrected.** The Llama 3.1 Community Licence §1.b.i requires displaying
+  **"Built with Llama"** — *not* "Built with Meta Llama 3.1", which an earlier draft asserted. Still a real
+  constraint on a governance-branded UI, but quote it correctly.
+- Its selling points have eroded: trained schema adherence is largely **commoditized by constrained
+  decoding**, and low-refusal behavior is matched by Gemma-/Qwen-class models — **without** the
   procurement and prompt-injection liability of a model marketed as having no guardrails. That
   liability is acute here because the moat *is* the ethics kernel and the inputs (forum text, session
   replay, support tickets) are attacker-influenceable.
+  - ⚠️ **Do not repeat "XGrammar is the default backend in vLLM"** — that is vendor self-description
+    *contradicted by vLLM's own docs*, where the default is `auto`. Constrained decoding is widely
+    available; the specific claim is wrong.
+  - ⚠️ **RefusalBench is Nous's own benchmark**, LLM-judged, constructed by the party optimizing against
+    it. Treat its numbers as marketing, not evidence.
+- ⚠️ **Documented margin risk:** Hermes 4 is *"too willing to spend the entire available budget before
+  closing its reasoning segment"*, and strict length control cost ~20pp on AIME. For a workload priced per
+  entry × participant, unbounded chain-of-thought is a direct cost problem.
 
-*Refusals are nonetheless a real methodological problem* — 2.7–20.1% refusal rates on hate-speech
-coding tasks, triggered by identity and social-group terms rather than profanity. For a platform that
-must analyze stigmatized community discourse, silent refusal is **coverage loss that looks like a
-finding**. Measure it explicitly as a quality metric.
+**The one seat Hermes earns.** Because model panels share errors heavily, **pretrain-lineage diversity is
+the scarce resource** (§12.2) — a Seed-OSS-based Hermes 4.3 36B is a *deliberately decorrelated voice* in a
+coder panel. That is a better argument for it than any benchmark. Verify its licence first.
 
-**Recommended open-weight cascade:** Qwen3-Embedding (retrieval) · Qwen 3.5 27B / Gemma 4 26B
-(high-volume deductive coding) · Qwen 3.5 122B / DeepSeek V4-Flash (inductive coding, synthesis) ·
-Mistral Large 3 + Apertus (EU-sovereign SKU) · frontier closed models via **Bedrock EU** for the
-hardest synthesis and adjudication.
+*Refusals remain a real methodological problem* — silent refusal on stigmatized community discourse is
+**coverage loss that looks like a finding**. Measure refusal rate explicitly as a quality metric.
+❓ *The specific published refusal percentages could not be independently verified (all paper hosts
+egress-blocked); the mechanism is sound, the numbers are not citable.*
+
+**Recommended open-weight cascade** — ⚠️ *model IDs are the fastest-moving thing in this document and were
+already stale on arrival: verification found **Qwen3.6 shipped April 2026**, superseding the Qwen 3.5
+recommendation below.* Treat the **tier logic** as durable and re-verify every model ID at build time:
+embedding model (retrieval) · small open-weight (high-volume deductive coding) · mid open-weight
+(inductive coding, synthesis) · EU-resident open-weight (sovereign SKU) · frontier closed via **Bedrock EU**
+for the hardest synthesis and adjudication.
 
 **NIM: don't adopt it.** ❓ *(pricing unverifiable — see below)*
 - ❓ **The ~$4,500/GPU/yr NVIDIA AI Enterprise figure could not be verified from primary sources.**
@@ -737,12 +803,23 @@ Helicone → Mintlify (now maintenance mode). Choose on license and self-hostabi
 and — critically — a **`derivation_edges` provenance table** plus a **`data_locations` erasure catalog**.
 
 ⭐ **Keep embeddings in pgvector *in that same database*, partitioned by `(tenant_id, study_id)`.**
-This is the key structural decision: tenant isolation is **inherited from RLS rather than
-reimplemented**, which kills the "forgotten metadata filter" class of cross-tenant leakage that OWASP
-names (LLM08:2025) as *the* multi-tenant RAG failure mode. Partitioning also converts pgvector's weak
-**post-filtering** behavior into **partition pruning** — which matters enormously here because *every*
-query in this product is filtered (tenant, study, consent scope, date, code). That single decision is
-what makes pgvector viable to roughly **50M vectors**.
+Tenant isolation is then **inherited from RLS rather than reimplemented**, which sharply reduces the
+"forgotten metadata filter" class of cross-tenant leakage that OWASP names (LLM08:2025) as *the*
+multi-tenant RAG failure mode (✅ *citation verified verbatim*).
+
+⚠️ **But "structurally eliminates" was overstated, and the caveat is operationally critical:**
+**RLS is bypassed by default for the role most applications actually use.** Postgres: *"Superusers and
+roles with the BYPASSRLS attribute always bypass the row security system."* Table owners also bypass RLS
+unless `FORCE ROW LEVEL SECURITY` is set. So RLS is a real control **only if** the application connects as
+a non-superuser, non-owner role without `BYPASSRLS`, and the table has `FORCE RLS`. Assert that in a test,
+not in a comment.
+
+✅ **pgvector's post-filtering weakness is confirmed verbatim** from its README: *"With approximate indexes,
+filtering is applied after the index is scanned. If a condition matches 10% of rows, with HNSW and the
+default `hnsw.ef_search` of 40, only 4 rows will match on average."* Since *every* query in this product is
+filtered (tenant, study, consent scope, date, code), partitioning to convert post-filtering into **partition
+pruning** is what makes pgvector viable at scale. ⚠️ The specific "~50M vectors" ceiling is an estimate —
+benchmark against your own embeddings and filter selectivity.
 
 ✅ **But the highest-value leakage control is not a database feature at all:**
 > **Retrieval tools must be structurally incapable of expressing a cross-tenant query.** Tenant scope
@@ -772,9 +849,15 @@ EDPB Guidelines 02/2025 endorse erasure via destruction of decryption keys.
 
 ### 11.6 The PII correction
 
-⚠️ **An earlier draft of this document recommended Microsoft Presidio as the core PII layer. That was
-wrong.** On the REDACT benchmark Presidio achieves **0.07 recall on high-sensitivity PII** (0.02 on
-partial mentions, 0.07 on obfuscated) versus **0.74–0.77 for LLM-based detectors**.
+⚠️ **An earlier draft recommended Microsoft Presidio as the core PII layer. The recommendation is
+withdrawn — but on weaker evidence than first stated.**
+
+❓ **Evidence status: UNVERIFIED.** The "0.07 recall on high-sensitivity PII vs 0.74–0.77 for LLM detectors"
+figures come from a single benchmark reached only via search extraction; the independent fact-checker could
+not corroborate them from *any* reachable source (arXiv, ACL Anthology, OpenReview all egress-blocked).
+**Do not cite these numbers.** The *architectural* argument does not depend on them: regex/NER is
+pattern-matching over surface forms and will systematically miss paraphrased, obfuscated, and contextual
+identifiers, which is exactly what free-text research data contains.
 
 Since redaction must happen **before any model call**, the corrected design is a **two-stage detector**:
 a **self-hosted LLM detector in-VPC as the primary**, with **regex/NER as a fast tripwire and

@@ -37,10 +37,10 @@ Researched and adversarially fact-checked. See §11–§12 of the strategy doc f
 |---|---|
 | Orchestration | **Temporal** (MIT) outside, plain typed Python inside. Workflow = the study; Activity = one bounded, idempotent, cost-attributed call |
 | Agent framework | **None as backbone.** `langgraph-api` is Elastic 2.0 — prohibits hosted-service offering |
-| Data | **One Postgres.** pgvector in the *same* DB, partitioned by `(tenant_id, study_id)` so isolation is inherited from RLS |
+| Data | **One Postgres.** pgvector in the *same* DB, partitioned by `(tenant_id, study_id)` so isolation is inherited from RLS. ⚠️ RLS is **bypassed by superusers, `BYPASSRLS` roles, and table owners** — connect as a plain role and set `FORCE ROW LEVEL SECURITY`, and assert it in a test |
 | Inference default | **Bedrock EU in-region endpoints.** Anthropic first-party has no EU option. The Bedrock *EU inference profile* routes to Zurich/London — outside the EEA. Use in-region endpoints only |
 | Self-hosted inference | **vLLM** (not NIM — it wraps vLLM and ships prefix caching *disabled*). Sovereign pod is a premium SKU, not a cost saving |
-| Open weights | Qwen 3.5 / Gemma 4 / Mistral Large 3. **Not Hermes** — Llama-3.1 derivative whose licence forces "Built with Meta Llama 3.1" onto a governance-branded UI |
+| Open weights | Open-weight cascade by **tier**, not by model ID (IDs go stale in weeks — Qwen3.6 already superseded Qwen 3.5). **Don't build the cascade on Hermes**: the 70B/405B are Llama-3.1 derivatives whose licence requires displaying **"Built with Llama"** on a governance-branded UI. But Hermes 4 14B (Qwen3 base) and 4.3 36B (Seed-OSS, 512K) are Apache-licensed and 4.3 earns **one seat as a deliberately decorrelated panel voice** |
 | Observability | **Self-hosted Langfuse** (MIT `oss`), OTel-instrumented so it stays a swappable sink and never becomes a sub-processor |
 | Gateway | **Self-hosted LiteLLM** — per-tenant keys, synchronous hard budget caps |
 | Hosting | Render/Railway EU → AWS `eu-central-1`. **Hostinger is not viable** as primary (no GPU/K8s/object storage/managed Postgres/KMS/VPC/SOC 2) — marketing site only, outside the compliance boundary |
@@ -53,15 +53,21 @@ route by capability profile, not model name), and a tenant→region pin in the d
 
 These were mistakes in earlier drafts. They are fixed; re-introducing them is a regression.
 
-- ❌ **Do not use inter-model κ as a reliability or validity claim.** LLM judges from one family are correlated
-  (~1 effective judge); α measures *shared professional vision*, not truth (corpus §15.6). Use **Cultural
-  Consensus Theory** (rank-one corrected agreement matrix, competence-weighted aggregation) with
-  **Marchenko–Pastur** for the signal/noise threshold, report `n_eff`, and use κ *against a human gold
-  codebook* only. κ between models is a **disagreement router** for human attention, nothing more.
+- ❌ **Do not use inter-model κ as a reliability or validity claim.** Judges sharing a base model or prompt
+  lineage are correlated sources; α measures *shared professional vision*, not truth (corpus §15.6). Use
+  **Cultural Consensus Theory** (rank-one corrected agreement matrix, competence-weighted aggregation) with
+  **Marchenko–Pastur** for the signal/noise threshold, report **Kish `n_eff`**, and use κ *against a human
+  gold codebook* only. κ between models is a **disagreement router** for human attention, nothing more.
+  → Positive corollary: **pretrain-lineage diversity is the scarce resource.** Recruit coders from
+  *different base models* and vary prompt frame and elicitation order, rather than adding more of one family.
+  ❓ *Specific published panel-correlation figures are unverified — the corpus's `n_eff` argument (§8.1/§10.6)
+  is the citable basis, and it needs no benchmark.*
 - ❌ **Do not try to build an unbiased judge.** Accept the judge is biased and correct it statistically —
   **PPI/DSL** against a gold **probability** sample (corpus §13.8).
-- ❌ **Do not recommend Presidio as the PII layer.** 0.07 recall on high-sensitivity PII vs 0.74–0.77 for LLM
-  detectors. Use an in-VPC LLM detector as primary, regex/NER as tripwire only.
+- ❌ **Do not recommend Presidio as the sole PII layer.** Use an in-VPC LLM detector as primary, regex/NER as
+  a tripwire. ❓ *The often-quoted "0.07 recall" figure is **unverified** — don't cite it. The argument stands
+  without it: regex/NER matches surface forms and will miss paraphrased, obfuscated and contextual
+  identifiers, which is precisely what free-text research data contains.*
 - ❌ **Do not spawn agents dynamically without logging `m`.** `max|r| ≈ √(2 ln m / n)` — a system that doesn't
   account for its own search space cannot state what its findings mean. Hard cap + `α_eff` reporting.
 - ❌ **Do not code on machine translation.** It destroys the indexical/pragmatic signal (register, honorifics,
@@ -147,7 +153,11 @@ Do not paper over these; they need evidence, not assertion.
 - Timezone-aware datetimes only; get "now" from `schema.utcnow()` (patchable).
 - New data source → add a `SourceAdapter`; nothing downstream changes.
 - New analysis → read `Corpus`, return schema dataclasses, set `provenance`.
-- Every dollar figure in the docs is **directional** — vendor egress was blocked during research. Re-quote
-  before it enters a financial model, especially NVIDIA licensing (never read from a primary source).
+- **Evidence hygiene.** Research ran under an egress policy that blocked arXiv, ACL, OpenReview, every NVIDIA
+  property, hyperscaler docs, and EU legal sources. Strategy §11.0 stratifies every §11 claim into
+  ✅ verified-from-primary-artifact / ⚠️ direction-sound-numbers-unusable / ❓ unverifiable. **Check the tier
+  before quoting.** Every dollar figure is directional — re-quote before it enters a financial model.
+- **"Hermes" is ambiguous** — in 2026 it usually names an *agent framework*, not the Nous model family. The
+  docs answer the models. Disambiguate before acting on any Hermes recommendation.
 - Keep the report's ethics section and limitations honest and up front. *"A Chao1 estimate computed over a
   badly specified code list is a confident number about nothing."*
