@@ -75,6 +75,32 @@ These were mistakes in earlier drafts. They are fixed; re-introducing them is a 
 - ❌ **Do not market "reliable/objective automated coding."** Reflexive TA rejects IRR as a category error;
   support both epistemologies and never conflate them.
 
+## Harness discipline (strategy §13)
+
+*"Short loops, simple state, clean contracts. Everything else is decoration."* — applied, this pruned the
+architecture hard. Keep it pruned.
+
+- **Four agent roles, not eleven:** orchestrator · coders (small N, **lineage-diverse**) · critic ·
+  synthesizer. Everything else is a **deterministic tool** (governance gate, reliability engine, embeddings)
+  or an **adapter** (connectors). Calling a computation an "agent" was a category error — κ/CCT/MP/PPI are
+  arithmetic and must never be delegated to a model's judgement.
+- **Three files or the state is too complicated:** `contract.md` (question, codebook/rubric, stopping rule,
+  k-floor, consent scope — *the thing a human approves*) · `state.json` (units coded, κ, `n_eff`, `f₁/n`,
+  logged `m`, cost) · `findings.jsonl` (append-only claims with evidence spans).
+- **Restart beats repair.** Coders disagree → *re-run the pass*, don't queue a human. Critic rejects → *
+  regenerate*. **Insert a human only when the contract is wrong, not when the build is.** Persistent
+  disagreement across restarts *is* a contract defect — escalate then.
+  → **Ethics gates survive this cut**: consent scope, k-anonymity release and publishing a claim are all
+  contract-level. This removes analytical review theatre, not governance.
+- **The codebook is the rubric, and the rubric is the product.** Weighted axes, written down, versioned,
+  **calibrated on labelled good/bad references**. Drawn as a *probability* sample, that one artifact serves
+  three jobs: calibration, reliability benchmark, and PPI rectifier. Reflexivity is an **axis**, not an agent.
+- **The harness is the debugger.** A failed study must be diagnosable from the trace alone: every step logs
+  inputs, contract version, cost, citations, and `m`.
+- **Don't over-apply it.** Karpathy writes about code, where the evaluator can compile and run the artifact.
+  Qualitative coding has **no oracle** — the gold set and PPI correction carry the weight a test suite carries
+  for him. Restart discipline governs the *build*; the rigor layer governs the *claim*.
+
 ## The rigor layer is the differentiator
 
 The insight category is crowded; **the rigor layer is not productised anywhere**. When implementing analysis,

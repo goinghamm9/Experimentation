@@ -1176,6 +1176,156 @@ over-claiming the mathematics exists to prevent.
 
 ---
 
+## 13. Harness discipline — LOOPS.md applied, and the agent roster pruned
+
+> **Source.** Andrej Karpathy, *LOOPS.md: Field Notes on Agents That Run for Days* — supplied by the founder.
+> Index terms: agentic loops, harness design, generator-evaluator pattern, file-system state, contract
+> negotiation, trace reading, **deletable scaffolding**.
+>
+> This section exists because LOOPS.md is a **direct critique of §3's architecture**, and engaging with it
+> honestly changes the design more than any research dive did.
+
+### 13.1 The thesis, and why it stings
+
+> *"Most agent systems die not from a weak model but from a weak harness. The model can write code; the model
+> can review code; the model can verify its own output against a rubric it agreed to ten minutes ago. What it
+> cannot do, on its own, is decide when to stop, when to restart, and where to write the result. That is the
+> work of the loop."*
+>
+> *"Short loops, simple state, clean contracts. **Everything else is decoration.**"*
+
+§3 specifies **eleven agent roles, six loops, four memory layers, and dynamic spawning.** Measured against
+that standard, much of it is decoration until proven otherwise. What follows is the prune.
+
+### 13.2 Agents vs. tools — most of §3's "agents" aren't agents
+
+The clarifying move: an **agent** is something that decides; a **tool** is something that computes. Several
+§3 roles were mislabelled, and calling them agents invited unnecessary orchestration.
+
+| §3 role | Verdict | Why |
+|---|---|---|
+| Principal Investigator (orchestrator) | ✅ **Agent — load-bearing** | Decides when to stop, restart, and where to write. Exactly Karpathy's definition of the loop's job |
+| Coder agents ×N | ✅ **Agent — load-bearing** | The generator half of generator-evaluator. Keep N *small and lineage-diverse* (§11.2) |
+| Skeptic / adversarial critic | ✅ **Agent — load-bearing** | The evaluator half. Karpathy's core pattern |
+| Axial/selective synthesizer | ✅ **Agent** — merge the Interpreter into it | Thick description is an output mode of synthesis, not a separate decider |
+| Governance gate | 🔧 **Deterministic tool** | Consent, minimisation, redaction are rules, not judgement. Never an LLM decision |
+| Reliability engine (κ, CCT, MP) | 🔧 **Deterministic tool** | Pure computation over a coding matrix. Calling it an agent was a category error |
+| Embedding / clustering worker | 🔧 **Deterministic tool** | |
+| Fieldwork agents (per connector) | 🔧 **Adapters** | A `SourceAdapter` contract, not an agent |
+| Peer-debrief / debate moderator | ❌ **Cut** | §13.4 — restart beats negotiation |
+| Reflexivity agent | ❌ **Cut as an agent** → becomes a **rubric axis** (§13.5) | |
+| Behavioral analyst · Persona synthesizer | ⏸️ **Defer** | Output formats, not loop members |
+| Insight agent (RAG chat) | ↔️ **Separate surface** | A product feature, not part of the analysis loop |
+
+**Result: four agent roles, not eleven** — orchestrator, coders, critic, synthesizer — with everything else a
+deterministic tool or an adapter. This is materially simpler *and* more rigorous, because the measurement
+work (κ, CCT, Marchenko–Pastur, PPI) is computation that should never have been delegated to a model's
+judgement in the first place.
+
+### 13.3 State: the three-files test
+
+> *"The model should be able to crash, lose its session, and pick up where it left off by reading three files.
+> **If you cannot describe your state in three files, your state is too complicated.**"*
+
+§3.4's four memory layers (working / episodic / semantic / procedural) fail this test as specified. The
+disciplined version — and it maps cleanly onto Temporal's durable state (§11.3):
+
+| File | Contents |
+|---|---|
+| **`contract.md`** | The study: research question, the **codebook** (the rubric), stopping rule, k-anonymity floor, consent scope. *The thing a human approves.* |
+| **`state.json`** | Where the loop is: units coded, current κ / `n_eff`, saturation `f₁/n`, logged `m`, cost spent, review queue |
+| **`findings.jsonl`** | Append-only claims with evidence spans and provenance — the audit trail *and* the output |
+
+The "living codebook across studies" (§3.4) is then not a memory layer but **a versioned `contract.md`
+library** — which is also what makes measurement invariance testable across studies (§12.5).
+
+### 13.4 Restart beats repair — and it re-scopes human review
+
+> *"The best behavior I see from current frontier models is the willingness to throw everything away and start
+> over when a run goes sideways… **Do not interrupt this. The restart is the loop working correctly. Insert a
+> human only when the contract itself is wrong, not when the build is.**"*
+
+**This is the sharpest correction to §3.3.** My design put hard human gates throughout the analysis — on
+low-agreement units, on critic rejections, on every `LLM_ASSISTED` artifact. Karpathy's rule is far more
+precise, and it resolves the scarcest-resource problem in the whole architecture: *human attention.*
+
+| Failure | Old design | Corrected |
+|---|---|---|
+| Coders disagree on a unit (low κ) | → human review queue | → **restart the coding pass** with the disagreement fed back. Human only if disagreement *persists across restarts*, which indicates a **codebook** (contract) defect |
+| Critic rejects an ungrounded claim | → human review | → **regenerate**. The critic is working |
+| Saturation not reached | → human decision | → **keep going**; the stopping rule is in the contract |
+| Codebook doesn't fit the corpus (rising `f₁/n`, persistent low agreement) | → buried in a queue | → 🛑 **stop and escalate — the contract is wrong** |
+| Consent / k-anonymity / release decision | → gate | → 🛑 **stays a hard gate.** These *are* contract-level |
+
+Notice the ethics gates **survive this cut cleanly** — consent scope, k-anonymity release, and publishing a
+claim are all contract-level, not build-level. LOOPS.md doesn't weaken the governance kernel; it removes the
+*analytical* human-in-the-loop theatre that was competing with it for attention.
+
+**Deletable scaffolding** applies to studies too: a study that has gone sideways should be *re-run from
+`contract.md`*, not patched. That is only possible because the contract is a file.
+
+### 13.5 Score the subjective — this is the codebook, operationalised
+
+> *"Taste is gradable if you write it down. Four axes, weighted… Calibrate on three reference sites the
+> evaluator is told are good and three it is told are slop. The output is a number between zero and one and a
+> paragraph explaining the gap. **The model will not invent taste; it will only converge toward the taste you
+> described.** The whole game is writing the rubric carefully enough that converging toward it is what you
+> actually want."*
+
+Three independent sources converge on exactly this point, which is strong evidence it's right:
+
+- **Karpathy:** *the model will not invent taste; it converges toward the taste you described.*
+- **Goodwin (§15.6):** *α measures shared professional vision, not correspondence to truth.*
+- **The corpus (§10.6):** *someone has to construct the rubric's categories from actual failure modes before
+  anything can be scored. The rubric is a codebook, and it saturates or it doesn't.*
+
+All three say: **the rubric is the product, and the model only ever converges toward it.** So:
+
+- The **codebook is the rubric** — weighted axes with explicit definitions, written down, versioned.
+- **Calibrate on labelled references** — a handful of excerpts declared exemplary and a handful declared bad.
+  This is not a new mechanism: it *is* the gold set, and if drawn as a **probability sample** it is
+  simultaneously the calibration set for **PPI/DSL** (§12.2b). One artifact, three jobs — calibration,
+  reliability benchmark, and bias rectifier.
+- **Output a score *and* a paragraph explaining the gap** — the paragraph is what makes disagreement
+  diagnosable rather than merely numeric, and it is what a human reads at a contract-level escalation.
+- **Reflexivity becomes an axis on this rubric**, not a separate agent (§13.2).
+
+### 13.6 Read the harness like a stack trace
+
+> *"The harness is read like a stack trace whenever something goes wrong."*
+
+Reframes observability (§11.4): Langfuse + OTel are not compliance instrumentation, they are **the debugger
+for the loop**. Practical consequence — a failed study should be diagnosable from the trace alone, which
+means every agent step must log its inputs, its contract version, its cost, its citations, and **`m`** (the
+hypotheses it considered, §12.2c). Search-space accounting and trace-reading are the same requirement seen
+from two directions.
+
+### 13.7 What LOOPS.md does *not* license
+
+Stated because the note is easy to over-apply to a research product:
+
+- **"Let it restart" ≠ "let it decide what is true."** Restarting a coding pass is cheap and reversible;
+  publishing a claim about a community is neither. The restart discipline applies to the *build*, while the
+  §12 rigor layer governs the *claim*. Different objects.
+- **"Short loops, simple state" ≠ drop the estimators.** κ, CCT, saturation and PPI are *deterministic tools
+  inside* the loop, not extra loops around it. Pruning agents does not prune measurement.
+- **Karpathy is writing about code**, where the evaluator can compile and run the artifact. Qualitative
+  coding has **no ground-truth oracle** — which is precisely why the gold set (§13.5) and PPI correction
+  (§12.2b) carry the weight that a test suite carries for him. Do not import the confidence without importing
+  the substitute for the compiler.
+
+### 13.8 Net effect on the architecture
+
+**Simpler and stricter at once:** 11 agent roles → **4**; ad-hoc memory → **3 files**; human-in-the-loop
+everywhere → **humans on contracts only** (with ethics gates untouched); the codebook promoted from
+configuration to **the central artifact**; and observability reframed from compliance to **the debugger**.
+
+Whether the surviving four are themselves justified against a **single-agent chain-of-thought with
+self-consistency baseline, cost-matched**, is an open empirical question and should be measured before the
+multi-agent claim is made in marketing.
+
+---
+
 ## 10. Top risks & how the architecture answers them
 
 | Risk | Mitigation (where) |
