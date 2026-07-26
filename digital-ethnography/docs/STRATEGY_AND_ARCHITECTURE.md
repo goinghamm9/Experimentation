@@ -226,6 +226,22 @@ flowchart TD
    "same meaning, different label"). κ<0.4 poor · 0.4–0.6 moderate · 0.6–0.8 substantial · >0.8
    excellent. **Low agreement auto-escalates** to the debate moderator or a human. Agreement is both a
    quality gate and a headline trust metric shown to customers — *with the epistemology caveat of §2.4*.
+   > ⚠️ **AMENDMENT — the independence assumption largely does not hold.** Later adversarial research
+   > found that **LLM coder panels have severely correlated errors**: nine frontier judges drawn from
+   > seven model families supplied only ~**2 independent votes' worth** of information; panel accuracy
+   > fell **8–22pp short** of true independent voting; and the **best single judge often matched or beat
+   > the panel.** Multiple models are *not* multiple researchers.
+   >
+   > **The redesign this forces:** κ is demoted from a *reliability claim* to a **disagreement-surfacing
+   > router** — its job is to find the units humans must look at, not to certify correctness. Concretely:
+   > (a) maximize decorrelation deliberately — vary *prompt frame, codebook framing, and elicitation
+   > order*, not just model family, since family diversity buys far less independence than assumed;
+   > (b) **never report κ between models as evidence of validity** — only κ *against a human gold
+   > codebook* supports a quality claim; (c) treat high inter-model agreement as **weak** evidence
+   > (correlated models agree on their shared errors too), while treating *disagreement* as strong,
+   > actionable signal; (d) keep the human gold set as the only real ground truth. This makes the
+   > feature honest, and it still delivers its actual value: routing scarce human attention.
+
 3. **Reflection loop** — each coder self-critiques against source + codebook before submitting.
 4. **Evaluator-optimizer loop** — theme narratives and codebook definitions are generated → critiqued
    against explicit criteria (grounded? distinct? non-overlapping? ≥N supporting quotes?) → refined.
@@ -359,7 +375,7 @@ flowchart LR
     SRC["Sources<br/>(licensed public + first-party OAuth/DPA)"]
     ING["Ingestion: self-hosted Airbyte OSS + custom CDK connectors<br/>(Gong · Recall · Discourse · replay)<br/>+ provenance & legal-basis at ingest"]
     LAKE["Raw lake (S3/GCS, immutable, region-pinned)"]
-    PII["PII stage: Presidio detect/redact → token vault"]
+    PII["PII stage: LLM detector + regex tripwire → token vault<br/>(see §11.6 — regex/NER alone is insufficient)"]
     CANON["dbt: raw → staging → CANONICAL 'Observation'"]
     STORE["Postgres + pgvector (→ Qdrant at scale)"]
     ANALYSIS["AI brain (§3): clustering · coding · κ · synthesis · cited insights"]
@@ -558,6 +574,282 @@ other agents depend on* — a durable moat in the agent ecosystem, and the liter
 | **2 — Public API** | Programmable | REST (jobs) + GraphQL (insight graph) over the same engine, tenant-scoped keys, gateway budgets/rate limits, docs + SDKs. |
 | **3 — MCP suite + plugins** | Agent-ecosystem moat | MCP server (stdio + streamable HTTP) → MCP Registry; a Claude Code / IDE plugin wrapping the same engine (`codex-plugin-cc` pattern). |
 | **Parallel track** | Recruitment | Stage 1 marketplace + intercept → Stage 2 customer research-hub/panel → Stage 3 owned proprietary panel. |
+
+---
+
+## 11. Infrastructure architecture
+
+> **Posture: sovereignty-first, staged.** This is a solo project, so full sovereignty on day one
+> (self-hosted GPU fleet, self-hosted everything, SOC 2 controls) would consume all available time on
+> infrastructure instead of product. The resolution: treat sovereignty as an **architectural
+> discipline** — choose self-hostable, portable, open-weight-compatible components so nothing
+> forecloses sovereignty — while *running* managed services and EU-region managed inference until a
+> paying tenant contractually requires otherwise.
+>
+> **Evidence status.** Each dive below was adversarially fact-checked. Claims are marked
+> ✅ verified · ⚠️ partly wrong/corrected · ❌ refuted · ❓ unverifiable in this environment.
+> **Every dollar figure here is directional and must be re-quoted before it enters a financial model** —
+> the research environment had egress blocked to most vendor hosts.
+
+### 11.1 The two decisions that are one-way doors
+
+Everything else is reversible. These two cost days now and six months later:
+
+1. **A model gateway abstraction from commit #1.** Never call a provider SDK directly from application
+   code. Route by *capability profile*, not model name.
+2. **A tenant→region pin in the data model, even while there is only one region.** Retrofitting
+   residency into a schema that assumes one region is a migration from hell.
+
+Add a third, specific to this product: **provenance edges from commit #1** (§11.5).
+
+### 11.2 Inference — the answer on Hermes and NIM
+
+**Hermes: don't build on it.** ⚠️ *(direction sound; some specifics unverified)*
+Hermes 4 (70B/405B) are **Llama-3.1 derivatives** — a 2024 base, 128K context, 8 officially supported
+languages, one hosted provider, and low independent intelligence-index scores. Two disqualifiers for
+*this* product specifically:
+- The **Llama 3.1 Community License** obliges prominent "Built with Meta Llama 3.1" display on the
+  product UI — on a *governance-branded* enterprise product.
+- Its two selling points have eroded: trained schema adherence is **commoditized by constrained
+  decoding** (XGrammar-class, >96–98% conformance on any model, default backend in vLLM/SGLang), and
+  its low-refusal behavior is matched by Gemma 4 / Qwen 3.5 at ~0.3–0.5% over-refusal — **without** the
+  procurement and prompt-injection liability of a model marketed as having no guardrails. That
+  liability is acute here because the moat *is* the ethics kernel and the inputs (forum text, session
+  replay, support tickets) are attacker-influenceable.
+
+*Refusals are nonetheless a real methodological problem* — 2.7–20.1% refusal rates on hate-speech
+coding tasks, triggered by identity and social-group terms rather than profanity. For a platform that
+must analyze stigmatized community discourse, silent refusal is **coverage loss that looks like a
+finding**. Measure it explicitly as a quality metric.
+
+**Recommended open-weight cascade:** Qwen3-Embedding (retrieval) · Qwen 3.5 27B / Gemma 4 26B
+(high-volume deductive coding) · Qwen 3.5 122B / DeepSeek V4-Flash (inductive coding, synthesis) ·
+Mistral Large 3 + Apertus (EU-sovereign SKU) · frontier closed models via **Bedrock EU** for the
+hardest synthesis and adjudication.
+
+**NIM: don't adopt it.** ❓ *(pricing unverifiable — see below)*
+- ❓ **The ~$4,500/GPU/yr NVIDIA AI Enterprise figure could not be verified from primary sources.**
+  Every NVIDIA property was egress-blocked for both the researcher and the independent fact-checker.
+  **Get a written NVIDIA/OEM quote before this enters any model.**
+- ✅ The direction survives on independent, checkable grounds: **NIM LLM 2.0 is an enterprise wrapper
+  around vLLM**, and **NIM ships with prefix caching disabled** (`NIM_ENABLE_KV_CACHE_REUSE=0`) while
+  **vLLM ships with automatic prefix caching enabled by default** — so for a shared-codebook fan-out,
+  *default NIM is likely slower than default vLLM.*
+- **Standardize on vLLM** behind your own OpenAI-compatible abstraction. Revisit NIM only when a
+  specific on-prem/air-gapped contract pays the licence as a line item.
+
+❌ **Retracted: the SGLang/RadixAttention thesis.** An earlier draft claimed SGLang's shared-prefix
+optimization maps onto the N-coders-share-a-codebook pattern for ~+29%. **This is refuted.** vLLM's
+automatic prefix caching is on by default (verified in source), so both engines already eliminate
+shared-prefix recompute; an extreme prefix ratio *collapses* the gap rather than amplifying it. The
+actual high-value engine tweak is **enabling vLLM's cascade attention, which is off by default.**
+
+**When does self-hosting pay?** ⚠️ *(original band built on retired pricing)*
+The original estimate (break-even ≈250k–1.4M coding units/month) used **$15/$75 per MTok**, which is
+now only the *deprecated* Opus 4.1 rate. Current frontier Opus is **$5/$25**; Sonnet $3/$15; Haiku
+$1/$5. Corrected break-even is therefore **roughly 2–4× higher.** This *strengthens* the conclusion:
+
+> **A sovereign self-hosted pod is a premium compliance product (price it $10k–30k/mo per tenant),
+> not a cost optimization.** Self-hosted inference is something a customer buys, not something you
+> run to save money.
+
+**EU residency, precisely:** ✅
+- **Anthropic first-party has no EU option at all** — `inference_geo` accepts only `global` and `us`,
+  and workspace geo is `us`-only and immutable after creation.
+- **Bedrock EU / Vertex EU deliver GDPR-grade EU residency today** — this solves the third-party-egress
+  problem for most customers without any GPU.
+- ⚠️ **The trap:** the Bedrock *EU inference profile* can route to **Zurich (CH) and London (UK) —
+  outside the EU/EEA.** Only **in-region endpoints** deliver true EU residency. An enterprise reviewer
+  will find this.
+- The **EU–US Data Privacy Framework** survives (General Court dismissed *Latombe*, 2025-09-03) but is
+  under live CJEU appeal (**C-703/25 P**). **Architect as if DPF will fall:** EU tenant data never
+  leaves the EEA by default.
+
+**The sovereignty move that is actually cheap:** self-host **embeddings + PII redaction in your own
+VPC**. That keeps the raw participant corpus off third-party infrastructure at trivial cost, while
+frontier reasoning runs on Bedrock EU. This captures most of the sovereignty value for a fraction of
+the burden — the right answer for a team of one.
+
+**A methodological finding that outranks the cost analysis:** ✅
+Model retirement dates are confirmed exactly — Sonnet 3.7 and Haiku 3.5 retired **2026-02-19**, Opus 3
+**2026-01-05**, Opus 4.1 retiring **2026-08-05**, with only ~60 days' notice guaranteed.
+**Frontier deprecation cycles are incompatible with multi-year longitudinal ethnography:** if the coder
+model changes mid-study, *inter-model drift becomes confounded with the cultural change you are trying
+to measure.* This is a validity threat, not an ops inconvenience.
+→ **Longitudinal studies must pin a model version for the study's life.** That is an argument for
+**self-hosted open-weight models on the longitudinal path specifically** — you control the weights, so
+the instrument stays constant. Record the model version in the provenance envelope.
+
+### 11.3 Orchestration — Temporal outer, typed Python inner
+
+✅ **Do not make LangGraph (or any agent framework) the orchestration backbone.**
+- ✅ **`langgraph-api` — the production server — is Elastic License 2.0**, which prohibits providing
+  the software to third parties as a hosted service. That is a direct conflict with a multi-tenant
+  SaaS plus public API plus MCP roadmap. (The LangGraph *library* is MIT and genuinely good; the
+  *server* is the problem.)
+- A March 2026 checkpointer deserialization RCE chain (CVE-2026-27794 / CVE-2026-28277) makes it the
+  wrong substrate for a governance kernel holding participant data.
+
+**Temporal** (MIT) is the only evaluated engine satisfying all seven hard requirements: N-way parallel
+fan-out with fan-in, human gates that pause for **days**, full resumability without re-paying for LLM
+calls, per-step cost attribution, dynamic spawning, namespace-based tenant isolation, and genuine
+**cross-language** support (a Python workflow can schedule Activities executed by a TypeScript worker).
+
+**The seam:**
+> **Workflow = the study** — durable, versioned, tenant-scoped, HITL-gated.
+> **Activity = exactly one bounded, idempotent, cost-attributed LLM or tool call.**
+> Everything above the Activity is your own typed code, not a framework's abstraction.
+
+⭐ **The elegant find:** configuring Temporal's `DataConverter` with an encrypting `payload_codec` plus
+`ExternalStorage` (threshold 0, S3 driver) keeps **all participant text out of the append-only workflow
+event history** — turning the otherwise-intractable "erasure from an immutable event log" problem into
+**crypto-shredding**. This is the single best structural answer to GDPR Art. 17 in a durable-execution
+system.
+
+✅ Orchestration cost is negligible against inference — roughly **$0.35 of Temporal Actions** versus
+**$1,300–2,700 of inference** for a 50,000-entry, 5-coder study. Never optimize the orchestrator.
+
+### 11.4 Observability, evals, and the gateway
+
+✅ **Self-host Langfuse OSS in your own EU VPC.** Verified from source: the free MIT `oss` plan gives
+**unlimited** traces, prompts, annotation queues, evaluators and retention; only `rbac-project-roles`,
+`audit-logs`, `data-retention`, `admin-api` and two UI features are gated to paid Enterprise.
+Self-hosting isn't merely cheaper — it means **the observability system is not a GDPR sub-processor at
+all**, the cleanest possible answer to the no-PII-egress constraint.
+
+- **Instrument to vendor-neutral OpenTelemetry GenAI semconv** so Langfuse is a swappable OTLP sink,
+  not a dependency. ✅ Note the GenAI conventions remain **pre-stable ("Development")** as of mid-2026 —
+  pin versions and expect churn.
+- ❌ **Reject Arize Phoenix** — also Elastic License 2.0, same hosted-service prohibition.
+- **Self-hosted LiteLLM gateway inside the trust boundary** for per-tenant virtual keys, hard budget
+  caps, tiered routing and fallback. **Budget enforcement must be synchronous and upstream** — a trace
+  store structurally cannot do it.
+- ⚠️ **Never treat the gateway's guardrail as your redaction layer** — only as a tripwire. Gateway
+  masking happens *after* your application already handled the raw text.
+
+✅ **Market consolidation to note:** Langfuse → ClickHouse (Jan 2026, MIT/self-hosting commitment
+retained) · Promptfoo → OpenAI (Mar 2026, MIT retained) · Portkey → Palo Alto Networks (May 2026) ·
+Helicone → Mintlify (now maintenance mode). Choose on license and self-hostability, not on the logo.
+
+### 11.5 Database architecture
+
+**One EU-hosted Postgres is the spine.** Tenants, consent grants, the living codebook, the audit log,
+and — critically — a **`derivation_edges` provenance table** plus a **`data_locations` erasure catalog**.
+
+⭐ **Keep embeddings in pgvector *in that same database*, partitioned by `(tenant_id, study_id)`.**
+This is the key structural decision: tenant isolation is **inherited from RLS rather than
+reimplemented**, which kills the "forgotten metadata filter" class of cross-tenant leakage that OWASP
+names (LLM08:2025) as *the* multi-tenant RAG failure mode. Partitioning also converts pgvector's weak
+**post-filtering** behavior into **partition pruning** — which matters enormously here because *every*
+query in this product is filtered (tenant, study, consent scope, date, code). That single decision is
+what makes pgvector viable to roughly **50M vectors**.
+
+✅ **But the highest-value leakage control is not a database feature at all:**
+> **Retrieval tools must be structurally incapable of expressing a cross-tenant query.** Tenant scope
+> is injected from a **signed job context** — never an agent-supplied parameter. An agent that *cannot
+> name* another tenant cannot leak one.
+
+**Add only four supporting stores at MVP:** object storage (**Cloudflare R2** for egress economics;
+BYO-bucket for enterprise) · **Redis** (working memory) · **Temporal** (durable studies) ·
+**self-hosted Langfuse**.
+
+**Deliberately skip** a graph database, a dedicated search engine, an OLAP warehouse, and every
+agent-memory vendor (Zep/Mem0/Letta). Each is another store to isolate, back up, audit, and *erase
+from*. None earns that cost yet.
+
+⭐ **On GraphRAG specifically:** it is over-engineering here, for a sharp reason — **the multi-agent
+coding pipeline already *is* a domain-specific GraphRAG.** Codes, themes, and evidence edges are the
+graph. **Bi-temporal edge tables in Postgres** capture "how culture evolves over time" without a new
+store. (⚠️ Also: **Apache AGE has unanswered PG17/PG18 support issues** — it must never gate your
+Postgres upgrade cadence. And ⚠️ **MinIO's repo was archived 25 April 2026**, community builds
+source-only — it is no longer a viable self-hosted object store.)
+
+⭐ **Provenance is the primary key of the system.** The same edge set that produces your citations makes
+cascading erasure a **bounded graph walk** instead of an impossible archaeology project. Pair it with
+**per-subject crypto-shredding** (destroy the subject's DEK in KMS) and you are **compliant in seconds**
+while re-derivation runs for days — decoupling "legally compliant" from "finished recomputing."
+EDPB Guidelines 02/2025 endorse erasure via destruction of decryption keys.
+
+### 11.6 The PII correction
+
+⚠️ **An earlier draft of this document recommended Microsoft Presidio as the core PII layer. That was
+wrong.** On the REDACT benchmark Presidio achieves **0.07 recall on high-sensitivity PII** (0.02 on
+partial mentions, 0.07 on obfuscated) versus **0.74–0.77 for LLM-based detectors**.
+
+Since redaction must happen **before any model call**, the corrected design is a **two-stage detector**:
+a **self-hosted LLM detector in-VPC as the primary**, with **regex/NER as a fast tripwire and
+belt-and-braces backstop** — never as the sole layer. This is also the strongest argument for
+self-hosting a small model early: *you need an in-VPC model to safely redact before calling any
+external one.*
+
+### 11.7 Hosting — and the plain verdict on Hostinger
+
+> ### ❌ Hostinger is not viable as the primary platform, and it is not close.
+>
+> It offers **no GPU, no managed Kubernetes, no S3-compatible object storage, no managed PostgreSQL,
+> no KMS/BYOK, no VPC or private endpoints, and no SOC 2 Type II** — and its SLA remedy is a **5%
+> service credit usable only toward further Hostinger purchases**, which alone fails enterprise vendor
+> review.
+>
+> **This is a category mismatch, not a quality judgement.** Hostinger is a competent mass-market host
+> being asked to be a cloud platform.
+>
+> ✅ **It does have a legitimate narrow role:** the **marketing site, docs, and domains**, plus
+> non-regulated internal tooling — strictly **outside the SOC 2 scope boundary**, with no shared
+> credentials and no network path to production. That is a real, sensible use. Use it there.
+
+**Recommended by stage:**
+
+| Stage | Compute | Data | Inference | Notes |
+|---|---|---|---|---|
+| **MVP** (solo, pre-revenue) | **Render or Railway, EU region** | Managed Postgres + pgvector, **R2** | **Bedrock EU** (in-region endpoints) + in-VPC embeddings & redaction | Skip Kubernetes entirely. Temporal for durable studies. |
+| **Growth** (~50 customers) | **AWS `eu-central-1`, ECS Fargate** | Aurora/RDS + pgvector, per-tenant KMS keys | Same, plus cheap open-weight tier on managed GPU | Startup credits make this cheaper than it looks. |
+| **Enterprise / sovereign** | Kubernetes **as a portable deployment artifact** for customer-VPC installs | Region-pinned, BYO-bucket, BYOK | Self-hosted vLLM pod — **sold as a premium SKU** | K8s earns its keep here and only here. |
+
+✅ **You do not need Kubernetes until stage 3.** What you actually need at MVP is **durable execution**
+(multi-week studies with multi-day human pauses). Kubernetes' real justification is as the portable
+artifact for the sovereign tier — not as an MVP platform.
+
+⚠️ **Cost shape:** model inference is **70–85% of infrastructure cost at MVP** and can reach **~53% of
+COGS at scale**. This makes tiered routing, prompt caching, Batch API, and **hard per-tenant token caps
+existential rather than optimizations**. It also means:
+
+> ⚠️ **"Dynamic agent spawning scaled to disagreement" (§3.4) is an unbounded cost amplifier and must
+> carry an explicit hard cap.** A pathological corpus where coders never converge would otherwise spawn
+> without limit. Cap it, and treat the cap being hit as a signal to escalate to a human.
+
+### 11.8 Two legal risks nobody asked about — but that land on core differentiators
+
+Surfaced unprompted by the research; both warrant counsel review:
+
+1. **GDPR Article 9 special-category data appears routinely in interview transcripts and community
+   discourse** (health, ethnicity, politics, sexuality, union membership). The product's *most valuable*
+   sources are the ones most likely to carry it. The existing kernel's `SENSITIVE` category and
+   default-deny posture is the right shape — but Art. 9 needs an explicit lawful basis, not just
+   consent-by-default.
+2. **The EU AI Act prohibits emotion recognition in the workplace.** Any "sentiment/emotion" feature
+   applied to employee-adjacent data (internal Slack VoC, support agents, employee research) may be a
+   **prohibited practice**, not merely a regulated one. This lands directly on a planned capability
+   (§3.3 "sentiment/emotion"). Scope it out of workplace contexts, or scope it out entirely.
+
+### 11.9 Recommended stack — the one-page answer
+
+| Layer | Choice | Why |
+|---|---|---|
+| **Hosting (MVP)** | Render/Railway EU → AWS `eu-central-1` | Compliance-capable without ops burden; **Hostinger for marketing site only** |
+| **Orchestration** | **Temporal** (MIT), typed Python inside | Only engine meeting all 7 requirements; crypto-shredding via payload codec |
+| **Agent layer** | **Your own typed code** — no framework backbone | `langgraph-api` is Elastic 2.0 = hosted-service prohibition |
+| **Relational + vector** | **One Postgres**, pgvector partitioned by `(tenant_id, study_id)` | Isolation inherited from RLS; kills the #1 RAG leak class |
+| **Provenance** | `derivation_edges` + `data_locations` from commit #1 | Citations *and* bounded-graph-walk erasure from one structure |
+| **Erasure** | Per-subject **crypto-shredding** (KMS DEK) | Compliant in seconds, re-derivation async |
+| **Object storage** | **Cloudflare R2** (BYO-bucket for enterprise) | Egress economics; **MinIO is archived — avoid** |
+| **Inference (default)** | **Bedrock EU in-region endpoints** | Real EU residency; Anthropic first-party has **no** EU option |
+| **Inference (in-VPC)** | **vLLM** — embeddings + PII redaction first | Cheap sovereignty; needed *before* any external call |
+| **Inference (sovereign SKU)** | vLLM pod, pinned open weights | Premium product at $10k–30k/mo — **not** a cost play |
+| **Open weights** | Qwen 3.5 / Gemma 4 / Mistral Large 3 — **not Hermes** | Licensing, recency, languages, no "no-guardrails" liability |
+| **Gateway** | **Self-hosted LiteLLM** | Per-tenant keys + synchronous hard budget caps |
+| **Observability** | **Self-hosted Langfuse** (MIT `oss`), OTel-instrumented | Not a sub-processor at all; swappable sink |
+| **Skip at MVP** | Graph DB · search engine · OLAP · agent-memory vendors · Kubernetes | Each is another store to isolate, audit and erase from |
 
 ---
 

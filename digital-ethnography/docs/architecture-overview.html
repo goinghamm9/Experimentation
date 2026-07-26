@@ -1,0 +1,1068 @@
+<title>Digital Ethnographic Intelligence — Architecture</title>
+
+<style>
+  /* ============================================================
+     TOKENS — color encodes provenance, the product's own concept.
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --paper:      #EDF1F2;
+    --paper-2:    #E3E9EA;
+    --card:       #F7FAFA;
+    --ink:        #101A22;
+    --ink-2:      #33454F;
+    --ink-3:      #5F727C;
+    --rule:       #CBD6D8;
+    --rule-soft:  #DCE4E5;
+
+    --accent:     #125F66;   /* petrol teal — "the field" */
+    --accent-2:   #0C4046;
+    --accent-wash:#DCEAEA;
+
+    /* semantic — provenance & state, distinct from the accent */
+    --observed:   #2F6B45;   /* directly observed / kept / confirmed */
+    --observed-w: #DCE9E0;
+    --review:     #8A5703;   /* LLM-assisted → needs review */
+    --review-w:   #F2E7CF;
+    --refuted:    #A33A2E;   /* dropped / refuted */
+    --refuted-w:  #F2DEDA;
+    --machine:    #54468C;   /* model tier */
+    --machine-w:  #E4E0EF;
+
+    --shadow: 0 1px 2px rgba(16,26,34,.06), 0 8px 24px -12px rgba(16,26,34,.18);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --rail: 8.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper:      #0E1519;
+      --paper-2:    #141D22;
+      --card:       #162026;
+      --ink:        #E4EDEF;
+      --ink-2:      #B0C0C5;
+      --ink-3:      #7E9199;
+      --rule:       #2A3941;
+      --rule-soft:  #1F2C33;
+
+      --accent:     #4FB3B8;
+      --accent-2:   #7FCFD2;
+      --accent-wash:#12333A;
+
+      --observed:   #6DBE8C;
+      --observed-w: #16302280;
+      --review:     #D9A441;
+      --review-w:   #33270E80;
+      --refuted:    #E08579;
+      --refuted-w:  #38201C80;
+      --machine:    #A99BE0;
+      --machine-w:  #241F3D80;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper:#0E1519; --paper-2:#141D22; --card:#162026;
+    --ink:#E4EDEF; --ink-2:#B0C0C5; --ink-3:#7E9199;
+    --rule:#2A3941; --rule-soft:#1F2C33;
+    --accent:#4FB3B8; --accent-2:#7FCFD2; --accent-wash:#12333A;
+    --observed:#6DBE8C; --observed-w:#16302280;
+    --review:#D9A441; --review-w:#33270E80;
+    --refuted:#E08579; --refuted-w:#38201C80;
+    --machine:#A99BE0; --machine-w:#241F3D80;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --paper:#EDF1F2; --paper-2:#E3E9EA; --card:#F7FAFA;
+    --ink:#101A22; --ink-2:#33454F; --ink-3:#5F727C;
+    --rule:#CBD6D8; --rule-soft:#DCE4E5;
+    --accent:#125F66; --accent-2:#0C4046; --accent-wash:#DCEAEA;
+    --observed:#2F6B45; --observed-w:#DCE9E0;
+    --review:#8A5703; --review-w:#F2E7CF;
+    --refuted:#A33A2E; --refuted-w:#F2DEDA;
+    --machine:#54468C; --machine-w:#E4E0EF;
+    --shadow: 0 1px 2px rgba(16,26,34,.06), 0 8px 24px -12px rgba(16,26,34,.18);
+  }
+
+  /* ============================================================ */
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 0 clamp(1.1rem, 4vw, 3rem);
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, var(--paper-2), var(--paper));
+  }
+  .masthead-inner {
+    padding: clamp(2.75rem, 7vw, 5rem) 0 clamp(2rem, 5vw, 3.25rem);
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .705rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;
+  }
+  .eyebrow::before {
+    content: ""; width: 2rem; height: 2px; background: var(--accent); display: inline-block;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    line-height: 1.06;
+    letter-spacing: -.018em;
+    margin: 0;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .standfirst {
+    font-size: clamp(1.02rem, 2vw, 1.2rem);
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .meta-strip {
+    display: flex; flex-wrap: wrap; gap: .5rem 1.5rem;
+    font-family: var(--mono); font-size: .73rem;
+    color: var(--ink-3);
+    padding-top: .75rem;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .meta-strip b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- section scaffolding: the transcript rail ---------- */
+  section { padding: clamp(2.75rem, 6vw, 4.5rem) 0; border-bottom: 1px solid var(--rule-soft); }
+  section:last-of-type { border-bottom: 0; }
+
+  .sec-grid { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: clamp(1rem, 3vw, 2.5rem); }
+  @media (max-width: 800px) { .sec-grid { grid-template-columns: 1fr; gap: 1rem; } }
+
+  .rail { font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .rail .mark { display: block; color: var(--accent); font-weight: 700; font-size: .95rem; letter-spacing: .04em; }
+  @media (max-width: 800px) {
+    .rail { display: flex; gap: .75rem; align-items: baseline; padding-bottom: .25rem; border-bottom: 1px solid var(--rule-soft); }
+  }
+
+  h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.55rem, 3.4vw, 2.25rem);
+    line-height: 1.15; letter-spacing: -.012em;
+    margin: 0 0 .85rem; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans); font-weight: 650;
+    font-size: 1.03rem; letter-spacing: -.005em;
+    margin: 2rem 0 .6rem;
+  }
+  p { margin: 0 0 1rem; max-width: var(--measure); text-wrap: pretty; }
+  .lede { font-size: 1.09rem; color: var(--ink-2); }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 650; }
+  code {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--paper-2); border: 1px solid var(--rule-soft);
+    padding: .08em .34em; border-radius: 3px;
+  }
+
+  /* ---------- coded excerpt: the margin stripe ---------- */
+  .excerpt {
+    border-left: 3px solid var(--accent);
+    background: var(--card);
+    padding: 1rem 1.15rem;
+    margin: 1.4rem 0;
+    max-width: var(--measure);
+    border-radius: 0 5px 5px 0;
+    box-shadow: var(--shadow);
+  }
+  .excerpt.is-review  { border-left-color: var(--review); }
+  .excerpt.is-refuted { border-left-color: var(--refuted); }
+  .excerpt.is-observed{ border-left-color: var(--observed); }
+  .excerpt p:last-child { margin-bottom: 0; }
+  .excerpt-label {
+    font-family: var(--mono); font-size: .67rem; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3);
+    display: block; margin-bottom: .4rem;
+  }
+
+  /* ---------- provenance chips ---------- */
+  .chip {
+    display: inline-flex; align-items: center; gap: .34rem;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .07em;
+    text-transform: uppercase; font-weight: 600;
+    padding: .18rem .5rem; border-radius: 3px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .chip::before { content:""; width:.42rem; height:.42rem; border-radius:50%; background: currentColor; }
+  .chip.observed { color: var(--observed); background: var(--observed-w); }
+  .chip.review   { color: var(--review);   background: var(--review-w); }
+  .chip.refuted  { color: var(--refuted);  background: var(--refuted-w); }
+  .chip.machine  { color: var(--machine);  background: var(--machine-w); }
+  .chip.field    { color: var(--accent);   background: var(--accent-wash); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1rem 0 1.4rem; }
+
+  /* ---------- tables ---------- */
+  .table-scroll { overflow-x: auto; margin: 1.4rem 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; min-width: 44rem; font-size: .88rem; }
+  th, td { text-align: left; padding: .68rem .85rem; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--paper-2); border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td b { font-weight: 650; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 1.5rem 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 6px; padding: 1.05rem 1.15rem;
+    display: flex; flex-direction: column; gap: .45rem;
+  }
+  .card h4 { margin: 0; font-size: .96rem; font-weight: 650; letter-spacing: -.003em; }
+  .card p { margin: 0; font-size: .875rem; color: var(--ink-2); max-width: none; }
+  .card .k {
+    font-family: var(--mono); font-size: .67rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent);
+  }
+
+  /* ---------- loop list: a real sequence, so numbered ---------- */
+  ol.loops { list-style: none; counter-reset: loop; padding: 0; margin: 1.4rem 0; display: grid; gap: .8rem; }
+  ol.loops li {
+    counter-increment: loop; position: relative;
+    padding: .85rem 1rem .85rem 3.1rem;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    font-size: .9rem; color: var(--ink-2);
+  }
+  ol.loops li::before {
+    content: counter(loop, decimal-leading-zero);
+    position: absolute; left: 1rem; top: .85rem;
+    font-family: var(--mono); font-size: .78rem; font-weight: 700; color: var(--accent);
+  }
+  ol.loops b { color: var(--ink); }
+
+  ul.plain { margin: 1rem 0; padding-left: 1.1rem; max-width: var(--measure); }
+  ul.plain li { margin-bottom: .5rem; }
+
+  /* ---------- tier ladder ---------- */
+  .ladder { display: grid; gap: .5rem; margin: 1.4rem 0; }
+  .rung {
+    display: grid; grid-template-columns: 8.5rem minmax(0,1fr); gap: 1rem; align-items: start;
+    padding: .8rem 1rem; border-radius: 6px;
+    background: var(--card); border: 1px solid var(--rule);
+    border-left: 4px solid var(--tier, var(--accent));
+  }
+  .rung .tier-name { font-family: var(--mono); font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tier, var(--accent)); }
+  .rung .tier-body { font-size: .88rem; color: var(--ink-2); }
+  @media (max-width: 640px) { .rung { grid-template-columns: 1fr; gap: .3rem; } }
+
+  /* ---------- diagram ---------- */
+  .diagram {
+    margin: 1.6rem 0; padding: 1.25rem;
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 6px; overflow-x: auto;
+  }
+  .diagram pre.mermaid { margin: 0; min-width: min-content; }
+  .fig {
+    font-family: var(--mono); font-size: .69rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); margin: .6rem 0 0;
+  }
+
+  /* ---------- callout ---------- */
+  .callout {
+    border: 1px solid var(--rule); border-top: 3px solid var(--accent);
+    background: var(--card); border-radius: 0 0 6px 6px;
+    padding: 1.15rem 1.25rem; margin: 1.6rem 0; max-width: var(--measure);
+    box-shadow: var(--shadow);
+  }
+  .callout.warn { border-top-color: var(--review); }
+  .callout .callout-title {
+    font-family: var(--mono); font-size: .69rem; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: .5rem; font-weight: 700;
+  }
+  .callout.warn .callout-title { color: var(--review); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ---------- phases: genuine sequence ---------- */
+  .phases { display: grid; gap: 0; margin: 1.5rem 0; }
+  .phase {
+    display: grid; grid-template-columns: 6.5rem minmax(0,1fr); gap: 1.25rem;
+    padding: 1.1rem 0; border-top: 1px solid var(--rule);
+  }
+  .phase:last-child { border-bottom: 1px solid var(--rule); }
+  .phase-id { font-family: var(--mono); font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .phase h4 { margin: 0 0 .3rem; font-size: 1rem; font-weight: 650; }
+  .phase p { margin: 0; font-size: .885rem; color: var(--ink-2); max-width: none; }
+  @media (max-width: 640px) { .phase { grid-template-columns: 1fr; gap: .3rem; } }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    background: var(--paper-2);
+    padding: 2.25rem 0 3rem;
+    font-size: .84rem; color: var(--ink-3);
+  }
+  footer p { max-width: var(--measure); }
+
+  :where(a, button, [tabindex]):focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div class="eyebrow">Product strategy &amp; technical architecture</div>
+    <h1>Digital <em>Ethnographic</em> Intelligence</h1>
+    <p class="standfirst">
+      An AI-native platform that continuously and ethically <strong>observes</strong> digital behaviour
+      and online culture — and returns rigorous, cited, longitudinal ethnographic insight. Not another
+      repository for interviews you already ran.
+    </p>
+    <div class="meta-strip">
+      <span><b>Posture</b> Sovereignty-first, staged</span>
+      <span><b>Surfaces</b> Web app → API → MCP</span>
+      <span><b>Kernel</b> Ethics gate, 24 tests passing</span>
+      <span><b>Status</b> Architecture v1</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== THE WEDGE ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">01</span>Positioning</div>
+    <div>
+      <h2>Everyone analyses the sessions you ran. Nobody watches the field.</h2>
+      <p class="lede">
+        Dovetail, Marvin, Condens, Notably, Looppanel, UserTesting, dscout, Sprig, Maze — all run the same
+        loop: <em>collect a session a researcher deliberately ran → transcribe → AI-tag → synthesise → report.</em>
+        The unit of analysis is always a session you commissioned.
+      </p>
+
+      <p>Two structural gaps follow from that, and they are the whole opportunity:</p>
+
+      <div class="cards">
+        <div class="card">
+          <span class="k">Gap 01</span>
+          <h4>Observation vs. elicitation</h4>
+          <p>No one productises observation of <em>naturally-occurring</em> digital behaviour — communities,
+          forums, reviews, support logs, in-the-wild usage — as the primary substrate with research-grade
+          provenance. dscout comes closest, and still needs recruited participants filming themselves.</p>
+        </div>
+        <div class="card">
+          <span class="k">Gap 02</span>
+          <h4>Meaning vs. sentiment</h4>
+          <p>Incumbents surface themes and polarity. Ethnography's value is <em>meaning</em> — norms, identity,
+          rituals, discourse, how a culture shifts over time. Social listening owns the data but frames it
+          as PR sentiment, not cited cultural insight.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">The one-line position</div>
+        <p>The AI ethnographer that continuously and ethically observes digital behaviour and online culture,
+        producing rigorous, cited, longitudinal cultural insight — exposed to humans (web app), systems (API),
+        and other AI agents (MCP).</p>
+      </div>
+
+      <p><strong>Against Dovetail/Marvin:</strong> they analyse what you bring; we watch the field.
+      <strong>Against dscout:</strong> attack the ~$15K–$60K per-study floor and the weak B2B panel, and add
+      the online-culture layer it doesn't have.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== METHOD ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">02</span>Method</div>
+    <div>
+      <h2>What makes it ethnography and not analytics</h2>
+      <p class="lede">
+        Credibility with senior and academic researchers is a moat in itself. The platform is organised around
+        a named core methodology with a hard ethics backbone — not a generic "AI insights" pipeline.
+      </p>
+
+      <h3>Core method — Netnography (Kozinets)</h3>
+      <p>
+        Purpose-built for online communities, already procedural (so it maps cleanly to software), and it ships
+        with an ethics protocol. Its stages become the <code>Study</code> object: initiation → investigation →
+        immersion → data collection → interpretation → integration. Critically we implement its <em>ethics</em>
+        steps too — consent thresholds, anonymisation, and <strong>quote cloaking</strong> so excerpts from small
+        or vulnerable communities can't be reverse-searched back to a real person.
+      </p>
+
+      <h3>The ethics engine — AoIR IRE 3.0 + Contextual Integrity</h3>
+      <p>
+        <strong>Contextual Integrity</strong> (Nissenbaum) is the most operationally useful ethics theory available
+        here: privacy is the appropriate <em>flow</em> of information relative to the norms of its original context.
+        Repurposing a support-forum post into a research dataset is a context transgression even though nothing
+        leaked. That becomes a literal gate in code, not a policy PDF.
+      </p>
+      <div class="excerpt is-observed">
+        <span class="excerpt-label">Operating principle</span>
+        <p>Public ≠ consented. Scrapable ≠ usable. The greater the vulnerability of a community, the greater the
+        obligation — <em>regardless of how accessible the data is</em>.</p>
+      </div>
+
+      <h3>Supporting methods</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Method</th><th>Role in the product</th><th>AI verdict</th></tr></thead>
+          <tbody>
+            <tr><td><b>Grounded Theory</b><br>Glaser &amp; Strauss; Charmaz</td><td>Methodological grounding for the coding pipeline — constant comparison, open→axial→selective</td><td>Strong for AI-<em>assisted</em> first-pass coding; theory-building stays human</td></tr>
+            <tr><td><b>Triangulation</b><br>Denzin</td><td>The defensible differentiator: corroborate across interviews, diaries, traces, community data</td><td>Exactly what AI does well — frame it explicitly as triangulation for legitimacy</td></tr>
+            <tr><td><b>Trace Ethnography</b><br>Geiger &amp; Ribes</td><td>Reconstruct activity from digital exhaust; journey analysis</td><td>Strong fit — but traces are only legible against human knowledge of what they mean</td></tr>
+            <tr><td><b>Diary studies + ESM</b><br>Larson &amp; Csikszentmihalyi</td><td>The ethically cleanest data: consented, elicited, longitudinal. Early flagship.</td><td>Natural software workflow; low risk</td></tr>
+            <tr><td><b>Reflexive TA</b><br>Braun &amp; Clarke</td><td>Reflexivity and positionality tooling — a credibility signal</td><td>Ship with honest framing (see the landmine below)</td></tr>
+            <tr><td><b>Saturation tracking</b><br>Guest et al.; Hennink et al.</td><td>Signal when new codes stop emerging; a rigour feature <em>and</em> a cost governor</td><td>Present as a heuristic, never as proof</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">The paradigm landmine</div>
+        <p>Braun &amp; Clarke's reflexive TA <strong>explicitly rejects inter-rater reliability and Cohen's κ</strong>
+        as category errors — two researchers are <em>supposed</em> to code differently. But codebook-TA teams
+        actively want κ. The product must support both epistemologies and never conflate them.
+        <strong>Never market "reliable, objective automated coding."</strong> Get this wrong and you lose exactly
+        the expert users whose endorsement you need.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AGENT ARCHITECTURE ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">03</span>The brain</div>
+    <div>
+      <h2>A multi-agent research team, not a prompt</h2>
+      <p class="lede">
+        The differentiator is not the model — models are a swappable commodity behind a router. It's
+        <strong>pipeline discipline</strong>: grounding, measured agreement, adversarial verification, memory,
+        and hard human gates. The system mirrors an actual research team, because that's where rigour comes from.
+      </p>
+
+      <div class="chip-row">
+        <span class="chip observed">observed</span>
+        <span class="chip field">deterministic</span>
+        <span class="chip machine">llm-assisted</span>
+        <span class="chip review">needs review</span>
+        <span class="chip refuted">refuted</span>
+      </div>
+      <p style="font-size:.87rem;color:var(--ink-3);margin-top:-.6rem;">
+        Every artefact in the system carries one of these. Provenance is not metadata — it's the contract.
+      </p>
+
+      <div class="diagram">
+<pre class="mermaid">
+flowchart TB
+    PI["Principal Investigator<br/>orchestrator · planner · saturation control"]
+    FW["Fieldwork agents<br/>per connector · normalise · provenance"]
+    GATE{{"GOVERNANCE GATE<br/>consent · contextual integrity<br/>PII · minimisation"}}
+    C1["Coder 1"]
+    C2["Coder 2"]
+    C3["Coder N<br/>spawned on disagreement"]
+    EMB["Embedding / cluster worker<br/>bottom-up themes · saturation"]
+    REL["Reliability engine<br/>Cohen's / Fleiss' κ + semantic agreement"]
+    DEB["Peer-debrief / debate<br/>adjudicate disagreement"]
+    AX["Axial + selective synthesiser"]
+    INT["Interpreter<br/>thick description"]
+    SKP["Skeptic / adversarial critic<br/>refute · faithfulness gate"]
+    REF["Reflexivity agent<br/>positionality · bias surfacing"]
+    HITL[["HUMAN REVIEW GATES"]]
+    MEM[("Memory<br/>working · episodic<br/>living codebook · procedural")]
+    INS["Insight agent<br/>ask your research"]
+
+    PI --> FW --> GATE
+    GATE --> C1 & C2 & C3 & EMB
+    C1 & C2 & C3 --> REL --> DEB --> AX
+    EMB --> AX
+    AX --> INT --> SKP
+    REF -.audits.-> AX
+    REF -.audits.-> INT
+    SKP --> HITL
+    HITL --> MEM
+    MEM -.bootstraps.-> C1
+    HITL --> INS
+</pre>
+        <p class="fig">Fig. 1 — the research team. The gate is a hard boundary; no analysis stage ever sees pre-gate data.</p>
+      </div>
+
+      <h3>The rigour loops</h3>
+      <ol class="loops">
+        <li><b>Saturation loop.</b> Track the rate of genuinely new codes against embedding novelty. Stop when it falls below threshold — a principled "we've analysed enough" and a hard cost governor.</li>
+        <li><b>Reliability loop.</b> N coders, then a dual metric: Cohen's/Fleiss' κ <em>plus</em> semantic similarity, which catches "same meaning, different label." Low agreement auto-escalates to a human. <em>Scope corrected below.</em></li>
+        <li><b>Reflection loop.</b> Each coder self-critiques against source and codebook before submitting.</li>
+        <li><b>Evaluator–optimiser loop.</b> Theme narratives and code definitions are generated, critiqued against explicit criteria (grounded? distinct? ≥N supporting quotes?), refined.</li>
+        <li><b>Adversarial verification.</b> The skeptic must produce a <em>refuting</em> quote for each theme. Survivors are consensus-grounded; the rest are flagged. Primary hallucination defence.</li>
+        <li><b>Human gates.</b> Codebook approval before mass coding; low-agreement review; final sign-off. The human sees evidence, disagreement and confidence — never a smoothed answer. Every override is logged as eval data.</li>
+      </ol>
+
+      <h3>What makes it a learning organisation, not a static pipeline</h3>
+      <div class="cards">
+        <div class="card"><span class="k">Memory</span><h4>Four layers</h4><p>Working (per-study), episodic (past studies and human overrides), semantic (a living codebook that accumulates), procedural (versioned, eval-gated prompt assets).</p></div>
+        <div class="card"><span class="k">Learning</span><h4>Self-improving codebook</h4><p>Code definitions refine from inter-coder disagreement and human overrides — proposed, human-approved, versioned. New studies bootstrap from prior codebooks only on explicit opt-in, because uncritical reuse imports prior bias.</p></div>
+        <div class="card"><span class="k">Scaling</span><h4>Dynamic spawning</h4><p>The PI scales the coder pool to difficulty — more independent coders when disagreement is high, fewer when agreement is trivial. The team right-sizes itself.</p></div>
+        <div class="card"><span class="k">Conflict</span><h4>Structured debate</h4><p>Disagreements aren't averaged away — they're argued out by a moderated debate agent mirroring real peer debriefing, with the human adjudicating persistent splits.</p></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">Amendment — models are not researchers</div>
+        <p>Adversarial research undercut the independence assumption behind the κ loop: <strong>LLM coder panels
+        have severely correlated errors.</strong> Nine frontier judges across seven model families supplied only
+        about <b>two independent votes' worth</b> of information; panel accuracy fell <b>8–22pp short</b> of true
+        independent voting; and the best single judge often matched or beat the panel.</p>
+        <p style="margin-top:.7rem;">So κ is demoted from a <em>reliability claim</em> to a
+        <strong>disagreement-surfacing router</strong> — its job is to find the units a human must look at, not to
+        certify correctness. Decorrelate deliberately by varying <em>prompt frame, codebook framing and elicitation
+        order</em>, not merely model family. Never report inter-model κ as evidence of validity; only κ against a
+        <b>human gold codebook</b> supports a quality claim. Treat high agreement as weak evidence — correlated
+        models agree on their shared errors too — and treat <em>disagreement</em> as the strong, actionable signal.</p>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">Designing against the evidence</div>
+        <p>Peer-reviewed work (Ashwin, Chhabra &amp; Rao, 2025) found LLM qualitative coding introduces
+        <strong>systematic, non-random bias</strong> — errors correlate with subject characteristics, so they
+        <em>do not wash out with sample size</em>. They bias conclusions in a consistent direction, silently
+        distorting exactly the underrepresented voices research exists to surface. This is why multi-model
+        coding, bias auditing and human gates are architecture, not features.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MODEL ROUTING ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">04</span>Model fleet</div>
+    <div>
+      <h2>Tiered routing — the utilisation that grows</h2>
+      <p class="lede">
+        Advertised context ≠ effective context: multi-fact retrieval degrades sharply past ~200K tokens. "Find every
+        mention across the corpus" is a retrieval job, not a stuff-the-window job. Each task goes to the cheapest
+        tier that can actually do it.
+      </p>
+
+      <div class="ladder">
+        <div class="rung" style="--tier: var(--observed);">
+          <div class="tier-name">Embeddings</div>
+          <div class="tier-body">Clustering, dedup, retrieval, saturation novelty. Cheapest and highest volume — one index serves retrieval, clustering and saturation detection.</div>
+        </div>
+        <div class="rung" style="--tier: var(--accent);">
+          <div class="tier-name">Small</div>
+          <div class="tier-body">PII, aspect-based sentiment, quote extraction, first-pass open coding against a fixed codebook. The bulk of token spend, with structured outputs.</div>
+        </div>
+        <div class="rung" style="--tier: var(--machine);">
+          <div class="tier-name">Mid</div>
+          <div class="tier-body">Journey analysis and mid-complexity coding. The escalation target for low-confidence units.</div>
+        </div>
+        <div class="rung" style="--tier: var(--review);">
+          <div class="tier-name">Frontier</div>
+          <div class="tier-body">Axial and selective synthesis, thick description, adversarial critique, debate adjudication, cross-study reasoning. Low volume, high reasoning value.</div>
+        </div>
+        <div class="rung" style="--tier: var(--refuted);">
+          <div class="tier-name">Vision</div>
+          <div class="tier-body">Screenshots and session-replay frames. Prefer DOM/accessibility text where it exists — vision is the enricher, not the primary signal.</div>
+        </div>
+      </div>
+
+      <p>
+        Routing is a <strong>cascade</strong>: a semantic router sends each unit to the cheapest capable tier; the small
+        tier codes the bulk and emits confidence; only low-confidence or high-disagreement units escalate. Route by
+        <em>capability profile</em>, never hardcoded model names — the frontier turns over roughly quarterly, and
+        adding a model must be a config change, not a rebuild.
+      </p>
+
+      <div class="excerpt">
+        <span class="excerpt-label">Cost discipline</span>
+        <p>Batch API (~50% off) for all non-interactive coding · prompt caching (~90% off cached reads) on the codebook
+        and system prompt — these <strong>stack to roughly 95%</strong> · cascade keeps ~85% of units off the frontier ·
+        embeddings stop you paying to re-code saturated material. Cost scales with
+        <em>entries × participants × study length</em>, not seats — which is why pricing must be usage-based, not per-seat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GOVERNANCE KERNEL ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">05</span>The kernel</div>
+    <div>
+      <h2>Ethics as a hard gate, not a checklist</h2>
+      <p class="lede">
+        This is the moat: enterprises connect sensitive first-party data because the governance posture is
+        architectural and auditable. A reference implementation already exists in this repo — a pure, offline,
+        dependency-light Python kernel with 24 passing tests.
+      </p>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Principle</th><th>Enforced how, in code</th></tr></thead>
+          <tbody>
+            <tr><td><b>Informed consent</b></td><td>Default-deny registry. No valid, unexpired, purpose-matched record → data is dropped at the gate.</td></tr>
+            <tr><td><b>Purpose limitation</b></td><td>The study declares one purpose; consent must name it or processing is refused.</td></tr>
+            <tr><td><b>Contextual integrity</b></td><td>A flow check against the norms of the originating context — not just a consent boolean.</td></tr>
+            <tr><td><b>Data minimisation</b></td><td>Study declares allowed categories; anything outside is dropped <em>even when consent exists</em>.</td></tr>
+            <tr><td><b>Anonymity</b></td><td>Raw identifiers salted-hashed to pseudonyms at ingest and discarded; free-text PII redacted before retention.</td></tr>
+            <tr><td><b>k-anonymity</b></td><td>Output floor — suppress any theme or quote attributable to fewer than <span class="num">k</span> subjects. Personas are aggregates, never a person.</td></tr>
+            <tr><td><b>Right to erasure</b></td><td><code>data_subject_id</code> as a join key everywhere → cascading deletion across rows, vectors, caches, derived aggregates, traces.</td></tr>
+            <tr><td><b>Retention</b></td><td>Observations past their horizon are dropped automatically.</td></tr>
+            <tr><td><b>Accountability</b></td><td>SHA-256 hash-chained audit log; every keep, drop, redact and erase recorded, with tamper detection.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Provenance envelope — captured at ingest, never bolted on</div>
+        <p><code>source_system</code> · <code>source_record_id</code> · <code>connector_version</code> ·
+        <code>ingested_at</code> · <code>original_created_at</code> · <code>legal_basis</code> ·
+        <code>consent_ref</code> · <code>data_subject_id</code> · <code>tenant_id</code> ·
+        <code>retention_class</code> · <code>residency_region</code> · <code>pii_flags</code></p>
+        <p style="margin-top:.7rem;">This is what makes erasure and audit <em>possible at all</em>. Retrofitting it is close to impossible.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DATA PIPELINE ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">06</span>Data</div>
+    <div>
+      <h2>First-party is the product; public data is licensed garnish</h2>
+      <p class="lede">
+        The legal reality makes DIY scraping a business-model time bomb. CFAA is mostly not the risk after
+        <em>hiQ v. LinkedIn</em> and <em>Meta v. Bright Data</em> — <strong>breach of ToS is</strong>. And GDPR
+        grants no "publicly available" exemption; CNIL fined KASPR €240K for scraping LinkedIn data.
+      </p>
+
+      <div class="cards">
+        <div class="card" style="border-left:3px solid var(--observed);">
+          <span class="k" style="color:var(--observed)">Tier 1 · preferred</span>
+          <h4>Official APIs</h4>
+          <p>Stack Exchange (CC BY-SA), YouTube Data API, <em>own-app</em> store reviews, G2 paid, Discourse, GDELT.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--review);">
+          <span class="k" style="color:var(--review)">Tier 2 · use with DPA</span>
+          <h4>Licensed brokers</h4>
+          <p>Bright Data, Apify, Reddit's commercial licence (~$0.24/1k calls, ~$12k/mo floor). Push legal risk to a vendor.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--refuted);">
+          <span class="k" style="color:var(--refuted)">Tier 3 · prohibited</span>
+          <h4>Never DIY-scrape</h4>
+          <p>Anything logged-in or ToS-gated: X, TikTok (commercial barred), Discord (self-bots banned), Amazon, Glassdoor.</p>
+        </div>
+      </div>
+
+      <h3>The connectors that actually matter</h3>
+      <p>
+        Weight the ontology toward qualitative <em>voice</em>. Highest signal-to-integration-effort first:
+        <strong>the CDP (Segment)</strong> — connect once, fan out everything — and
+        <strong>the conversation layer</strong>: support desks (Zendesk, Intercom, Front — the densest ethnographic
+        text there is) and interview transcripts (Gong; Recall.ai as the meeting-bot aggregator normalising
+        Zoom/Meet/Teams). Then surveys and NPS open-text, community (Discourse, Slack), product analytics
+        (Amplitude, Mixpanel, PostHog), session replay (heavy PII — redaction critical), and CRM as the
+        segmentation skeleton.
+      </p>
+
+      <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    SRC["Sources<br/>licensed public<br/>+ first-party OAuth/DPA"]
+    ING["Ingestion<br/>connector contract<br/>+ provenance at ingest"]
+    LAKE["Raw lake<br/>immutable · region-pinned"]
+    PII["PII stage<br/>detect · redact · token vault"]
+    CANON["Canonical<br/>Observation model"]
+    STORE["Postgres + vector"]
+    BRAIN["AI brain<br/>coding · κ · synthesis"]
+    KANON{{"k-anonymity<br/>at output"}}
+    SURF["Web app · API · MCP"]
+    SRC --> ING --> LAKE --> PII --> CANON --> STORE --> BRAIN --> KANON --> SURF
+</pre>
+        <p class="fig">Fig. 2 — one canonical Observation model is the seam that makes build-vs-buy, the API and the MCP server all fall out cleanly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== INFRASTRUCTURE (placeholder) ===================== -->
+<section id="infrastructure">
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">07</span>Infrastructure</div>
+    <div>
+      <h2>Sovereignty as discipline, not as a GPU bill</h2>
+      <p class="lede">
+        Full sovereignty on day one — self-hosted GPU fleet, self-hosted everything, SOC&nbsp;2 controls — would
+        consume a solo builder entirely on infrastructure instead of product. The resolution: choose
+        <strong>self-hostable, portable, open-weight-compatible components so nothing forecloses sovereignty</strong>,
+        while <em>running</em> managed services until a paying tenant contractually requires otherwise.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-title">Evidence status — read before quoting any number</div>
+        <p>Every dive below was adversarially fact-checked, and three findings were corrected or refuted in the
+        process. <strong>All dollar figures are directional and must be re-quoted before entering a financial
+        model</strong> — the research environment had egress blocked to most vendor hosts, including every NVIDIA
+        property.</p>
+      </div>
+
+      <h3>The one-way doors</h3>
+      <p>Everything else is reversible. These three cost days now and six months later:</p>
+      <ol class="loops">
+        <li><b>A model gateway abstraction from commit #1.</b> Never call a provider SDK from application code. Route by capability profile, never by model name.</li>
+        <li><b>A tenant→region pin in the data model</b>, even while there is only one region. Retrofitting residency into a single-region schema is a migration from hell.</li>
+        <li><b>Provenance edges from commit #1.</b> The structure that produces citations is the same structure that makes erasure tractable.</li>
+      </ol>
+
+      <h3>Inference — the verdicts on Hermes and NIM</h3>
+      <div class="cards">
+        <div class="card" style="border-left:3px solid var(--refuted);">
+          <span class="k" style="color:var(--refuted)">Don't build on it</span>
+          <h4>Hermes</h4>
+          <p>Hermes 4 is a <b>Llama-3.1 derivative</b> — 2024 base, 128K context, 8 languages, one hosted provider.
+          The Llama licence would force <em>"Built with Meta Llama 3.1"</em> onto the UI of a governance-branded
+          product. Both its selling points eroded: schema adherence is commoditised by constrained decoding, and
+          low-refusal is matched by Gemma 4 / Qwen 3.5 <em>without</em> the liability of a model marketed as
+          having no guardrails — acute when your moat is the ethics kernel and your inputs are
+          attacker-influenceable.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--refuted);">
+          <span class="k" style="color:var(--refuted)">Don't adopt it</span>
+          <h4>NVIDIA NIM</h4>
+          <p>The licensing cost <b>could not be verified</b> — all NVIDIA properties were egress-blocked for both
+          researcher and fact-checker. <em>Get a written quote.</em> The verdict survives on checkable grounds:
+          NIM LLM 2.0 is a wrapper around vLLM, and <b>NIM ships with prefix caching disabled while vLLM ships
+          with it enabled</b> — so for a shared-codebook fan-out, default NIM is likely <em>slower</em>.
+          Standardise on vLLM behind your own abstraction.</p>
+        </div>
+      </div>
+
+      <div class="excerpt is-refuted">
+        <span class="excerpt-label">Retracted in verification</span>
+        <p>An earlier draft claimed SGLang's RadixAttention maps onto the N-coders-share-a-codebook pattern for a
+        large throughput win. <strong>Refuted.</strong> vLLM's automatic prefix caching is on by default, so both
+        engines already eliminate shared-prefix recompute — and an extreme prefix ratio <em>collapses</em> the gap
+        rather than amplifying it. The real engine tweak is enabling vLLM's <b>cascade attention</b>, which
+        <em>is</em> off by default.</p>
+      </div>
+
+      <p>
+        <strong>Open-weight cascade instead:</strong> Qwen3-Embedding for retrieval · Qwen 3.5 27B / Gemma 4 26B
+        for high-volume deductive coding · Qwen 3.5 122B / DeepSeek V4-Flash for inductive coding and synthesis ·
+        Mistral Large 3 + Apertus for the EU-sovereign SKU · frontier closed models via Bedrock EU for the hardest
+        synthesis and adjudication.
+      </p>
+
+      <div class="callout">
+        <div class="callout-title">EU residency, precisely</div>
+        <p><b>Anthropic first-party has no EU option at all</b> — <code>inference_geo</code> accepts only
+        <code>global</code> and <code>us</code>, and workspace geo is <code>us</code>-only and immutable.
+        <b>Bedrock EU and Vertex EU deliver GDPR-grade residency today</b> without any GPU. But the trap: the
+        Bedrock <em>EU inference profile</em> can route to <b>Zurich and London — outside the EU/EEA</b>. Only
+        in-region endpoints are real residency, and an enterprise reviewer will find this.</p>
+        <p style="margin-top:.7rem;">The EU–US Data Privacy Framework survives but is under live CJEU appeal
+        (C-703/25 P). <strong>Architect as if it will fall:</strong> EU tenant data never leaves the EEA by default.</p>
+      </div>
+
+      <div class="excerpt is-observed">
+        <span class="excerpt-label">The cheap sovereignty move</span>
+        <p>Self-host <strong>embeddings and PII redaction in your own VPC</strong>. That keeps the raw participant
+        corpus off third-party infrastructure at trivial cost, while frontier reasoning runs on Bedrock EU. Most of
+        the sovereignty value, a fraction of the burden — the right answer for a team of one.</p>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">A validity threat that outranks the cost analysis</div>
+        <p>Model retirement dates are confirmed exactly — Sonnet 3.7 and Haiku 3.5 retired 19 Feb 2026, Opus 3 on
+        5 Jan 2026, Opus 4.1 retiring 5 Aug 2026, with only ~60 days' notice guaranteed.
+        <strong>Frontier deprecation cycles are incompatible with multi-year longitudinal ethnography:</strong> if
+        the coder model changes mid-study, <em>inter-model drift becomes confounded with the cultural change you
+        are trying to measure.</em> Longitudinal studies must pin a model version for the study's life — which is
+        the strongest argument for self-hosted open weights on that path specifically. You control the weights, so
+        the instrument stays constant.</p>
+      </div>
+
+      <h3>Orchestration — Temporal outside, typed code inside</h3>
+      <p>
+        <strong>Do not make an agent framework the orchestration backbone.</strong> <code>langgraph-api</code> —
+        the production server — is <b>Elastic License 2.0, which prohibits providing it to third parties as a
+        hosted service</b>. That directly conflicts with a multi-tenant SaaS plus public API plus MCP roadmap.
+        (The LangGraph <em>library</em> is MIT and genuinely good; the <em>server</em> is the problem.) A March 2026
+        checkpointer deserialization RCE chain settles it for a kernel holding participant data.
+      </p>
+      <div class="excerpt">
+        <span class="excerpt-label">The seam</span>
+        <p><b>Workflow = the study</b> — durable, versioned, tenant-scoped, human-gated.<br>
+        <b>Activity = exactly one bounded, idempotent, cost-attributed LLM or tool call.</b><br>
+        Everything above the Activity is your own typed code, not a framework's abstraction.</p>
+      </div>
+      <p>
+        Temporal is the only evaluated engine meeting all seven hard requirements — N-way fan-out with fan-in,
+        human gates that pause for <em>days</em>, resumability without re-paying for LLM calls, per-step cost
+        attribution, namespace tenant isolation, and genuine cross-language workers — on an MIT licence. And the
+        elegant find: configuring its <code>DataConverter</code> with an encrypting payload codec plus external
+        storage keeps <strong>all participant text out of the append-only event history</strong>, converting the
+        otherwise-intractable "erasure from an immutable log" problem into crypto-shredding. Orchestration cost is
+        negligible — roughly <span class="num">$0.35</span> of Temporal Actions against
+        <span class="num">$1,300–2,700</span> of inference for a 50,000-entry study. Never optimise the orchestrator.
+      </p>
+
+      <h3>Data — one Postgres, and provenance as the primary key</h3>
+      <p>
+        Keep embeddings in pgvector <em>in the same database</em> as tenant rows, partitioned by
+        <code>(tenant_id, study_id)</code>. Tenant isolation is then <strong>inherited from row-level security
+        rather than reimplemented</strong>, which structurally kills the "forgotten metadata filter" leak that
+        OWASP names as <em>the</em> multi-tenant RAG failure mode. Partitioning also converts pgvector's weak
+        post-filtering into partition pruning — decisive here, because every query in this product is filtered.
+      </p>
+      <div class="excerpt is-observed">
+        <span class="excerpt-label">The strongest isolation control isn't a database feature</span>
+        <p>Retrieval tools must be <strong>structurally incapable of expressing a cross-tenant query</strong>.
+        Tenant scope is injected from a signed job context — never an agent-supplied parameter. An agent that
+        cannot <em>name</em> another tenant cannot leak one.</p>
+      </div>
+      <p>
+        <strong>Provenance is the primary key of the system.</strong> The same edge set that produces your citations
+        makes cascading erasure a <em>bounded graph walk</em> instead of an impossible archaeology project. Pair it
+        with per-subject crypto-shredding — destroy the subject's key in KMS — and you are compliant in seconds
+        while re-derivation runs for days, decoupling "legally compliant" from "finished recomputing."
+      </p>
+      <p>
+        <strong>Deliberately skip</strong> a graph database, a search engine, an OLAP warehouse, and every
+        agent-memory vendor. Each is another store to isolate, back up, audit and <em>erase from</em>. On GraphRAG
+        specifically: it's over-engineering, for a sharp reason — <em>the multi-agent coding pipeline already
+        <strong>is</strong> a domain-specific GraphRAG.</em> Codes, themes and evidence edges are the graph;
+        bi-temporal edge tables capture how culture evolves without a new store.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-title">Correction — I had recommended Presidio</div>
+        <p>On the REDACT benchmark, Microsoft Presidio achieves <b>0.07 recall on high-sensitivity PII</b> versus
+        <b>0.74–0.77 for LLM-based detectors</b>. Since redaction must happen <em>before any model call</em>, the
+        corrected design is a two-stage detector: a <strong>self-hosted LLM detector in-VPC as primary</strong>,
+        with regex/NER as a fast tripwire and backstop — never as the sole layer. This is also the strongest
+        argument for self-hosting a small model early: <em>you need an in-VPC model to safely redact before calling
+        any external one.</em></p>
+      </div>
+
+      <h3>Hosting</h3>
+      <div class="excerpt is-refuted">
+        <span class="excerpt-label">The verdict you asked for</span>
+        <p><strong>Hostinger is not viable as the primary platform, and it is not close.</strong> No GPU, no managed
+        Kubernetes, no S3-compatible object storage, no managed PostgreSQL, no KMS/BYOK, no VPC or private
+        endpoints, and no SOC&nbsp;2 Type II — with an SLA whose entire remedy is a <b>5% service credit usable only
+        toward further Hostinger purchases</b>, which alone fails enterprise vendor review.</p>
+        <p style="margin-top:.7rem;">This is a <em>category mismatch, not a quality judgement</em> — a competent
+        mass-market host being asked to be a cloud platform. <strong>It does have a real role:</strong> the marketing
+        site, docs and domains, plus non-regulated internal tooling — strictly outside the SOC&nbsp;2 scope boundary,
+        with no shared credentials and no network path to production. Use it there.</p>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Stage</th><th>Compute</th><th>Data</th><th>Inference</th></tr></thead>
+          <tbody>
+            <tr><td><b>MVP</b><br><span style="color:var(--ink-3);font-size:.85em;">solo, pre-revenue</span></td><td>Render or Railway, EU region. <b>No Kubernetes.</b></td><td>Managed Postgres + pgvector, Cloudflare R2</td><td>Bedrock EU in-region + in-VPC embeddings &amp; redaction</td></tr>
+            <tr><td><b>Growth</b><br><span style="color:var(--ink-3);font-size:.85em;">~50 customers</span></td><td>AWS <code>eu-central-1</code>, ECS Fargate</td><td>Aurora/RDS + pgvector, per-tenant KMS keys</td><td>Same, plus a cheap open-weight tier on managed GPU</td></tr>
+            <tr><td><b>Sovereign</b><br><span style="color:var(--ink-3);font-size:.85em;">enterprise SKU</span></td><td>Kubernetes <em>as a portable deployment artifact</em> for customer-VPC installs</td><td>Region-pinned, BYO-bucket, BYOK</td><td>Self-hosted vLLM pod — <b>sold at $10–30k/mo</b>, not a cost play</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">Cost shape changes the architecture</div>
+        <p>Model inference is <strong>70–85% of infrastructure cost at MVP</strong> and can reach ~53% of COGS at
+        scale. That makes tiered routing, prompt caching, Batch API and hard per-tenant token caps
+        <em>existential rather than optimisations</em>. It also forces one amendment to the agent design:
+        <strong>"dynamic agent spawning scaled to disagreement" is an unbounded cost amplifier and must carry a hard
+        cap.</strong> A corpus where coders never converge would otherwise spawn without limit — cap it, and treat
+        hitting the cap as the signal to escalate to a human.</p>
+      </div>
+
+      <h3>Two legal risks nobody asked about</h3>
+      <p>Surfaced unprompted by the research; both land directly on core differentiators and warrant counsel review.</p>
+      <div class="cards">
+        <div class="card" style="border-left:3px solid var(--review);">
+          <span class="k" style="color:var(--review)">GDPR Art. 9</span>
+          <h4>Special-category data is unavoidable</h4>
+          <p>Health, ethnicity, politics, sexuality and union membership appear routinely in transcripts and
+          community discourse — the <em>most valuable</em> sources are the likeliest to carry it. Art. 9 needs an
+          explicit lawful basis, not consent-by-default.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--refuted);">
+          <span class="k" style="color:var(--refuted)">EU AI Act</span>
+          <h4>Workplace emotion recognition is prohibited</h4>
+          <p>Any sentiment or emotion feature applied to employee-adjacent data — internal Slack VoC, support
+          agents, employee research — may be a <em>prohibited practice</em>, not merely a regulated one. Scope it out
+          of workplace contexts, or out entirely.</p>
+        </div>
+      </div>
+
+      <h3>The one-page answer</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Hosting (MVP)</td><td><b>Render/Railway EU → AWS <code>eu-central-1</code></b></td><td>Compliance-capable without ops burden; Hostinger for the marketing site only</td></tr>
+            <tr><td>Orchestration</td><td><b>Temporal</b> (MIT)</td><td>Only engine meeting all seven requirements; crypto-shredding via payload codec</td></tr>
+            <tr><td>Agent layer</td><td><b>Your own typed code</b> — no framework backbone</td><td><code>langgraph-api</code> is Elastic 2.0 → hosted-service prohibition</td></tr>
+            <tr><td>Relational + vector</td><td><b>One Postgres</b>, pgvector partitioned by <code>(tenant_id, study_id)</code></td><td>Isolation inherited from RLS; kills the top RAG leak class</td></tr>
+            <tr><td>Provenance</td><td><code>derivation_edges</code> + <code>data_locations</code> from commit #1</td><td>Citations <em>and</em> bounded-walk erasure from one structure</td></tr>
+            <tr><td>Erasure</td><td>Per-subject <b>crypto-shredding</b></td><td>Compliant in seconds; re-derivation async</td></tr>
+            <tr><td>Object storage</td><td><b>Cloudflare R2</b>, BYO-bucket for enterprise</td><td>Egress economics — <em>MinIO is archived, avoid</em></td></tr>
+            <tr><td>Inference (default)</td><td><b>Bedrock EU in-region endpoints</b></td><td>Real EU residency; Anthropic first-party has none</td></tr>
+            <tr><td>Inference (in-VPC)</td><td><b>vLLM</b> — embeddings + PII redaction first</td><td>Cheap sovereignty, and needed <em>before</em> any external call</td></tr>
+            <tr><td>Open weights</td><td>Qwen 3.5 / Gemma 4 / Mistral Large 3 — <b>not Hermes</b></td><td>Licensing, recency, language coverage, no guardrails liability</td></tr>
+            <tr><td>Gateway</td><td><b>Self-hosted LiteLLM</b></td><td>Per-tenant keys with synchronous hard budget caps</td></tr>
+            <tr><td>Observability</td><td><b>Self-hosted Langfuse</b> (MIT), OTel-instrumented</td><td>Not a GDPR sub-processor at all; swappable sink</td></tr>
+            <tr><td>Skip at MVP</td><td>Graph DB · search engine · OLAP · memory vendors · Kubernetes</td><td>Each is another store to isolate, audit and erase from</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RECRUITMENT ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">08</span>Participants</div>
+    <div>
+      <h2>The panel is the moat</h2>
+      <p class="lede">
+        One-off interview tools can rent a marketplace. Longitudinal ethnography lives or dies on a retained,
+        consenting, richly-profiled panel that stays engaged for weeks or months — expensive to build, very
+        hard to copy.
+      </p>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Channel</th><th>Role</th><th>Honest limit</th></tr></thead>
+          <tbody>
+            <tr><td><b>Owned longitudinal panel</b></td><td>The durable asset and AI-data flywheel. Centre of gravity.</td><td>Expensive; drifts toward engaged super-users without quota management</td></tr>
+            <tr><td><b>Marketplace</b><br>User Interviews · Respondent · Prolific</td><td>Feeder for net-new strangers, quotas and spikes — especially early</td><td>Professional-respondent contamination; you inherit the vendor's consent scope</td></tr>
+            <tr><td><b>In-product intercept</b></td><td>Feeder for real-context users of a customer's live product</td><td>Existing users only — misses churned and non-users entirely</td></tr>
+            <tr><td><b>Public-data observation</b></td><td>Auxiliary discovery and trend signal</td><td><b>Not evidence.</b> Walled off from consented primary research</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="phases">
+        <div class="phase"><div class="phase-id">Stage 1</div><div><h4>Don't build a panel yet</h4><p>Integrate marketplace APIs plus a BYO-user intercept. Win on the AI ethnography workflow — capture → transcribe → grounded coding → cited synthesis. Ship consent-lifecycle tooling from day one as the differentiator.</p></div></div>
+        <div class="phase"><div class="phase-id">Stage 2</div><div><h4>Own the relationship</h4><p>A research-hub layer so each customer builds and re-contacts <em>their own</em> longitudinal panel inside the product. Build the fatigue, rotation and re-consent machinery. Retention compounds.</p></div></div>
+        <div class="phase"><div class="phase-id">Stage 3</div><div><h4>Own the pool</h4><p>A proprietary verified panel as premium managed recruitment — invested specifically in the B2B and specialist depth where dscout is weak.</p></div></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">Consent is a lifecycle, not a checkbox</div>
+        <p>Continuous observation needs <strong>continuous consent</strong>: re-consent checkpoints, per-entry
+        share/don't-share control, frictionless withdrawal with payment for time already given, and tooling for
+        <em>secondary subjects</em> — home and work video inevitably captures non-consenting third parties.
+        Panel fatigue is now treated as an ethical harm in its own right, not merely a data-quality problem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ROADMAP ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">09</span>Roadmap</div>
+    <div>
+      <h2>One engine, three surfaces</h2>
+      <p class="lede">
+        Wrap the engine; don't rebuild the runtime. Every surface — web app, API, MCP server — is a thin client
+        over the same governed core, sharing one async job contract:
+        <code>submit → job_id → poll → result</code>.
+      </p>
+
+      <div class="phases">
+        <div class="phase"><div class="phase-id">Phase 0</div><div><h4>Engine + MVP web app</h4><p>One low-risk official connector → governance gate → embeddings → a small real multi-agent loop (orchestrator, 2 independent coders, κ, adversarial critic, human queue) → cited insight in the browser. Async job model and consent tooling from the first commit.</p></div></div>
+        <div class="phase"><div class="phase-id">Phase 1</div><div><h4>Depth + governance</h4><p>More connectors, community and discourse modelling, the full PII/provenance/audit path with cascading erasure and k-anonymity, admin console, multi-tenant hardening, evals in CI.</p></div></div>
+        <div class="phase"><div class="phase-id">Phase 2</div><div><h4>Public API</h4><p>REST for jobs, GraphQL for the insight graph, tenant-scoped keys, gateway budgets, docs and SDKs — over the same engine.</p></div></div>
+        <div class="phase"><div class="phase-id">Phase 3</div><div><h4>MCP suite</h4><p>An MCP server publishing <code>search_insights</code>, <code>analyze_community</code>, <code>detect_themes</code>, <code>track_behavior_trend</code>, <code>run_observation_study</code> and the async job tools — with provenance and k-anonymity enforced server-side. Become the ethnographic-intelligence capability other agents depend on.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RISKS ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">10</span>Risk</div>
+    <div>
+      <h2>What could break this, and the answer</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Risk</th><th>Architectural answer</th></tr></thead>
+          <tbody>
+            <tr><td><b>LLM systematic bias distorts findings</b><br><span style="color:var(--ink-3);font-size:.85em;">peer-reviewed; doesn't wash out with scale</span></td><td>Multi-model coding across ≥2 families, bias auditing on both sample and model, human gates, surfaced disagreement</td></tr>
+            <tr><td><b>Hallucinated quotes and claims</b></td><td>Mandatory evidence spans, span-level quote verification, faithfulness release gate, adversarial critic</td></tr>
+            <tr><td><b>Alienating expert researchers</b></td><td>Support both epistemologies; never sell "reliable automated coding"</td></tr>
+            <tr><td><b>Legal exposure from public data</b></td><td>First-party first; licensed brokers with DPAs; no DIY-scraping of ToS-gated sources, enforced in the connector contract</td></tr>
+            <tr><td><b>Cross-tenant leakage</b><br><span style="color:var(--ink-3);font-size:.85em;">the #1 multi-tenant AI SaaS failure</span></td><td>Three enforced layers: row-level security, vector metadata filters, tenant-scoped gateway keys — with the cross-tenant test written <em>before</em> the feature it guards</td></tr>
+            <tr><td><b>Erasure across derived data</b></td><td>Join key everywhere + cascading deletion orchestration + tombstones and audit proof</td></tr>
+            <tr><td><b>Re-identification</b></td><td>Output k-anonymity floor plus quote cloaking and paraphrase</td></tr>
+            <tr><td><b>Runaway inference cost</b></td><td>Cascade routing, batch, caching, saturation stop, per-study cost attribution and per-job caps</td></tr>
+            <tr><td><b>Model churn</b><br><span style="color:var(--ink-3);font-size:.85em;">frontier turns over ~quarterly</span></td><td>Route by capability profile, not model name — adding a model is config</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Digital Ethnographic Intelligence</strong> — product strategy and technical architecture, v1.
+    Synthesised from research across ethnographic methodology and internet-research ethics, agentic AI
+    engineering, data-source law and pipeline design, participant recruitment and panel operations, and the
+    competitive platform landscape.</p>
+    <p style="margin-top:.8rem;">Model identifiers, API pricing and provider terms move fast — treat the tiering
+    logic as durable and specific figures as configuration to re-verify at build time.</p>
+  </div>
+</footer>
