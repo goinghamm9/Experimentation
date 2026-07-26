@@ -1,0 +1,69 @@
+# Example study: understanding onboarding & checkout experience of a mobile app.
+#
+# This single file *is* the research design. It declares the study's purpose
+# (enforced as purpose limitation), the data categories it may touch, the data
+# sources, an a-priori codebook, and the consent records. Raw identifiers here
+# are pseudonymized on load — the running system never holds them.
+
+# Salt for pseudonymization. In production, inject via env/secret, never commit.
+salt: "change-me-to-a-real-secret-salt"
+
+study:
+  id: "onboarding-checkout-2026"
+  title: "Onboarding & Checkout Experience"
+  purpose: "improve_onboarding_and_checkout"
+  research_questions:
+    - "Where do new users experience friction during onboarding?"
+    - "What causes checkout abandonment?"
+    - "How do users talk about trust and privacy?"
+  allowed_categories: ["behavioral", "content"]   # data minimization
+  retention_days: 120
+  llm_enrichment: false   # deterministic core only; set true + ANTHROPIC_API_KEY to enrich
+
+sources:
+  - type: events
+    name: events
+    path: "../examples/events.jsonl"
+    id_field: "user"
+    event_field: "event"
+    ts_field: "ts"
+  - type: qualitative
+    name: reviews
+    path: "../examples/reviews.jsonl"
+    id_field: "author"
+    text_field: "text"
+    ts_field: "ts"
+
+# Optional a-priori codebook (code label -> trigger keywords). Emergent codes are
+# discovered automatically for what this misses.
+codebook:
+  onboarding_friction: ["onboard", "signup", "sign up", "confusing", "get started"]
+  checkout_flow: ["checkout", "cart", "payment", "purchase", "buy"]
+  error_or_bug: ["error", "crash", "broken", "fail", "stuck"]
+  trust_and_privacy: ["privacy", "trust", "data", "permission", "scam"]
+  value_and_delight: ["love", "great", "helpful", "easy", "delight", "smooth"]
+  abandonment: ["gave up", "uninstall", "quit", "abandon"]
+
+# Consent records. Each binds a raw identifier to permitted purposes + data
+# categories. Participants NOT listed here (e.g. u_dave, u_frank) are dropped by
+# the governance gate — their data never reaches analysis.
+consent:
+  - identifier: "u_alice"
+    purposes: ["improve_onboarding_and_checkout"]
+    categories: ["behavioral", "content"]
+    granted_at: "2026-05-01T00:00:00Z"
+    expires_at: "2027-05-01T00:00:00Z"
+  - identifier: "u_bob"
+    purposes: ["improve_onboarding_and_checkout"]
+    categories: ["behavioral", "content"]
+    granted_at: "2026-05-01T00:00:00Z"
+  - identifier: "u_carol"
+    purposes: ["improve_onboarding_and_checkout"]
+    categories: ["behavioral", "content"]
+    granted_at: "2026-05-01T00:00:00Z"
+  - identifier: "u_erin"
+    purposes: ["improve_onboarding_and_checkout"]
+    categories: ["behavioral", "content"]
+    granted_at: "2026-05-01T00:00:00Z"
+  # u_dave: consent for behavioral only would still be dropped here because they
+  # are omitted entirely — demonstrating the default-deny posture of the gate.
