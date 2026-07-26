@@ -853,6 +853,246 @@ Surfaced unprompted by the research; both warrant counsel review:
 
 ---
 
+## 12. The Rigor Layer — formal models as architecture
+
+> **Source.** This section integrates the founder-supplied corpus *Formal Models for Ethnographic Research*
+> (five progressive versions, §0–§18), which organizes the ethnographic canon against Stinchcombe's theory-
+> construction framework and supplies the measurement mathematics this document previously lacked entirely.
+>
+> **Honest note.** Everything in §1–§11 above is methodology and infrastructure. It contained **no estimators**
+> — no sampling theory, no saturation mathematics, no reliability model, no causal identification. That was a
+> real gap. This section closes it, and in three places the corpus **overturns** the architecture above.
+
+### 12.1 The thesis, restated
+
+The corpus's central strategic claim (§14.1/§18.1):
+
+> The insight category is crowded — AI-moderated collection (Listen Labs, Conveo, Outset, Strella), analysis
+> and repository (Dovetail, Enterpret, Thematic, Chattermill), legacy CAQDAS (NVivo, ATLAS.ti, MAXQDA),
+> VoC (Qualtrics XM Discover, Medallia), mobile ethnography (dscout, Indeemo, Streetbees), and expert networks
+> (AlphaSense/Tegus, GLG, Third Bridge — already a multi-billion-dollar analog to "ethnographic intelligence as
+> a service"). **The rigor layer is not productized anywhere.** Free calculators, R packages (`irr`,
+> `krippendorffsalpha`, `iNEXT`), `ppi_py`, and arXiv benchmarks — and nothing joining them.
+
+That gap — not "observation vs. elicitation" alone — is the sharper version of the wedge in §1.
+
+### 12.2 Three corrections the corpus forces on §3 (the agent architecture)
+
+**(a) The κ design was wrong, and the corpus already said so.** §10.6: *"Judges sharing a base model or a
+prompt lineage are correlated sources. Three judges from one model family are worth roughly one judge, and
+ensembling them produces confidence rather than evidence."* This independently matches the adversarial finding
+in §3.3's amendment — but the corpus supplies the **fix**, which the amendment did not:
+
+| Broken assumption | Replacement |
+|---|---|
+| N model coders ≈ N independent researchers | **`n_eff = k / (1 + (k−1)ρ)`** — report effective, not nominal, coder count |
+| κ certifies correctness | **Cultural Consensus Theory** (§2.1): guessing-corrected agreement matrix `M* = 2M − 1` should be **rank one**; competence `D_i` = first-eigenvector loadings; aggregate by competence-weighted voting, not majority |
+| λ₁/λ₂ ≥ 3 as a rule of thumb | **Marchenko–Pastur edge** `λ± = σ²(1 ± √q)²` (§12.2) — eigenvalues inside the bulk are *sampling noise*, however suggestive. This is a theorem, not a heuristic |
+| High agreement = quality | **Goodwin (§15.6): α measures shared professional vision, not correspondence to truth.** Judges from one family agree because they share a training. `λ₁/λ₂ < 3` means *two different rubrics are in play* — a finding about rubric ambiguity, not noise to average away |
+
+**(b) Chasing an unbiased judge is the wrong engineering problem.** §13.8 is the single most important
+correction in the corpus for this product:
+
+> **Do not try to build an unbiased judge; accept that the judge is biased and correct for it statistically.**
+
+**Prediction-Powered Inference / Design-based Supervised Learning**: hand-label a small **probability sample**
+(not a convenience sample), estimate the model's systematic error as a rectifier `r_θ = E[∇ℓ_θ(x,y) − ∇ℓ_θ(x,ŷ)]`
+on that gold set, and correct the corpus-scale estimate by the measured error — yielding consistent estimates
+with valid confidence intervals. `ppi_py`, `postpi`, `pspa` exist. This *replaces* §3's "multi-model coding +
+human gates" as the primary defense against the systematic-bias finding, and it is a far more tractable
+engineering problem. Two non-negotiables: the gold set must be a **probability sample**, and the coding scheme
+must be the **validated** one.
+
+**(c) Dynamic agent spawning needs search-space accounting, not just a cost cap.** §12.3: under the null, the
+largest of `m` sampled correlations is `max|r| ≈ √(2 ln m / n)` — with 200 variables and n=500, the expected
+largest *spurious* correlation is ≈0.20, publishable-looking and entirely noise. An agent enumerating
+hypotheses drives `m` up by orders of magnitude, sending `α_eff ≈ 1 − (1−α)^m` to 1.
+
+> **An agentic system that does not log `m` cannot state what any of its findings mean.** Search-space
+> accounting must be architectural, not procedural — the discovery/confirmation split (§10.2) enforced by the
+> system, not by discipline.
+
+### 12.3 The six controls that must be architectural
+
+From §12.10 — at machine speed these stop being quality control and become the primary architecture:
+
+1. **Search-space accounting** — log `m`, report `α_eff`, enforce the split-sample discovery/confirmation boundary.
+2. **Base-rate honesty** — `PPV = sens·π / (sens·π + (1−spec)(1−π))`. At π = 0.001 with sens 0.95 / spec 0.99,
+   precision is **8.7%**. Therefore: **the output is a ranked queue, never a finding**, and you raise `π` by
+   pre-stratification rather than chasing specificity.
+3. **Effective sample size on both axes** — correlation deflation *and* tail deflation `n_eff = n^(2(α−1)/α)`,
+   reported alongside every estimate.
+4. **Holonomy check on every schema migration** — see §12.5.
+5. **Survivorship correction** — `E_obs[g] − E[g] = Cov(g,s)/E[s]`. The engine only sees who is still in the
+   stream. Anything correlated with survival is overestimated by exactly that covariance; **adaptive-looking
+   practices look more adaptive than they are.** Remedy: sample the graveyard — churned users, deleted accounts,
+   dead communities, refusals.
+6. **Conformal intervals** rather than point estimates — distribution-free coverage `P(Y ∈ C(X)) ≥ 1−α`
+   requiring only exchangeability, which degrades gracefully instead of failing confidently.
+
+### 12.4 The estimator → pipeline-stage map
+
+| Stage | Estimator | What it gates |
+|---|---|---|
+| Study design | Causal-structure triage (§0.3: demographic / functional / **historicist**) | *Historicist → stop interviewing, go to archives.* Origins are not identifiable from the present state |
+| Study design | Tail-regime triage (§11.1, Hill / GPD) | Whether the thin-tailed machinery is even admissible |
+| Study design | **VOI (§13.1)** — `VOI = 0` when `argmax_d` is unchanged | *Kills most proposed studies before they run* |
+| Sampling | Detection floor `n ≥ ln(α)/ln(1−p)`; rule of three `p ≤ 3/n` | Minimum informants; the correct reply to "we never saw it" |
+| Next observation | KL discrimination (§0.2) + EVSI (§1.4) | Which site/informant next — theoretical sampling as a *computation* |
+| Stopping | **Good–Turing `f₁/n`, Chao1 `K̂ = D + f₁²/2f₂`** | Saturation as an auditable number, not an assertion |
+| Coding | **Krippendorff's α** (any level, missing data) + G-theory variance components | Whether to spend the next dollar on coders or informants |
+| Coding | **CCT + Marchenko–Pastur** | Whether one rubric is in play; competence weights |
+| Corpus scale | **PPI / DSL** | Valid corpus-scale annotation from a biased judge |
+| Structure | STM (covariates on prevalence), MCA, non-metric MDS (stress < 0.10) | Whether the domain has recoverable structure |
+| Networks | **Degree-corrected / mixed-membership SBM**; regular (not structural) equivalence | Role systems. *Positions ≠ communities* (§14.1) |
+| Causal | fsQCA consistency ≥ 0.80 + coverage; Bayesian process tracing (hoop / smoking-gun) | Conjunctural causation, equifinality, asymmetry |
+| Output | Conformal intervals; `n_eff`; logged `m`; stated PPV | Every claim ships with its own error rate |
+| Monitoring | **CUSUM / BOCPD on `f₁/n`** | The codebook has stopped describing the world |
+
+### 12.5 Longitudinal comparability — this solves the model-deprecation problem
+
+§11.2 flagged that frontier model retirement confounds inter-model drift with the cultural signal. The corpus
+gives the rigorous treatment, and then **corrects itself** — which is the version to implement:
+
+- §12.7 frames schema migration as a **gauge transformation**: a construct measured at time `t` lives in a
+  fiber over `t`; comparing `t₀` to `t₁` is *transport*, not subtraction. Path dependence is curvature. The
+  **holonomy test** is runnable: re-baseline a construct through two different chains of schema versions
+  (`v1 → v2 → v3 → v1`) and compare to the identity. Nonzero holonomy ⇒ **your longitudinal series is an
+  artifact of the migration path, not a fact about the world.**
+- §13.4 then corrects it plainly: **measurement invariance testing is the established, tooled, thirty-year-old
+  version of the same argument.** Configural → metric → scalar → strict, with ΔCFI < 0.01; alignment
+  optimization when groups are many. If scalar invariance fails, comparing means across time or across groups
+  is uninterpretable. **Reach for invariance first**; the gauge formulation earns its place only where there is
+  no group structure to test against (e.g. raw telemetry schema migration).
+
+**Implication:** pin the coder model for a study's life, version the codebook, and run an invariance test at
+every model or schema change. A trend line read across an untested seam has no invariant meaning.
+
+### 12.6 Cross-language — the linguistic anthropology layer (§15)
+
+"Works across languages" is a *measurement* problem before it is a model problem:
+
+- **Hymes' SPEAKING grid** (setting, participants, ends, act sequence, key, instrumentalities, norms, genre)
+  read formally is **a ready-made feature space `Θ` for speech events**, derived from cross-cultural comparison
+  rather than improvised from the first ten transcripts. Use it as the default coding frame.
+- **Silverstein's indexical order** — `n`-th order (form co-occurs with a social category) → `n+1`-th (the
+  co-occurrence is noticed and evaluated). Each promotion is a measurable distribution shift plus
+  metapragmatic commentary: a §12.5 change-detection problem. It explains something naive drift monitoring
+  treats as noise — **the meaning of an indicator changes because people notice the indicator.**
+- **Labov's narrative structure** (abstract / orientation / complicating action / **evaluation** / result /
+  coda) — the *evaluation* clause is where the informant's own theory of significance lives. **It is the
+  highest-value region of any transcript and most coding schemes ignore it.**
+- **Ochs: a transcript is a `σ(E)`.** What is not transcribed cannot be analyzed later, and the omission is
+  invisible. Transcription conventions *are* the measurement instrument and must be versioned like one.
+- **Levinson** — cross-linguistic variation in spatial frames of reference predicts non-linguistic task
+  performance; the model for turning a fieldwork observation into a falsifiable prediction.
+- **Measurement invariance across languages** (§13.4) is the rigorous form of *"does this construct mean the
+  same thing in Japanese and Spanish?"* Without scalar invariance, cross-language comparison is uninterpretable.
+
+**Architectural consequence: code in the original language, never on machine translation.** Translation
+destroys precisely the indexical and pragmatic signal — register, honorifics, code-switching, hedging — that
+this layer exists to capture. Translate for the analyst's reading view only, and carry original-language
+excerpts with provenance.
+
+### 12.7 The node-set problem — a foundational correction (§14.4, Milofsky)
+
+> **A community is constituted by its associations, not by its residents.**
+
+Studying a community by sampling individuals and aggregating produces *a description of a population, not of a
+community*. The blockmodel over persons and the blockmodel over associations are **different objects answering
+different questions**. Choice of node set is a support decision (`Θ`), not a data-collection detail — get it
+wrong and no amount of network mathematics recovers the structure, because the structure was never represented.
+This is the network form of the bias floor `min_θ KL(p* ‖ p_θ)`.
+
+For a product claiming to model "digital communities," this is load-bearing: the entities are subreddits,
+servers, moderator teams, repos, and their overlapping memberships — **not** an aggregate of individual posters.
+
+### 12.8 Why foundational insight cannot come from analytics (§17.3)
+
+The crispest statement of the product's reason to exist:
+
+```
+incremental:   P(θ) → P(θ | e)          updates the measure on a fixed Θ
+foundational:  Θ → Θ ∪ {new dimension}  changes the support
+```
+
+> An insight is **foundational** iff no amount of data on the existing `Θ` could have produced it. Analytics
+> operates on `σ(E)`, which is frozen at instrumentation — so every question answerable from the warehouse is
+> by construction one someone already thought to represent. **The dashboard can only refine the measure; only
+> contact with the un-instrumented world can extend the support.**
+
+Corollary, and the commercial argument: *the more instrumented an organization becomes, the more it needs
+fieldwork, not less.*
+
+Related and under-appreciated (§17.2): social kinds are **interactive kinds** — they change when classified
+(Hacking's looping effect). A segmentation scheme that ships into a product becomes part of how users
+understand themselves. That is not measurement error; **the instrument permanently alters the object**, and
+only continued qualitative contact detects it. It is deeper than §8.2 reactivity, which decays.
+
+### 12.9 The strategic tension — stated against my own earlier plan
+
+§18.2 is a direct argument against the horizontal SaaS proposed in §1–§11:
+
+> **"Insight markets buy confidence, not calibration."** *"Your precision at this base rate is 8.7%, here is a
+> queue rather than a finding"* is a strictly worse-sounding pitch than *"five insights in twenty-four hours."*
+> Every honest uncertainty number surfaced is a reason to choose the vendor who does not surface it. This is
+> **adverse selection, it is structural**, and it is why methodological rigor has never won a horizontal
+> insight market.
+
+§18.3 — rigor is priced where **being wrong is attributable and expensive**: regulated instrument development
+(COA/PRO, where saturation documentation is a *required deliverable with no specified method* — the sharpest
+available wedge), AI evaluation governance (EU AI Act / NIST AI RMF turn §10.6 into a compliance artifact),
+litigation and regulatory remediation, and public-sector evaluation.
+
+§18.4 — **the mathematics is not defensible IP.** It is published and partly already open source. Therefore
+*open-source the method library* (the only route to becoming **the format**, which is the real moat) and
+**monetize the attestation** — hosted provenance, audit trail, regulatory-grade report generation, expert
+sign-off. In regulated markets the signed artifact is the product. Note the named disruption target is *not*
+the AI qual platforms (their moat is UX and integrations) but **the consultancies whose margin depends on
+methodological opacity, and the accuracy claims of AI vendors** — publishing a reliability benchmark scoring
+commercial auto-coding against α costs almost nothing and sets the standard.
+
+§18.5 — **horizontal and fast is the failure mode.** The fitting shape is a *services offer with the method
+library as leverage and credibility, sold into one regulated vertical, priced as a deliverable rather than a
+seat.*
+
+> **Status: unresolved, deliberately.** This contradicts §1–§11's horizontal multi-tenant SaaS. Verticalization
+> and beachhead selection are under active research; the resolution belongs in the next revision rather than
+> being papered over here.
+
+### 12.10 Scope: the consent boundary is architectural (§12.10 of the corpus)
+
+On the proposed **law-enforcement / intelligence** vertical, the corpus is unambiguous and I concur:
+
+> "HUMINT" names collection from human sources who are **not participating voluntarily**. That version and the
+> consenting-source version are **different systems, not different settings.**
+
+Without consent three things break simultaneously: **legally** you inherit wiretap and two-party-consent law,
+GDPR, and the FTC unfair-surveillance line (category-of-business risk, not a compliance checkbox);
+**methodologically** you lose re-contact, which removes the disconfirming hoop and smoking-gun tests that make
+§7 work at all, leaving only confirmation; and **statistically** §12.1's base-rate arithmetic means the engine
+is wrong more than nine times in ten — tolerable for a product-insight queue, *not* when the false positives
+are assertions about identifiable people. Add the EU AI Act's prohibitions on predictive policing, biometric
+categorization, and emotion recognition.
+
+**Recommendation: do not build it.** The consenting-source version is where this apparatus is an advantage
+rather than a liability, and it is also the larger market.
+
+### 12.11 Where the formalism stops — and why this must be said in the product
+
+The corpus closes by noting Geertz appears in its credit map **with no formal counterpart, by design**.
+Nothing above generates a theory; every estimator takes the coding scheme, item set, state space, and candidate
+mechanisms *as given* — and those are the ethnographer's contribution, produced by interpretation.
+
+> *"A Chao1 estimate computed over a badly specified code list is a confident number about nothing."*
+
+The apparatus is for making claims auditable, stopping honestly, knowing when corroboration is illusory, and
+refusing historicist claims from present-tense data. **It is not for making interpretation sound settled.**
+A product that ships these numbers must say so in the artifact itself, or it commits precisely the
+over-claiming the mathematics exists to prevent.
+
+---
+
 ## 10. Top risks & how the architecture answers them
 
 | Risk | Mitigation (where) |
