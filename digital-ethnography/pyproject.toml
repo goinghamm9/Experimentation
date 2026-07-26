@@ -1,7 +1,7 @@
 [project]
 name = "digital-ethnography"
 version = "0.1.0"
-description = "Ethics-first pipeline for digital ethnographic user research over any digital system"
+description = "Digital Ethnographic Intelligence — governance kernel: ethics-as-a-hard-gate pipeline for digital ethnographic research"
 requires-python = ">=3.10"
 dependencies = ["PyYAML>=6.0"]
 

@@ -352,13 +352,15 @@
     <p class="standfirst">
       An AI-native platform that continuously and ethically <strong>observes</strong> digital behaviour
       and online culture — and returns rigorous, cited, longitudinal ethnographic insight. Not another
-      repository for interviews you already ran.
+      repository for interviews you already ran, and not a themes-and-sentiment engine: the differentiator
+      is a <strong>measurement layer</strong> nobody has productised.
     </p>
     <div class="meta-strip">
       <span><b>Posture</b> Sovereignty-first, staged</span>
       <span><b>Surfaces</b> Web app → API → MCP</span>
       <span><b>Kernel</b> Ethics gate, 24 tests passing</span>
-      <span><b>Status</b> Architecture v1</span>
+      <span><b>Rigor</b> Estimators, not vibes</span>
+      <span><b>Status</b> Architecture v2</span>
     </div>
   </div>
 </header>
@@ -965,10 +967,134 @@ flowchart LR
   </div>
 </section>
 
+<!-- ===================== RIGOR LAYER ===================== -->
+<section>
+  <div class="wrap sec-grid">
+    <div class="rail"><span class="mark">08</span>Rigor</div>
+    <div>
+      <h2>The layer nobody has productised</h2>
+      <p class="lede">
+        The insight category is crowded — collection, repositories, CAQDAS, VoC, mobile ethnography, expert
+        networks. <strong>The rigor layer is empty.</strong> Krippendorff's α, Cultural Consensus Theory,
+        Chao1 saturation, prediction-powered inference, conformal prediction, measurement invariance: they exist
+        as R packages, free calculators and arXiv papers, with nothing joining them to a working pipeline.
+        That gap — more than observation-versus-elicitation — is the defensible wedge.
+      </p>
+
+      <div class="excerpt is-refuted">
+        <span class="excerpt-label">Three corrections this forced on the agent design</span>
+        <p><strong>1. Inter-model κ was never a validity claim.</strong> Judges from one model family are
+        correlated — roughly one effective judge — and α measures <em>shared professional vision, not
+        correspondence to truth</em>. Replaced by <b>Cultural Consensus Theory</b> (the guessing-corrected
+        agreement matrix must be rank one; competence from the first eigenvector; competence-weighted
+        aggregation) with the <b>Marchenko–Pastur edge</b> λ± = σ²(1±√q)² as the signal/noise threshold — a
+        theorem, not a rule of thumb.</p>
+        <p style="margin-top:.7rem;"><strong>2. Chasing an unbiased judge is the wrong problem.</strong>
+        <em>Accept that the judge is biased and correct it statistically</em> — prediction-powered inference
+        against a gold <b>probability</b> sample yields consistent corpus-scale estimates with valid intervals.
+        Tractable engineering, where "more models plus human review" was a hope.</p>
+        <p style="margin-top:.7rem;"><strong>3. Dynamic agent spawning needs search-space accounting.</strong>
+        Under the null the largest of <em>m</em> sampled correlations is ≈√(2·ln m / n) — an agent enumerating
+        hypotheses drives the effective false-positive rate to 1. <b>A system that does not log m cannot state
+        what any of its findings mean.</b></p>
+      </div>
+
+      <h3>Estimator by pipeline stage</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Question</th><th>Estimator</th><th>What it gates</th></tr></thead>
+          <tbody>
+            <tr><td>What kind of claim is this?</td><td>Causal-structure triage — demographic / functional / <b>historicist</b></td><td>Historicist → <em>stop interviewing, go to the archives.</em> Origins aren't identifiable from the present state</td></tr>
+            <tr><td>Is the finding worth having?</td><td>Value of information</td><td>Zero when the decision is unchanged — kills most studies <em>before</em> they run</td></tr>
+            <tr><td>Which observation next?</td><td>KL discrimination + EVSI</td><td>Theoretical sampling as a computation, not an instinct</td></tr>
+            <tr><td>When do I stop?</td><td>Good–Turing <code>f₁/n</code>, Chao1</td><td>Saturation as an auditable number, not "no new themes emerged"</td></tr>
+            <tr><td>Can I trust the coding?</td><td>Krippendorff's α + variance components</td><td>Whether the next dollar buys coders or informants</td></tr>
+            <tr><td>One rubric or two?</td><td>Cultural Consensus Theory + Marchenko–Pastur</td><td>Rubric ambiguity is a <em>finding</em>, not noise to average away</td></tr>
+            <tr><td>Label a whole corpus validly?</td><td><b>PPI / DSL</b></td><td>Valid inference from a biased judge</td></tr>
+            <tr><td>How uncertain?</td><td>Conformal intervals</td><td>Degrades gracefully instead of failing confidently</td></tr>
+            <tr><td>Comparable across time and language?</td><td>Measurement invariance (ΔCFI&lt;0.01)</td><td>Without scalar invariance, comparing means is uninterpretable</td></tr>
+            <tr><td>Has the codebook gone stale?</td><td>CUSUM / Bayesian changepoint on <code>f₁/n</code></td><td>Reality has outgrown the taxonomy</td></tr>
+            <tr><td>Is this detector worth deploying?</td><td>PPV at the real base rate</td><td>At π=0.001, sens .95/spec .99 → <b>8.7% precision</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Six controls that must be architectural, not procedural</div>
+        <p>At machine speed nobody enforces these by hand: <b>search-space accounting</b> (log m, report the
+        effective error rate, enforce the discovery/confirmation split) · <b>base-rate honesty</b> (ranked queue,
+        never a finding) · <b>effective sample size on both axes</b> (correlation <em>and</em> tail deflation) ·
+        <b>invariance check on every schema migration</b> · <b>survivorship correction</b> — the engine only sees
+        who is still in the stream, so sample the graveyard: churned users, dead communities, refusals ·
+        <b>conformal intervals</b> rather than point estimates.</p>
+      </div>
+
+      <h3>Across languages — a measurement problem before a model problem</h3>
+      <p>
+        <strong>Code in the original language, never on machine translation.</strong> Translation destroys
+        exactly the indexical and pragmatic signal — register, honorifics, code-switching, hedging — that the
+        linguistic layer exists to capture. Translate for the analyst's reading view only, and carry
+        original-language excerpts with provenance.
+      </p>
+      <div class="cards">
+        <div class="card"><span class="k">Hymes</span><h4>SPEAKING as a ready-made frame</h4><p>Setting, participants, ends, act sequence, key, instrumentalities, norms, genre — read formally, a feature space for speech events derived from cross-cultural comparison rather than improvised from the first ten transcripts.</p></div>
+        <div class="card"><span class="k">Labov</span><h4>The evaluation clause</h4><p>Narrative structure as a grammar. The <em>evaluation</em> element is where the informant's own theory of significance lives — the highest-value region of any transcript, and the one most coding schemes ignore.</p></div>
+        <div class="card"><span class="k">Silverstein</span><h4>Indexical order</h4><p>Meaning changes because people <em>notice</em> the indicator. A change-detection problem that naive drift monitoring would treat as noise.</p></div>
+        <div class="card"><span class="k">Ochs</span><h4>A transcript is a σ(E)</h4><p>What isn't transcribed can't be analysed later, and the omission is invisible. Transcription conventions <em>are</em> the instrument — version them like one.</p></div>
+      </div>
+
+      <div class="excerpt is-observed">
+        <span class="excerpt-label">The node-set problem</span>
+        <p><strong>A community is constituted by its associations, not its residents.</strong> Sampling
+        individuals and aggregating produces a description of a <em>population</em>, not a community. For a
+        product claiming to model digital communities this is load-bearing: the entities are subreddits, servers,
+        moderator teams, repos and their overlapping memberships — not an aggregate of individual posters. Choice
+        of node set is a support decision, and getting it wrong means no amount of network mathematics recovers
+        the structure, because the structure was never represented.</p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Why foundational insight cannot come from analytics</div>
+        <p>An insight is <em>foundational</em> if and only if no amount of data on the existing construct space
+        could have produced it. Analytics operates on the instrumented event set, which is frozen at
+        instrumentation — so every question answerable from the warehouse is, by construction, one someone
+        already thought to represent. <strong>The dashboard can only refine the measure; only contact with the
+        un-instrumented world can extend the support.</strong> The corollary is the commercial argument: the more
+        instrumented an organisation becomes, the more it needs fieldwork, not less.</p>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-title">The unresolved strategic tension — stated against our own plan</div>
+        <p><em>"Insight markets buy confidence, not calibration."</em> Every honest uncertainty number surfaced is
+        a reason for a buyer to choose the vendor who doesn't surface it. That is <strong>adverse selection, and
+        it is structural</strong> — the argument for why methodological rigor has never won a <em>horizontal</em>
+        insight market, and why horizontal-and-fast may be the failure mode.</p>
+        <p style="margin-top:.7rem;">Rigor is priced where being wrong is <em>attributable and expensive</em>:
+        regulated instrument development, AI-evaluation governance, litigation and regulatory remediation,
+        public-sector evaluation. The proposed shape is to <b>open-source the method library</b> (the only route
+        to becoming <em>the format</em>, which is the real moat) and <b>monetise the attestation</b> — provenance,
+        audit trail, regulatory-grade reports, expert sign-off.</p>
+        <p style="margin-top:.7rem;"><strong>This contradicts the multi-tenant SaaS described above, and is
+        deliberately left open</strong> pending vertical research rather than papered over.</p>
+      </div>
+
+      <div class="excerpt">
+        <span class="excerpt-label">Where the formalism stops</span>
+        <p>Nothing above generates a theory. Every estimator takes the coding scheme, the item set, the state
+        space and the candidate mechanisms <em>as given</em> — and those are the ethnographer's contribution,
+        produced by interpretation. The apparatus is for making claims auditable, stopping honestly, and knowing
+        when corroboration is illusory. <strong>It is not for making interpretation sound settled.</strong></p>
+        <p style="margin-top:.7rem;"><em>"A Chao1 estimate computed over a badly specified code list is a
+        confident number about nothing."</em></p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== RECRUITMENT ===================== -->
 <section>
   <div class="wrap sec-grid">
-    <div class="rail"><span class="mark">08</span>Participants</div>
+    <div class="rail"><span class="mark">09</span>Participants</div>
     <div>
       <h2>The panel is the moat</h2>
       <p class="lede">
@@ -1009,7 +1135,7 @@ flowchart LR
 <!-- ===================== ROADMAP ===================== -->
 <section>
   <div class="wrap sec-grid">
-    <div class="rail"><span class="mark">09</span>Roadmap</div>
+    <div class="rail"><span class="mark">10</span>Roadmap</div>
     <div>
       <h2>One engine, three surfaces</h2>
       <p class="lede">
@@ -1031,7 +1157,7 @@ flowchart LR
 <!-- ===================== RISKS ===================== -->
 <section>
   <div class="wrap sec-grid">
-    <div class="rail"><span class="mark">10</span>Risk</div>
+    <div class="rail"><span class="mark">11</span>Risk</div>
     <div>
       <h2>What could break this, and the answer</h2>
       <div class="table-scroll">
