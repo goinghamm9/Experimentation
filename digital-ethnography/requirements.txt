@@ -1,0 +1,3 @@
+PyYAML>=6.0
+# Optional: only needed if you enable LLM enrichment (study.llm_enrichment: true)
+# anthropic>=0.40

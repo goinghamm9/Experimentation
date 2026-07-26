@@ -1,0 +1,23 @@
+[project]
+name = "digital-ethnography"
+version = "0.1.0"
+description = "Ethics-first pipeline for digital ethnographic user research over any digital system"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.40"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+ethnography = "ethnography.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ethnography", "ethnography.ethics", "ethnography.adapters", "ethnography.analysis", "ethnography.llm", "ethnography.report"]
