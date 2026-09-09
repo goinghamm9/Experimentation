@@ -1,0 +1,23 @@
+# Project-level Codex configuration.
+#
+# Read by the Codex CLI, and therefore by the Claude Code Codex plugin, which
+# drives the same `codex` binary. Codex applies this file only once the
+# checkout is trusted: run `codex` in this directory once and accept the trust
+# prompt, or add this to ~/.codex/config.toml:
+#
+#   [projects."/absolute/path/to/Experimentation"]
+#   trust_level = "trusted"
+
+# Reasoning effort for implementation runs.
+# Allowed: none | minimal | low | medium | high | xhigh
+model_reasoning_effort = "high"
+
+# Each experiment folder keeps its conventions in a CLAUDE.md. Codex reads
+# AGENTS.md natively; this makes it fall back to CLAUDE.md in directories
+# that have no AGENTS.md, so the implementor sees the same conventions as
+# the planner.
+project_doc_fallback_filenames = ["CLAUDE.md"]
+
+# Leave `model` unset to use Codex's current default. To pin one, pick a slug
+# from `codex debug models`, for example:
+# model = "gpt-5.5"

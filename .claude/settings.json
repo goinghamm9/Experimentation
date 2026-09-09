@@ -1,0 +1,31 @@
+{
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true
+  },
+  "model": "fable",
+  "permissions": {
+    "defaultMode": "plan"
+  },
+  "plansDirectory": "docs/plans",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/codex-login.sh\"",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}
