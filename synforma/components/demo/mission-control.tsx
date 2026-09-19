@@ -15,7 +15,7 @@ import { FRICTION_SHORT } from "@/lib/synforma/engine/friction";
 import { PERSONAS, type Persona } from "@/lib/synforma/engine/synthetic";
 import { MINIMUM_RUNS } from "@/lib/synforma/engine/metrics";
 import { DO_NOTHING_ID } from "@/lib/synforma/science/techniques";
-import { createPlanner, fetchPlannerStatus, resolvePlannerKind } from "@/lib/synforma/planner";
+import { createPlanner, fetchPlannerStatus, plannerLabel, plannerVendor, resolvePlannerKind } from "@/lib/synforma/planner";
 import type { PlannerStatus } from "@/lib/synforma/planner/protocol";
 import { cloneGraph, countByType, createGraph } from "@/lib/synforma/graph/work-graph";
 import { DEFAULT_CONTEXT, DEFAULT_OBJECTIVE, SANDBOX_APP } from "@/lib/synforma/demo";
@@ -134,7 +134,7 @@ function summarizePage(page: PageModel): ConnectionInfo {
 
 function plannerLabelFor(kind: PlannerKind | null, status: PlannerStatus | null): string {
   if (!kind) return "Resolving planner…";
-  if (kind === "gemini") return `Gemini planner${status?.model ? ` · ${status.model}` : ""}`;
+  if (kind !== "heuristic") return plannerLabel(kind, status);
   return status?.configured ? "Heuristic planner — by preference" : "Heuristic planner — no API key configured";
 }
 
@@ -247,7 +247,7 @@ export function MissionControl() {
   const connected = connection.status === "connected";
   const plannerKind: PlannerKind | null = program ? program.planner : plannerStatus ? resolvePlannerKind(settings.plannerPreference, plannerStatus) : null;
   const plannerLabel = plannerLabelFor(plannerKind, plannerStatus);
-  const plannerName = plannerKind === "gemini" ? "Gemini planner" : "heuristic planner";
+  const plannerName = plannerKind === "heuristic" ? "heuristic planner" : `${plannerVendor(plannerKind)} planner`;
 
   /** Fade the agent cursor and highlight out in place once the engine is done with the iframe. */
   const hideOverlays = React.useCallback(() => {
@@ -373,7 +373,7 @@ export function MissionControl() {
         const planner = createPlanner(kind);
         const parsed = await planner.parseObjective({ objectiveText: prog.objectiveText, appName: SANDBOX_APP.name });
         const inferred = await planner.inferWorkflow({ parsed, states, graph, startUrl: SANDBOX_APP.baseUrl });
-        const fallback = kind === "gemini" ? ((planner as { lastError?: string | null }).lastError ?? null) : null;
+        const fallback = kind !== "heuristic" ? ((planner as { lastError?: string | null }).lastError ?? null) : null;
         const effectiveKind: PlannerKind = fallback ? "heuristic" : kind;
         const workflow = versionWorkflow(inferred, prog.workflow, effectiveKind, replanned);
         const s = useSynforma.getState();
@@ -616,14 +616,9 @@ export function MissionControl() {
         requirements: parsed.requirements,
         context: prog.context ?? context,
         actor: "agent",
-        requireApprovalForCommit: s.settings.requireApprovalForCommit,
+        policy: { commits: s.settings.requireApprovalForCommit ? "ask" : "auto", scope: "all", trust: { contract, claims } },
         signal: ac.signal,
-        contract,
-        claims,
-        runId,
-        programId: prog.id,
-        intent: workflow.title,
-        decidedBy: prog.planner,
+        ledger: { runId, programId: prog.id, intent: workflow.title, decidedBy: prog.planner },
         hooks: {
           onLedger: (entry) => useSynforma.getState().addLedger(entry),
           onEvent: (type, data, stepId, message) => {
@@ -912,13 +907,9 @@ export function MissionControl() {
           context: prog.context ?? context,
           actor: "synthetic",
           capabilities: persona.capabilities,
-          requireApprovalForCommit: false,
+          // No trust gate: a simulation is never blocked by a contested claim. No ledger either: simulation stays out of provenance and undo.
+          policy: { commits: "auto", scope: "all" },
           signal: ac.signal,
-          // No contract or claims: a simulation is never blocked by a contested claim. No ledger either: simulation stays out of provenance and undo.
-          runId,
-          programId: prog.id,
-          intent: workflow.title,
-          decidedBy: prog.planner,
           hooks: {
             onEvent: (type, data, stepId, message) => {
               const store = useSynforma.getState();

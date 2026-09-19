@@ -824,8 +824,7 @@ export function useGuideRun(program: Program, iframeRef: React.RefObject<HTMLIFr
           requirements,
           context,
           actor: "human",
-          onlySteps: [stepId],
-          requireApprovalForCommit: st.settings.requireApprovalForCommit,
+          policy: { commits: st.settings.requireApprovalForCommit ? "ask" : "auto", scope: "all", steps: [stepId] },
           hooks: {
             onEvent: (type, data, sid, message) => {
               // The observer already tracks the person's step progress; keep the runner's action-level trail.
@@ -880,9 +879,7 @@ export function useGuideRun(program: Program, iframeRef: React.RefObject<HTMLIFr
         requirements,
         context,
         actor: "human",
-        onlySteps: [step.id],
-        routineOnly: false,
-        requireApprovalForCommit: false, // the person approved a moment ago
+        policy: { commits: "auto", scope: "all", steps: [step.id] }, // the person approved a moment ago
         hooks: {
           onEvent: (type, data, sid, message) => {
             if (type === "step_entered" || type === "step_completed" || type === "run_completed") return;
@@ -976,9 +973,7 @@ export function useGuideRun(program: Program, iframeRef: React.RefObject<HTMLIFr
         requirements,
         context,
         actor: "human",
-        onlySteps: remaining.map((s) => s.id),
-        routineOnly: true,
-        requireApprovalForCommit: true,
+        policy: { commits: "ask", scope: "routine", steps: remaining.map((s) => s.id) },
         hooks: {
           onEvent: (type, data, sid, message) => {
             if (type === "step_entered" || type === "step_completed" || type === "run_completed") return;

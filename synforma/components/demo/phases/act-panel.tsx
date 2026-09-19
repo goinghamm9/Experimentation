@@ -39,7 +39,7 @@ interface Props {
   program: Program;
   uiVariant: UiVariant;
   uiBusy: boolean;
-  /** Short planner name for prose ("heuristic planner" / "Gemini planner"). */
+  /** Short planner name for prose ("heuristic planner" / "Claude planner"). */
   plannerName: string;
   requireApproval: boolean;
   agentRuns: Run[];

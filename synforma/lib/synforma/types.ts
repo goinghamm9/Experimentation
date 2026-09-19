@@ -317,7 +317,8 @@ export interface ParsedObjective {
   confidence: number;
 }
 
-export type PlannerKind = "heuristic" | "gemini";
+/** Which reasoning engine produced a plan or a piece of assistance. "claude" and "gemini" are the server-side language models. */
+export type PlannerKind = "heuristic" | "claude" | "gemini";
 
 export type ProgramStatus = "draft" | "discovering" | "understood" | "active" | "paused";
 
@@ -803,7 +804,8 @@ export interface ProgramMetrics {
 // ───────────────────────────── Settings ─────────────────────────────
 
 export interface SynformaSettings {
-  plannerPreference: "auto" | PlannerKind;
+  /** "auto": the language model when the server has a key, else heuristic. "llm": same, but the UI warns when no key is set. */
+  plannerPreference: "auto" | "heuristic" | "llm";
   /** Default assistance preference for new runs. */
   assistancePreference: AssistancePreference;
   /** Pointer / keyboard-metadata sensing on (never raw text; never on password fields). */

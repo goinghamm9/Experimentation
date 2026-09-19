@@ -1,4 +1,5 @@
 "use client";
+import { plannerVendor } from "@/lib/synforma/planner";
 import * as React from "react";
 import { AlertCircle, BadgeCheck, CheckCircle2, CircleDashed, Cpu, Eye, Hand, HelpCircle, Info, MousePointerClick, Sparkle, XCircle } from "lucide-react";
 import { Badge, Skeleton, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
@@ -165,7 +166,7 @@ export function TrustBadge({ provenance, planner, className }: { provenance?: Pr
   const observed = trust === "AUTHORITATIVE_LIVE" || trust === "OBSERVED_HIGH_CONFIDENCE" || trust === "OBSERVED_LOW_CONFIDENCE";
   const approved = trust === "ORGANIZATION_APPROVED";
   const by = provenance.by ?? planner;
-  const label = inferred ? `Model-inferred · ${by === "gemini" ? "Gemini" : "heuristic"}` : TRUST_LABEL[trust];
+  const label = inferred ? `Model-inferred · ${by && by !== "heuristic" ? plannerVendor(by) : "heuristic"}` : TRUST_LABEL[trust];
   const Icon = inferred ? Cpu : approved ? BadgeCheck : observed ? Eye : HelpCircle;
   return (
     <Tooltip>

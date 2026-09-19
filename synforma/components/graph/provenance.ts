@@ -57,7 +57,7 @@ export const TRUST_MEANING: Record<TrustState, { meaning: string; inThisBuild: s
   },
   MODEL_INFERRED: {
     meaning: "A planner hypothesis: the workflow, its steps and their modes, inferred from the objective and the discovered screens.",
-    inThisBuild: "inferWorkflow, by the heuristic or the Gemini planner. Never presented as fact.",
+    inThisBuild: "inferWorkflow, by the heuristic planner or a language model (Claude or Gemini). Never presented as fact.",
   },
   UNKNOWN: {
     meaning: "No provenance recorded.",
