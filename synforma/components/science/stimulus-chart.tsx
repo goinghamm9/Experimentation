@@ -71,9 +71,10 @@ export function StimulusChart({ analysis }: { analysis: StimulusAnalysis }) {
       if (v > hi) hi = v;
     }
     if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [-1, 1];
-    const pad = Math.max(0.1, (hi - lo) * 0.1);
-    return [Math.floor((lo - pad) * 10) / 10, Math.ceil((hi + pad) * 10) / 10];
+    const pad = Math.max(0.1, (hi - lo) * 0.05);
+    return [Math.floor(lo - pad), Math.ceil(hi + pad)];
   }, [analysis.systems]);
+  const yTicks = React.useMemo(() => (domain[0] < 0 && domain[1] > 0 ? [domain[0], 0, domain[1]] : domain), [domain]);
   const xMax = Math.max(durationS, facets[0]?.points[facets[0].points.length - 1]?.s ?? 0);
 
   return (
@@ -101,7 +102,7 @@ export function StimulusChart({ analysis }: { analysis: StimulusAnalysis }) {
                     />
                   ))}
                   <XAxis dataKey="s" type="number" domain={[0, xMax]} tick={{ fontSize: 10, fill: SLATE }} axisLine={{ stroke: LINE }} tickLine={false} tickFormatter={(v: number) => `${Math.round(v)}s`} />
-                  <YAxis domain={domain} tick={{ fontSize: 10, fill: SLATE }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(1)} width={44} />
+                  <YAxis domain={domain} ticks={yTicks} tick={{ fontSize: 10, fill: SLATE }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0)} width={44} />
                   <Tooltip content={<FacetTooltip system={f.label} steps={steps} />} cursor={{ stroke: LINE, strokeWidth: 1 }} isAnimationActive={false} />
                   <Line type="monotone" dataKey="v" stroke={INK} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" dot={false} activeDot={{ r: 4, fill: INK, stroke: SURFACE, strokeWidth: 2 }} isAnimationActive={false} />
                 </LineChart>

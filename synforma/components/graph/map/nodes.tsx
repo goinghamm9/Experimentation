@@ -159,12 +159,12 @@ function MapNodeViewInner({ data }: NodeProps<MapFlowNode>) {
   const onClick = React.useCallback(() => select(n), [select, n]);
   return (
     <>
-      <Handle type="target" position={Position.Left} id="l" isConnectable={false} />
-      <Handle type="target" position={Position.Top} id="t" isConnectable={false} />
-      <Handle type="target" position={Position.Bottom} id="b-in" isConnectable={false} style={{ left: "50%" }} />
-      <Handle type="source" position={Position.Right} id="r" isConnectable={false} />
-      <Handle type="source" position={Position.Bottom} id="b" isConnectable={false} />
-      <Handle type="source" position={Position.Top} id="t-out" isConnectable={false} style={{ left: "50%" }} />
+      <Handle type="target" position={Position.Left} id="t-l" isConnectable={false} />
+      <Handle type="target" position={Position.Top} id="t-t" isConnectable={false} />
+      <Handle type="target" position={Position.Bottom} id="t-b" isConnectable={false} />
+      <Handle type="source" position={Position.Right} id="s-r" isConnectable={false} />
+      <Handle type="source" position={Position.Bottom} id="s-b" isConnectable={false} />
+      <Handle type="source" position={Position.Top} id="s-t" isConnectable={false} />
       <button
         type="button"
         aria-label={ariaLabelFor(n, lens)}

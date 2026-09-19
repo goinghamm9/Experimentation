@@ -37,7 +37,7 @@ function EmptyState() {
       body: (
         <>
           Run the bridge in <code className="mono-data text-[12px]">services/tribe-bridge</code> on that recording. It loads TRIBE v2, predicts the average subject&rsquo;s cortical response per sample and aggregates it into six systems:
-          <code className="mono-data mt-2 block overflow-x-auto rounded-md border border-line bg-surface px-3 py-2 text-[12px] text-ink" data-testid="stimulus-cli">
+          <code className="mono-data mt-2 block overflow-x-auto whitespace-pre rounded-md border border-line bg-surface px-3 py-2 text-[12px] text-ink" data-testid="stimulus-cli">
             {BRIDGE_CLI}
           </code>
         </>
