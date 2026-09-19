@@ -140,6 +140,33 @@ failure.
 
 The harness API is listed at the end of `docs/ENGINE.md`.
 
+### UI checks (Playwright against a dev server)
+
+Same setup as the engine checks. Each script prints one `PASS`/`FAIL` line per check and a final
+console/page-error line; a `FAIL` line or a non-zero error count is a failure. Screenshots land in
+`.verify/` (gitignored).
+
+```bash
+CHROMIUM_PATH=/path/to/chrome node verify/demo-simple.spec.js
+CHROMIUM_PATH=/path/to/chrome node verify/demo-advanced.spec.js
+CHROMIUM_PATH=/path/to/chrome node verify/demo-trust.spec.js
+CHROMIUM_PATH=/path/to/chrome node verify/demo-trust-extra.spec.js
+CHROMIUM_PATH=/path/to/chrome node verify/employee.spec.js
+CHROMIUM_PATH=/path/to/chrome node verify/employee-guide.spec.js
+```
+
+| Script | What it exercises |
+|---|---|
+| `demo-simple.spec.js` | Mission Control simple view from empty storage: auto-connect → Discover and plan → Run it (approval) → Undo → Vendor update → Run again with self-healed changes → Details into the advanced view → mobile width → Start over |
+| `demo-advanced.spec.js` | Advanced view end to end: Connect → Objective → Discover → Understand → Approve → Act → vendor update → synthetic users → Adapt → Measure → run drawer and audit → reload persistence → mobile → Start over |
+| `demo-trust.spec.js` | Trust layer in the advanced view: claims and authority badges, autonomy contract (class C never "auto"), trust decisions, ledger and undo, contested claims → Stop, self-heal claims after v2, teach by doing → adopted workflow |
+| `demo-trust-extra.spec.js` | Contract regeneration after a reload without contracts; the employee link; claims kept |
+| `employee.spec.js` | Employee view against the fixture program in `verify/fixtures/employee-seed.json`: guide flow, quiet decisions, intervention cards and feedback, completion, proficiency, Get It Done (deny → reopen → approve), recap, sensing pause, mobile |
+| `employee-guide.spec.js` | Planner badge, step ring on the current step, checklist advancing on typing, hesitation → recorded decision, assist completing a step, Get It Done approve path, start another run, abandon |
+
+The advanced-view scripts seed `settings.demoView = "advanced"` in `localStorage` before loading, because
+the simple view auto-connects on load.
+
 ## Privacy model
 
 Synforma observes people at work. If people believe it is management spyware, the product fails.

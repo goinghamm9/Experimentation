@@ -84,32 +84,33 @@ function ProgressLine({ program }: { program: Program | null }) {
   const { discovery, plannerName } = useMissionSession();
   const d = discovery.state;
   const c = d.counters;
+  const n = (v: number) => <span className="mono-data text-ink">{v}</span>;
+  const spinner = <Loader2 className="mr-1 inline-block h-3 w-3 animate-spin align-[-2px]" aria-hidden="true" />;
   if (d.status === "running")
     return (
-      <p className="inline-flex flex-wrap items-center gap-x-1.5 text-xs text-graphite" data-testid="simple-progress" data-stage="discovering">
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-        Exploring · <span className="mono-data text-ink">{c.screens}</span> screens found · <span className="mono-data text-ink">{c.actions}</span> actions · <span className="mono-data text-ink">{c.fields}</span> fields
+      <p className="text-xs leading-relaxed text-graphite" data-testid="simple-progress" data-stage="discovering">
+        {spinner}
+        Exploring · {n(c.screens)} screens found · {n(c.actions)} actions · {n(c.fields)} fields
       </p>
     );
   if (d.status === "planning")
     return (
-      <p className="inline-flex flex-wrap items-center gap-x-1.5 text-xs text-graphite" data-testid="simple-progress" data-stage="planning">
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-        <span className="mono-data text-ink">{c.screens}</span> screens found · <span className="mono-data text-ink">{c.actions}</span> actions · <span className="mono-data text-ink">{c.fields}</span> fields · planning with the {plannerName}…
+      <p className="text-xs leading-relaxed text-graphite" data-testid="simple-progress" data-stage="planning">
+        {spinner}
+        {n(c.screens)} screens found · {n(c.actions)} actions · {n(c.fields)} fields · planning with the {plannerName}…
       </p>
     );
   const workflow = program?.workflow;
   const disc = program?.discovery;
   if (workflow)
     return (
-      <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-graphite" data-testid="simple-progress" data-stage="planned">
+      <p className="text-xs leading-relaxed text-graphite" data-testid="simple-progress" data-stage="planned">
         {disc ? (
           <>
-            <span className="mono-data text-ink">{disc.screens}</span> screens · <span className="mono-data text-ink">{disc.actions}</span> actions · <span className="mono-data text-ink">{disc.fields}</span> fields
-            <ArrowRight className="h-3 w-3 text-mist" aria-hidden="true" />
+            {n(disc.screens)} screens · {n(disc.actions)} actions · {n(disc.fields)} fields <span className="text-mist">→</span>{" "}
           </>
         ) : null}
-        <span className="mono-data text-ink">{workflow.steps.length}</span> steps · {plannerName}
+        {n(workflow.steps.length)} steps · {plannerName}
       </p>
     );
   return null;
