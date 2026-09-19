@@ -151,12 +151,12 @@ async function seedStore(page) {
       await page.getByTestId("graph-play-flow").click();
       await page.getByTestId("graph-flow-caption").waitFor({ timeout: 5000 });
       const cap0 = await page.getByTestId("graph-flow-caption").innerText();
-      const total = Number((/hop \d+ of (\d+)/.exec(cap0) || [])[1] || 0);
+      const total = Number((/hop \d+ of (\d+)/i.exec(cap0) || [])[1] || 0);
       const midSelected = await page.locator('[data-testid="map-node"][data-selected="true"]').count();
       await page.getByTestId("graph-flow-caption").filter({ hasText: "complete" }).waitFor({ timeout: total * 1400 + 8000 });
       const capEnd = await page.getByTestId("graph-flow-caption").innerText();
       const endSelected = page.locator('[data-testid="map-node"][data-selected="true"]');
-      record("(e) intent flow plays every hop to the end and lands on the outcome", total >= 6 && midSelected === 1 && new RegExp(`hop ${total} of ${total}`).test(capEnd) && /outcome/.test(capEnd) && (await endSelected.getAttribute("data-node-type")) === "outcome", `${total} hops · ${oneLine(capEnd).slice(0, 100)}`);
+      record("(e) intent flow plays every hop to the end and lands on the outcome", total >= 6 && midSelected === 1 && new RegExp(`hop ${total} of ${total}`, "i").test(capEnd) && /outcome/i.test(capEnd) && (await endSelected.getAttribute("data-node-type")) === "outcome", `${total} hops · ${oneLine(capEnd).slice(0, 100)}`);
       await shot(page, "04-sample-flow-end");
     } catch (e) {
       record("(a) script", false, e.stack || String(e));
@@ -213,7 +213,7 @@ async function seedStore(page) {
       await page.waitForTimeout(1200);
       const widths = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth, map: document.querySelector('[data-testid="process-map"]')?.getBoundingClientRect().width }));
       record("(d) 390px viewport: no horizontal page overflow and the map fits the viewport", widths.scroll <= widths.inner && widths.map > 0 && widths.map <= widths.inner, JSON.stringify(widths));
-      await page.locator('[data-node-type="step"]').nth(2).click({ force: true });
+      await page.locator('[data-node-type="step"]').nth(2).click();
       const dialog = page.getByRole("dialog", { name: "Node details" });
       await dialog.waitFor({ timeout: 5000 });
       const dialogText = await dialog.innerText();

@@ -246,6 +246,9 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, c
   }, [rf, focus, layout, containerOf]);
 
   const onPaneClick = React.useCallback(() => onSelectNode(null), [onSelectNode]);
+  // Selection goes through React Flow's node click (which also enables pointer events on the node wrappers);
+  // the button inside each node makes Enter and Space reach it from the keyboard.
+  const onNodeClick = React.useCallback((_e: React.MouseEvent, n: MapFlowNode) => select(n.data.node), [select]);
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") onSelectNode(null);
@@ -278,6 +281,7 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, c
           selectionKeyCode={null}
           multiSelectionKeyCode={null}
           onPaneClick={onPaneClick}
+          onNodeClick={onNodeClick}
           proOptions={{ hideAttribution: false }}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={COLORS.lineStrong} />

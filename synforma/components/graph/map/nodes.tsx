@@ -148,13 +148,12 @@ function Content({ n, lens }: { n: LaidOutNode; lens: string }) {
 
 function MapNodeViewInner({ data }: NodeProps<MapFlowNode>) {
   const n = data.node;
-  const { lens, selectedId, highlight, related, setHovered, select } = useMapInteraction();
+  const { lens, selectedId, highlight, related, setHovered } = useMapInteraction();
   const selected = selectedId === n.id;
   const highlighted = highlight.has(n.id);
   const dimmed = related !== null && !related.has(n.id) && !selected;
   const onEnter = React.useCallback(() => setHovered(n.id), [setHovered, n.id]);
   const onLeave = React.useCallback(() => setHovered(null), [setHovered]);
-  const onClick = React.useCallback(() => select(n), [select, n]);
   return (
     <>
       <Handle type="target" position={Position.Left} id="t-l" isConnectable={false} />
@@ -167,7 +166,6 @@ function MapNodeViewInner({ data }: NodeProps<MapFlowNode>) {
         type="button"
         aria-label={ariaLabelFor(n, lens)}
         aria-pressed={selected}
-        onClick={onClick}
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
         onFocus={onEnter}

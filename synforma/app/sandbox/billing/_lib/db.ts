@@ -175,6 +175,13 @@ function nowIso(): string {
   return localIso(new Date());
 }
 
+/** A stored timestamp shifted by a number of minutes. */
+function minutesAfter(value: string, minutes: number): string {
+  const d = new Date(value);
+  d.setMinutes(d.getMinutes() + minutes);
+  return localIso(d);
+}
+
 /** Whole days elapsed since a stored timestamp. */
 export function daysSince(value: string): number {
   const then = new Date(value).getTime();
@@ -391,7 +398,7 @@ function createSeed(): BillingDb {
       push(payment.createdAt, `Payment attempt failed: ${payment.failureReason}`, "System", { paymentId: payment.id, customerId: payment.customerId });
     } else {
       push(payment.createdAt, `Payment of ${formatMoney(payment.amount)} succeeded (${payment.method})`, "System", { paymentId: payment.id, customerId: payment.customerId });
-      push(payment.createdAt.replace(/T\d{2}:\d{2}/, "T$&").replace(/T(\d{2}):(\d{2})/, (_m, h: string, m: string) => `T${pad((Number(h) + 0) % 24)}:${pad((Number(m) + 1) % 60)}`), `Receipt emailed to ${customer ? customer.email : payment.customerId}`, "System", { paymentId: payment.id, customerId: payment.customerId });
+      push(minutesAfter(payment.createdAt, 1), `Receipt emailed to ${customer ? customer.email : payment.customerId}`, "System", { paymentId: payment.id, customerId: payment.customerId });
     }
     if (payment.dispute) {
       push(payment.dispute.openedAt, `Dispute ${payment.dispute.id} opened by the cardholder's bank — ${payment.dispute.reason}`, "System", { paymentId: payment.id, customerId: payment.customerId });
