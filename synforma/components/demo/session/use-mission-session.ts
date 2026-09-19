@@ -115,7 +115,8 @@ export function useMissionSession(): MissionSession {
   const [phaseReady, setPhaseReady] = React.useState(false);
   const [plannerStatus, setPlannerStatus] = React.useState<PlannerStatus | null>(null);
   const [context, setContext] = React.useState<Record<string, string>>(DEFAULT_CONTEXT);
-  const [uiVariant, setUiVariant] = React.useState<UiVariant>("v1");
+  /** The sandbox's UI version as stored right now ("v1" on the server, where nothing reads it). */
+  const [uiVariant, setUiVariant] = React.useState<UiVariant>(() => readSandboxUiVariant());
   const [uiBusy, setUiBusy] = React.useState(false);
   const [drawerRun, setDrawerRun] = React.useState<Run | null>(null);
   const [confirmReset, setConfirmReset] = React.useState(false);
@@ -123,7 +124,7 @@ export function useMissionSession(): MissionSession {
 
   // ─────────────── connection, trust layer, engine jobs ───────────────
   const connection = useConnection();
-  const { getDriver, driverLogSink, abortRef, hideOverlays, syncUrl, connect } = connection;
+  const { getDriver, driverLogSinkRef, abortRef, hideOverlays, syncUrl, connect } = connection;
   const trust = useTrustLayer(program, getDriver);
   const { refreshClaims, ensureContract, applyRegroundings, undo } = trust;
 
@@ -147,13 +148,14 @@ export function useMissionSession(): MissionSession {
     fetchPlannerStatus().then((s) => {
       if (!cancelled) setPlannerStatus(s);
     });
-    setUiVariant(readSandboxUiVariant());
     return () => {
       cancelled = true;
     };
   }, []);
 
   // Restore phase and context once the store has rehydrated; reconnect silently when a program exists.
+  // One-time synchronisation from the persisted store (an external system that hydrates after mount):
+  // the restored values cannot be lazy initial state, so this effect sets them once, then never again.
   React.useEffect(() => {
     if (!hydrated || phaseReady) return;
     const s = useSynforma.getState();
@@ -161,6 +163,7 @@ export function useMissionSession(): MissionSession {
     if (p) {
       // The work context lives on the Program; prefs.context is the pre-migration location and only a fallback.
       const prefs = readPrefs(p.id);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore after store hydration
       setContext({ ...DEFAULT_CONTEXT, ...(prefs.context ?? {}), ...(p.context ?? {}) });
       const max = maxPhaseIndex(p, true);
       const wanted = prefs.phase && PHASE_INDEX[prefs.phase] <= max ? prefs.phase : defaultPhaseFor(p);
@@ -226,10 +229,10 @@ export function useMissionSession(): MissionSession {
   const startDemonstration = React.useCallback(async () => {
     abortRef.current?.abort();
     hideOverlays();
-    driverLogSink.current = null;
+    driverLogSinkRef.current = null;
     await demonstrationStart();
     syncUrl();
-  }, [abortRef, demonstrationStart, driverLogSink, hideOverlays, syncUrl]);
+  }, [abortRef, demonstrationStart, driverLogSinkRef, hideOverlays, syncUrl]);
 
   const openOutcome = connection.goto;
 

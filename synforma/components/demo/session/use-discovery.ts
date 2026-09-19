@@ -36,7 +36,7 @@ interface Options {
 
 /** Explorer run with live graph updates, planning and re-planning, and the discovery log. */
 export function useDiscovery({ connection, programId, plannerStatus, setPhase, setContext }: Options): DiscoveryApi {
-  const { getDriver, driverLogSink, abortRef, hideOverlays } = connection;
+  const { getDriver, driverLogSinkRef, abortRef, hideOverlays } = connection;
   const graphTimer = React.useRef<number | null>(null);
   const pendingGraph = React.useRef<WorkGraph | null>(null);
   const [discovery, setDiscovery] = React.useState<DiscoveryState>(INITIAL_DISCOVERY);
@@ -101,7 +101,7 @@ export function useDiscovery({ connection, programId, plannerStatus, setPhase, s
       patchProgram(prog.id, { status: "discovering", parsed: undefined, workflow: undefined, discovery: { startedAt, screens: 0, actions: 0, fields: 0, objects: 0, statesVisited: 0 } });
       useSynforma.getState().addAudit({ actor: "synforma", action: "Discovery started", programId: prog.id, target: SANDBOX_APP.baseUrl, detail: "commit actions are recorded, never executed" });
       driver.paceMs = 120;
-      driverLogSink.current = (m) => pushDiscoveryLog(/re-grounded/i.test(m) ? "heal" : /could not/i.test(m) ? "warn" : "info", m);
+      driverLogSinkRef.current = (m) => pushDiscoveryLog(/re-grounded/i.test(m) ? "heal" : /could not/i.test(m) ? "warn" : "info", m);
       let statesSeen = 0;
       const scheduleGraph = (g: WorkGraph) => {
         pendingGraph.current = g;
@@ -134,7 +134,7 @@ export function useDiscovery({ connection, programId, plannerStatus, setPhase, s
             }
           },
         });
-        driverLogSink.current = null;
+        driverLogSinkRef.current = null;
         hideOverlays();
         if (graphTimer.current) {
           window.clearTimeout(graphTimer.current);
@@ -160,13 +160,13 @@ export function useDiscovery({ connection, programId, plannerStatus, setPhase, s
         }
         await plan(prog, states, graph, kind);
       } catch (e) {
-        driverLogSink.current = null;
+        driverLogSinkRef.current = null;
         hideOverlays();
         setDiscovery((d) => ({ ...d, status: "error", error: errorMessage(e) }));
         patchProgram(prog.id, { status: "draft" });
       }
     },
-    [abortRef, driverLogSink, getDriver, hideOverlays, plan, pushDiscoveryLog, setPhase],
+    [abortRef, driverLogSinkRef, getDriver, hideOverlays, plan, pushDiscoveryLog, setPhase],
   );
 
   const start = React.useCallback(

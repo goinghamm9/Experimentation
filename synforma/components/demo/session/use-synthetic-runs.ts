@@ -90,7 +90,7 @@ function simulatedFriction(type: RunEventType, data: Record<string, unknown> | u
 
 /** Synthetic persona runs (Guide & Observe) and their counters. */
 export function useSyntheticRuns({ connection, programId, context }: Options): SyntheticRunsApi {
-  const { getDriver, driverLogSink, abortRef, hideOverlays, syncUrl } = connection;
+  const { getDriver, driverLogSinkRef, abortRef, hideOverlays, syncUrl } = connection;
   const [synth, setSynth] = React.useState<SynthState>(INITIAL_SYNTH);
 
   const run = React.useCallback(async () => {
@@ -104,7 +104,7 @@ export function useSyntheticRuns({ connection, programId, context }: Options): S
     const { workflow, parsed } = prog;
     const planner = createPlanner(prog.planner);
     driver.paceMs = 0;
-    driverLogSink.current = null;
+    driverLogSinkRef.current = null;
     setSynth({ status: "running", currentPersonaId: null, completed: 0, error: null });
     let completed = 0;
     let newInterventions = 0;
@@ -263,7 +263,7 @@ export function useSyntheticRuns({ connection, programId, context }: Options): S
     toast(stopped ? `Simulation stopped after ${completed} synthetic run${completed === 1 ? "" : "s"}` : `${completed} synthetic runs finished (simulation)`, {
       description: `${newInterventions ? `${newInterventions} intervention${newInterventions === 1 ? "" : "s"} proposed from observed struggle` : "No new interventions proposed"} · Synforma stayed quiet ${quiet} time${quiet === 1 ? "" : "s"}`,
     });
-  }, [abortRef, context, driverLogSink, getDriver, hideOverlays, programId, syncUrl]);
+  }, [abortRef, context, driverLogSinkRef, getDriver, hideOverlays, programId, syncUrl]);
 
   const stop = React.useCallback(() => abortRef.current?.abort(), [abortRef]);
 

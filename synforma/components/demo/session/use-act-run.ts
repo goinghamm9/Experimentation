@@ -36,7 +36,7 @@ interface Options {
 
 /** The agent's Act run: policy-gated execution with approval, action log, change list and ledger provenance. */
 export function useActRun({ connection, programId, context, applyRegroundings, setUiVariant }: Options): ActRunApi {
-  const { getDriver, driverLogSink, abortRef, hideOverlays, syncUrl } = connection;
+  const { getDriver, driverLogSinkRef, abortRef, hideOverlays, syncUrl } = connection;
   const approvalResolver = React.useRef<((d: "granted" | "denied") => void) | null>(null);
   const approvalRequest = React.useRef<ApprovalRequest | null>(null);
   const changeSeq = React.useRef(0);
@@ -85,7 +85,7 @@ export function useActRun({ connection, programId, context, applyRegroundings, s
     s.addAudit({ actor: "agent", action: "Run started", runId, programId: prog.id, detail: `Act mode · UI ${variant} · workflow by ${prog.planner} planner` });
     setAct({ ...INITIAL_ACT, status: "running", runId, startedAt, uiVariant: variant });
     driver.paceMs = 350;
-    driverLogSink.current = (m) => {
+    driverLogSinkRef.current = (m) => {
       const heal = /^Re-grounded "(.+?)" → "(.+?)"/.exec(m);
       if (heal) pushActLog("heal", `Self-healed: ${heal[1]} → ${heal[2]}`);
       else if (/could not/i.test(m)) pushActLog("warn", m);
@@ -190,7 +190,7 @@ export function useActRun({ connection, programId, context, applyRegroundings, s
           onStep: (step, status) => setAct((a) => ({ ...a, currentStepId: step.id, stepStatus: { ...a.stepStatus, [step.id]: status } })),
         },
       });
-      driverLogSink.current = null;
+      driverLogSinkRef.current = null;
       hideOverlays();
       const endedAt = Date.now();
       const store = useSynforma.getState();
@@ -203,7 +203,7 @@ export function useActRun({ connection, programId, context, applyRegroundings, s
       if (result.outcome === "completed") toast.success(`Run completed — ${result.requirementsMet.length}/${total} requirements verified${result.regroundings ? ` · ${result.regroundings} self-healed` : ""}`);
       else toast.warning(`Run ${result.outcome}${result.error ? `: ${result.error}` : ""}`);
     } catch (e) {
-      driverLogSink.current = null;
+      driverLogSinkRef.current = null;
       hideOverlays();
       const aborted = ac.signal.aborted;
       const endedAt = Date.now();
@@ -213,7 +213,7 @@ export function useActRun({ connection, programId, context, applyRegroundings, s
       store.addAudit({ actor: "agent", action: aborted ? "Run stopped by operator" : "Run failed", runId, programId: prog.id, detail: aborted ? undefined : errorMessage(e) });
       setAct((a) => ({ ...a, status: aborted ? "stopped" : "error", error: aborted ? null : errorMessage(e), endedAt, currentStepId: null }));
     }
-  }, [abortRef, applyRegroundings, context, driverLogSink, getDriver, hideOverlays, programId, pushActLog, setUiVariant, syncUrl]);
+  }, [abortRef, applyRegroundings, context, driverLogSinkRef, getDriver, hideOverlays, programId, pushActLog, setUiVariant, syncUrl]);
 
   const stop = React.useCallback(() => {
     abortRef.current?.abort();

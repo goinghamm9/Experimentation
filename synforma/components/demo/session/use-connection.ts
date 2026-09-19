@@ -14,7 +14,7 @@ export interface ConnectionApi {
   /** The interaction driver bound to the iframe (null before mount). */
   getDriver: () => IframeDriver | null;
   /** Where the driver's log lines go while an engine job runs (null discards them). */
-  driverLogSink: React.RefObject<((message: string) => void) | null>;
+  driverLogSinkRef: React.RefObject<((message: string) => void) | null>;
   /** The one engine job that may drive the iframe at a time (discovery, act run, simulation). */
   abortRef: React.RefObject<AbortController | null>;
   status: ConnectionStatus;
@@ -40,7 +40,7 @@ export interface ConnectionApi {
 export function useConnection(): ConnectionApi {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const driverRef = React.useRef<IframeDriver | null>(null);
-  const driverLogSink = React.useRef<((message: string) => void) | null>(null);
+  const driverLogSinkRef = React.useRef<((message: string) => void) | null>(null);
   const abortRef = React.useRef<AbortController | null>(null);
   const [connection, setConnection] = React.useState<{ status: ConnectionStatus; info: ConnectionInfo | null; error: string | null }>({ status: "idle", info: null, error: null });
   const [currentUrl, setCurrentUrl] = React.useState("");
@@ -68,7 +68,7 @@ export function useConnection(): ConnectionApi {
           setCursor((c) => (c ? { ...c, visible: false } : null));
           setHighlight((h) => (h ? { ...h, visible: false } : null));
         },
-        onLog: (message) => driverLogSink.current?.(message),
+        onLog: (message) => driverLogSinkRef.current?.(message),
       },
     });
     driverRef.current = driver;
@@ -86,6 +86,7 @@ export function useConnection(): ConnectionApi {
   React.useEffect(() => {
     return () => {
       abortRef.current?.abort();
+      abortRef.current = null;
     };
   }, []);
 
@@ -131,7 +132,7 @@ export function useConnection(): ConnectionApi {
   return {
     iframeRef,
     getDriver,
-    driverLogSink,
+    driverLogSinkRef,
     abortRef,
     status: connection.status,
     info: connection.info,
