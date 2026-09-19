@@ -127,7 +127,9 @@ planner is optional; the heuristic planner is deliberately simple. Synthetic use
 capabilities switched off and are labelled as simulation everywhere. No statistics are fabricated:
 metrics return null until enough stored runs exist, citations come only from
 `lib/synforma/science/citations.ts`, and Synforma never infers emotion, personality or employee worth.
-See `docs/ROADMAP.md`.
+Imported stimulus analyses (Science page, research use) are an encoding model's predictions about the
+screens a run showed, the predicted response of an average subject, not measurements of people. See
+`docs/ROADMAP.md`.
 
 ## Documentation
 

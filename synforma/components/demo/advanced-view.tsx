@@ -91,6 +91,7 @@ export function AdvancedView() {
         agentRuns={s.programRuns.filter((r) => r.actor === "agent")}
         ledger={s.programLedger}
         undoing={trust.undoing}
+        recording={s.recording}
         onRun={() => void act.run()}
         onStop={act.stop}
         onToggleUi={(v) => void s.toggleUi(v)}

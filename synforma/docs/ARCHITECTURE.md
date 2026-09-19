@@ -154,7 +154,8 @@ Both views drive the same engine and store; the simple view hides panels, it doe
 | `engine/ledger.ts` | Provenance and rollback ledger entries with before/after state; undo of reversible actions |
 | `engine/demonstration.ts` | Demonstration recorder (semantic trace, no typed values) and workflow reconstruction with clarification questions |
 | `science/techniques.ts`, `science/citations.ts` | The only sources of techniques and citations |
-| `store/index.ts` | zustand + localStorage persistence (programs, graphs, discoveries, runs, events, signals, hypotheses, interventions, audit, approvals, proficiency, claims, ledger, contracts, settings), export/import, settings migration |
+| `analysis/stimulus.ts` | Stimulus analysis contract (Zod): the predicted cortical response of an average subject to recorded screen content, produced offline by the TRIBE v2 bridge (`services/tribe-bridge`) and imported as JSON; `parseStimulusAnalysis`, per-step means, the verbatim disclaimer. A property of the screens, never a measurement of a person |
+| `store/index.ts` | zustand + localStorage persistence (programs, graphs, discoveries, runs, events, signals, hypotheses, interventions, audit, approvals, proficiency, claims, ledger, contracts, analyses, settings), export/import, settings migration |
 | `demo.ts` | Demo defaults: sandbox descriptor, default objective and context |
 
 ## Data model
@@ -179,6 +180,7 @@ and row-level security added):
 | `ledger` | `action_ledger` | before/after, approval, rollback capability, rolled-back marker |
 | `contracts` | `autonomy_contracts` | per workflow, versioned, approver |
 | `proficiency` | `proficiency_state` | per person × workflow × step (employee-private) |
+| `analyses` | `stimulus_analyses` | imported TRIBE v2 predictions about the screens of a run (research use); linked to a run/program when known |
 
 ## Trust properties
 

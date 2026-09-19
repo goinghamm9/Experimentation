@@ -15,6 +15,7 @@ import { useConnection, type ConnectionApi } from "./use-connection";
 import { useDiscovery, type DiscoveryApi } from "./use-discovery";
 import { useActRun, type ActRunApi } from "./use-act-run";
 import { useSyntheticRuns, type SyntheticRunsApi } from "./use-synthetic-runs";
+import { useRecording, type RecordingApi } from "./use-recording";
 import { defaultPhaseFor, errorMessage, maxPhaseIndex, patchProgram, plannerLabelFor } from "./helpers";
 
 export type DemoView = SynformaSettings["demoView"];
@@ -46,6 +47,8 @@ export interface MissionSession {
   act: ActRunApi;
   synth: SyntheticRunsApi;
   trust: TrustLayerApi;
+  /** Screen recording of a run for a stimulus analysis (research); offered in the advanced Act panel only, never started by itself. */
+  recording: RecordingApi;
   /** Provenance + rollback ledger entries for this program's agent runs. */
   programLedger: LedgerEntry[];
   /** The trust layer's demonstration recorder, with `start` clearing the agent overlays first. */
@@ -137,6 +140,7 @@ export function useMissionSession(): MissionSession {
   const discovery = useDiscovery({ connection, programId, plannerStatus, setPhase, setContext });
   const act = useActRun({ connection, programId, context, applyRegroundings, setUiVariant });
   const synth = useSyntheticRuns({ connection, programId, context });
+  const recording = useRecording({ programId, currentRunId: act.state.runId });
 
   const connected = connection.connected;
   const plannerKind: PlannerKind | null = program ? program.planner : plannerStatus ? resolvePlannerKind(settings.plannerPreference, plannerStatus) : null;
@@ -381,6 +385,7 @@ export function useMissionSession(): MissionSession {
     act,
     synth,
     trust,
+    recording,
     programLedger,
     demonstration,
     context,
