@@ -159,7 +159,7 @@ export type NodeStatus = "hypothesis" | "observed" | "confirmed";
 /**
  * Source authority for a piece of knowledge (highest first). Live observation of
  * the actual instance outranks configuration, which outranks the objective text,
- * which outranks documentation, which outranks model inference. See docs/KNOWLEDGE_LAYERS.md.
+ * which outranks documentation, which outranks model inference. See docs/ARCHITECTURE.md (Knowledge layers).
  */
 export type TrustState =
   | "AUTHORITATIVE_LIVE"
@@ -818,6 +818,8 @@ export interface SynformaSettings {
   requireApprovalForCommit: boolean;
   /** Share of human runs assigned to treatment for interventions under test. */
   treatmentShare: number;
+  /** Mission Control layout: the one-screen "simple" view or the full eight-phase "advanced" view. */
+  demoView: "simple" | "advanced";
 }
 
 export const DEFAULT_SETTINGS: SynformaSettings = {
@@ -828,4 +830,5 @@ export const DEFAULT_SETTINGS: SynformaSettings = {
   hesitationThresholdMs: 12_000,
   requireApprovalForCommit: true,
   treatmentShare: 0.5,
+  demoView: "simple",
 };

@@ -88,7 +88,7 @@ export class RemotePlanner implements Planner {
       const step = st ? wf.steps.find((x) => x.screenId === st.screenNodeId && !x.commit) : undefined;
       if (step && !(step.judgment && sm.mode === "act")) {
         step.mode = sm.mode;
-        step.modeRationale = `${sm.rationale} (Gemini)`;
+        step.modeRationale = `${sm.rationale} (language model)`;
       }
     }
     return wf;
