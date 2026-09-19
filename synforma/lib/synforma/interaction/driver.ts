@@ -50,6 +50,19 @@ export class IframeDriver {
     return this.iframe.contentWindow;
   }
 
+  /** What the frame holds right now; for diagnostics when a page cannot be read. `accessible` is false for a cross-origin document. */
+  frameState(): { accessible: boolean; url: string | null; readyState: string | null; bodyChildren: number | null } {
+    const doc = this.doc;
+    if (!doc) return { accessible: false, url: null, readyState: null, bodyChildren: null };
+    let url: string | null = null;
+    try {
+      url = doc.location?.href ?? null;
+    } catch {
+      url = null;
+    }
+    return { accessible: true, url, readyState: doc.readyState, bodyChildren: doc.body ? doc.body.childElementCount : null };
+  }
+
   currentUrl(): string {
     const w = this.win;
     if (!w) return "";

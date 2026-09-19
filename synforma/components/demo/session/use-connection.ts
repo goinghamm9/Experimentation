@@ -95,8 +95,19 @@ export function useConnection(): ConnectionApi {
     if (!driver) return;
     setConnection((c) => ({ ...c, status: "connecting", error: null }));
     try {
-      const page = await driver.goto(target.baseUrl);
-      if (page.fingerprint === "empty" || page.elements.length === 0) throw new Error("The application did not render anything Synforma could read.");
+      let page = await driver.goto(target.baseUrl);
+      // A cold server (first request after a quiet period on serverless hosting) can take longer than the
+      // driver's load window. Keep reading for a while before giving up.
+      for (let waited = 0; (page.fingerprint === "empty" || page.elements.length === 0) && waited < 12_000; waited += 500) {
+        await new Promise((r) => setTimeout(r, 500));
+        page = driver.snapshot().page;
+      }
+      if (page.fingerprint === "empty" || page.elements.length === 0) {
+        const st = driver.frameState();
+        if (!st.accessible) throw new Error(`The frame cannot be read: ${target.baseUrl} loaded from another origin (a login page or a redirect). Open it in a new tab to see what it shows.`);
+        if (st.bodyChildren === 0) throw new Error(`The application returned a blank page at ${st.url ?? target.baseUrl}.`);
+        throw new Error(`The application did not render anything Synforma could read within the time limit (frame ${st.readyState ?? "unknown"}, ${st.bodyChildren ?? 0} elements at ${st.url ?? target.baseUrl}). The first load on a cold server can take longer: try again.`);
+      }
       const info = summarizePage(page);
       setConnection({ status: "connected", info, error: null });
       setCurrentUrl(driver.currentUrl());
