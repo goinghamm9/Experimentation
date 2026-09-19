@@ -1,9 +1,8 @@
 name: Deploy Synforma to GitHub Pages
 
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# Then run this workflow (Actions → Deploy Synforma to GitHub Pages → Run workflow).
 on:
-  push:
-    branches: [main, claude/synforma-loop-website-3d-ooqg1a]
-    paths: ["synforma/**", ".github/workflows/synforma-pages.yml"]
   workflow_dispatch:
 
 permissions:
