@@ -233,7 +233,7 @@ type InvoiceSeed = [
 
 function createSeed(): BillingDb {
   const customers: Customer[] = [
-    { id: "CUS-1001", name: "Harlow & Finch Studio", contactName: "Mara Ellison", email: "mara@harlowfinch.example", country: "United States", createdAt: ago(212, 11, 20), paymentMethod: "Card ending 4242", subscription: sub("Team", 120, "Active", 212, 13) },
+    { id: "CUS-1001", name: "Harlow & Finch Studio", contactName: "Mara Ellison", email: "mara@harlowfinch.example", country: "United States", createdAt: ago(212, 11, 20), paymentMethod: "Card ending 4242", subscription: sub("Team", 480, "Active", 212, 13) },
     { id: "CUS-1002", name: "Northbeam Analytics", contactName: "Jonas Weir", email: "jonas.weir@northbeam.example", country: "Canada", createdAt: ago(340, 15, 5), paymentMethod: "Card ending 1881", subscription: sub("Business", 349, "Active", 340, 27) },
     { id: "CUS-1003", name: "Quill Street Press", contactName: "Priya Anand", email: "priya@quillstreet.example", country: "United Kingdom", createdAt: ago(98, 9, 45), paymentMethod: "Card ending 7730", subscription: sub("Starter", 29, "Active", 98, 20) },
     { id: "CUS-1004", name: "Tessellate Design Co.", contactName: "Ben Okoro", email: "ben@tessellate.example", country: "United States", createdAt: ago(150, 13, 10), paymentMethod: "Card ending 0094", subscription: sub("Business", 349, "Active", 150, 18) },
@@ -256,7 +256,7 @@ function createSeed(): BillingDb {
   });
 
   const paymentSeeds: PaymentSeed[] = [
-    ["PAY-3001", "CUS-1001", 120, "Succeeded", "Team plan — monthly", "Card ending 4242", 17, "INV-7001", 0, "", dispute("DP-9001", "Unrecognized charge", "Open", 6, 120)],
+    ["PAY-3001", "CUS-1001", 480, "Succeeded", "Team plan — 4 seats", "Card ending 4242", 17, "INV-7001", 0, "", dispute("DP-9001", "Unrecognized charge", "Open", 6, 480)],
     ["PAY-3002", "CUS-1002", 349, "Succeeded", "Business plan — monthly", "Card ending 1881", 3, "INV-7002", 0, "", null],
     ["PAY-3003", "CUS-1003", 29, "Refunded", "Starter plan — monthly", "Card ending 7730", 40, "INV-7003", 29, "", dispute("DP-8994", "Duplicate charge", "Resolved", 36, 29, "CS-4102")],
     ["PAY-3004", "CUS-1004", 480, "Succeeded", "Onboarding workshop", "Card ending 0094", 12, "INV-7004", 0, "", dispute("DP-9002", "Product not as described", "Open", 4, 480)],
@@ -266,7 +266,7 @@ function createSeed(): BillingDb {
     ["PAY-3008", "CUS-1008", 349, "Succeeded", "Business plan — monthly", "Card ending 9127", 20, "INV-7009", 0, "", null],
     ["PAY-3009", "CUS-1009", 240, "Succeeded", "Team plan — 2 seats", "Card ending 6674", 25, "INV-7010", 0, "", dispute("DP-9000", "Credit not processed", "Under review", 11, 240)],
     ["PAY-3010", "CUS-1010", 120, "Succeeded", "Team plan — monthly", "Card ending 2210", 30, "INV-7011", 0, "", null],
-    ["PAY-3011", "CUS-1001", 120, "Succeeded", "Team plan — monthly", "Card ending 4242", 47, "INV-7012", 0, "", null],
+    ["PAY-3011", "CUS-1001", 480, "Succeeded", "Team plan — 4 seats", "Card ending 4242", 47, "INV-7012", 0, "", null],
     ["PAY-3012", "CUS-1002", 349, "Partially refunded", "Business plan — monthly", "Card ending 1881", 33, "INV-7013", 100, "", null],
     ["PAY-3013", "CUS-1005", 58, "Succeeded", "Additional seats", "Card ending 5518", 9, "INV-7014", 0, "", dispute("DP-9003", "Duplicate charge", "Open", 3, 58)],
     ["PAY-3014", "CUS-1008", 349, "Succeeded", "Business plan — monthly", "Card ending 9127", 50, "INV-7015", 0, "", null],
@@ -297,7 +297,7 @@ function createSeed(): BillingDb {
   const planLine = (plan: string, amount: number) => [line(`${plan} plan — monthly subscription`, 1, amount)];
 
   const invoiceSeeds: InvoiceSeed[] = [
-    ["INV-7001", "CUS-1001", 120, "Paid", 17, 0, "PAY-3001", "Team plan — monthly", planLine("Team", 120)],
+    ["INV-7001", "CUS-1001", 480, "Paid", 17, 0, "PAY-3001", "Team plan — 4 seats", [line("Team plan — monthly subscription", 4, 120)]],
     ["INV-7002", "CUS-1002", 349, "Paid", 3, 0, "PAY-3002", "Business plan — monthly", planLine("Business", 349)],
     ["INV-7003", "CUS-1003", 29, "Paid", 40, 0, "PAY-3003", "Starter plan — monthly", planLine("Starter", 29)],
     ["INV-7004", "CUS-1004", 480, "Paid", 12, 0, "PAY-3004", "Onboarding workshop", [line("Onboarding workshop (half day)", 1, 480)]],
@@ -308,7 +308,7 @@ function createSeed(): BillingDb {
     ["INV-7009", "CUS-1008", 349, "Paid", 20, 0, "PAY-3008", "Business plan — monthly", planLine("Business", 349)],
     ["INV-7010", "CUS-1009", 240, "Paid", 25, 0, "PAY-3009", "Team plan — 2 seats", [line("Team plan — monthly subscription", 2, 120)]],
     ["INV-7011", "CUS-1010", 120, "Paid", 30, 0, "PAY-3010", "Team plan — monthly", planLine("Team", 120)],
-    ["INV-7012", "CUS-1001", 120, "Paid", 47, 0, "PAY-3011", "Team plan — monthly", planLine("Team", 120)],
+    ["INV-7012", "CUS-1001", 480, "Paid", 47, 0, "PAY-3011", "Team plan — 4 seats", [line("Team plan — monthly subscription", 4, 120)]],
     ["INV-7013", "CUS-1002", 349, "Paid", 33, 0, "PAY-3012", "Business plan — monthly", planLine("Business", 349)],
     ["INV-7014", "CUS-1005", 58, "Paid", 9, 0, "PAY-3013", "Additional seats", [line("Additional seat", 2, 29)]],
     ["INV-7015", "CUS-1008", 349, "Paid", 50, 0, "PAY-3014", "Business plan — monthly", planLine("Business", 349)],

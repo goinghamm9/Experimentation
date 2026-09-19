@@ -528,7 +528,6 @@ export function GraphWorkbench() {
               focus={focus}
               containerOf={screenOf}
               sample={isSample}
-              legendOpen={isLarge}
               totalNodes={graph.nodes.length}
             />
           )}

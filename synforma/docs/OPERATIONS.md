@@ -164,6 +164,10 @@ CHROMIUM_PATH=/path/to/chrome node verify/stimulus.spec.js
 | `demo-trust-extra.spec.js` | Contract regeneration after a reload without contracts; the employee link; claims kept |
 | `employee.spec.js` | Employee view against the fixture program in `verify/fixtures/employee-seed.json`: guide flow, quiet decisions, intervention cards and feedback, completion, proficiency, Get It Done (deny → reopen → approve), recap, sensing pause, mobile |
 | `employee-guide.spec.js` | Planner badge, step ring on the current step, checklist advancing on typing, hesitation → recorded decision, assist completing a step, Get It Done approve path, start another run, abandon |
+| `graph.spec.js` | Work Graph process map: sample graph, lenses, search, 3D toggle, seeded fixture, Runs lens after a Mission Control run, mobile |
+| `stimulus.spec.js` | Science → stimulus analysis import, chart and table, disclaimer wording; Record screen control in the advanced Act panel |
+| `sandbox-billing.spec.js`, `sandbox-data.spec.js`, `sandbox-erp.spec.js` | Each replica application by hand: its workflow on both UI versions, validation, the two small workflows, reset, mobile |
+| `targets.spec.js [ids]` | The engine on every target application: discover → plan → Act on v1 → vendor update → Act on v2 (self-healing); prints a summary row per app |
 | `stimulus.spec.js` | The Science page's stimulus-analysis section: disclaimer wording, import of `verify/fixtures/stimulus-analysis.example.json` (synthetic values), list entry, small multiples, per-step table, persistence across a reload, removal, an invalid file rejected; then the advanced Act panel's Record screen button, present and either enabled or disabled with a stated reason (headless Chromium has no screen to share) |
 
 The advanced-view scripts seed `settings.demoView = "advanced"` in `localStorage` before loading, because

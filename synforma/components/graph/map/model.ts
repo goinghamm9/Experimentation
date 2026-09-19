@@ -1,5 +1,6 @@
 import type { Claim, EdgeType, ExecutionMode, GraphEdge, GraphNode, NodeType, Program, Run, RunEvent, TrustState, WorkGraph } from "@/lib/synforma/types";
 import { nodeId } from "@/lib/synforma/graph/work-graph";
+import { TRUST_LABEL } from "@/lib/synforma/engine/evidence";
 import { computeIntentPath } from "../intent-path";
 
 /**
@@ -26,15 +27,24 @@ export type MapEdgeKind = "path" | "navigation" | "structural" | "traffic";
 /** Tone per trust state, plus "contested" for a requirement nothing fulfils and "illustrative" for the sample. */
 export type TrustTone = "live" | "approved" | "observed" | "inferred" | "contested" | "unknown" | "illustrative";
 
+/** Legend wording per tone, taken from the engine's own trust labels (lib/synforma/engine/evidence.ts). */
 export const TRUST_TONE_LABEL: Record<TrustTone, string> = {
-  live: "Observed on the live instance",
-  approved: "Organization-approved",
-  observed: "Observed (high confidence)",
-  inferred: "Model-inferred",
+  live: TRUST_LABEL.AUTHORITATIVE_LIVE,
+  approved: TRUST_LABEL.ORGANIZATION_APPROVED,
+  observed: TRUST_LABEL.OBSERVED_HIGH_CONFIDENCE,
+  inferred: TRUST_LABEL.MODEL_INFERRED,
   contested: "Contested",
-  unknown: "Unknown",
+  unknown: TRUST_LABEL.UNKNOWN,
   illustrative: "Illustrative",
 };
+
+/** What a node prints on the Evidence lens: its exact trust state, with "Contested" in front when a claim about it is contested. */
+export function nodeTrustText(n: Pick<MapNode, "trust" | "trustState">): string {
+  const state = n.trustState ? TRUST_LABEL[n.trustState] : null;
+  if (n.trust === "contested") return state ? `Contested · ${state}` : "Contested";
+  if (n.trust === "illustrative") return TRUST_TONE_LABEL.illustrative;
+  return state ?? TRUST_TONE_LABEL[n.trust];
+}
 
 export type FrictionKind =
   | "hesitation"

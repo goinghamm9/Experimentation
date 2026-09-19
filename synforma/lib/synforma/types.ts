@@ -103,7 +103,7 @@ export interface PageModel {
 
 // ───────────────────────────── Actions ─────────────────────────────
 
-export type ActionKind = "click" | "type" | "select" | "check" | "navigate" | "wait" | "expand";
+export type ActionKind = "click" | "type" | "select" | "check" | "navigate" | "wait" | "expand" | "press";
 
 export interface Action {
   kind: ActionKind;
@@ -246,6 +246,8 @@ export interface Requirement {
     rejectedValues?: string[];
     /** Date must be within N days from now. */
     withinDays?: number;
+    /** Date must be at least N days from now. */
+    atLeastDays?: number;
   };
 }
 

@@ -6,7 +6,7 @@ import { useSynforma } from "@/lib/synforma/store";
 import { MINIMUM_RUNS } from "@/lib/synforma/engine/metrics";
 import { fetchPlannerStatus, plannerVendor, resolvePlannerKind } from "@/lib/synforma/planner";
 import type { PlannerStatus } from "@/lib/synforma/planner/protocol";
-import { contextFor, targetById, targetForProgram, TARGET_APPS, type TargetApp } from "@/lib/synforma/targets";
+import { contextFor, DEMO_TARGETS, targetById, targetForProgram, TARGET_APPS, type TargetApp } from "@/lib/synforma/targets";
 import type { AuditEntry, Hypothesis, Intervention, LedgerEntry, PlannerKind, Program, Run, RunEvent, SynformaSettings, WorkGraph } from "@/lib/synforma/types";
 import { PHASE_INDEX, type PhaseId, type UiVariant } from "../types";
 import { clearPrefs, readPrefs, readSandboxUiVariant, writePrefs } from "../demo-prefs";
@@ -181,6 +181,13 @@ export function useMissionSession(): MissionSession {
       const wanted = prefs.phase && PHASE_INDEX[prefs.phase] <= max ? prefs.phase : defaultPhaseFor(p);
       setPhaseState(wanted);
       void connect(t, true);
+    } else {
+      // A link such as /demo?target=billing picks the application for the next program.
+      const wanted = new URLSearchParams(window.location.search).get("target");
+      if (wanted && TARGET_APPS.some((t) => t.id === wanted) && wanted !== s.settings.demoTarget) {
+        s.setSettings({ demoTarget: wanted });
+        setContext(contextFor(targetById(wanted)));
+      }
     }
     setPhaseReady(true);
   }, [hydrated, phaseReady, connect]);
@@ -432,7 +439,7 @@ export function useMissionSession(): MissionSession {
     busyLabel,
     demoView: settings.demoView,
     target,
-    targets: TARGET_APPS,
+    targets: DEMO_TARGETS,
     setTarget,
     setDemoView,
   };

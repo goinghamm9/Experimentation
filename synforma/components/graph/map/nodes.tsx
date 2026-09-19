@@ -6,7 +6,7 @@ import { cn, formatDuration } from "@/lib/utils";
 import { TYPE_LABEL } from "../constants";
 import { useMapInteraction } from "./context";
 import type { LaidOutNode } from "./layout";
-import { FRICTION_KIND_LABEL, TRUST_TONE_LABEL, type FrictionKind, type RunStats } from "./model";
+import { FRICTION_KIND_LABEL, nodeTrustText, type FrictionKind, type RunStats } from "./model";
 
 /**
  * Node components for the process map, one shape per Work Graph node type.
@@ -69,13 +69,13 @@ function ariaLabelFor(n: LaidOutNode, lens: string): string {
   if (rl) parts.push(rl);
   if (n.runs?.frictionTotal) parts.push(`${n.runs.frictionTotal} friction events`);
   if (n.runs?.regroundings) parts.push(`${n.runs.regroundings} self-healed`);
-  if (lens === "evidence") parts.push(TRUST_TONE_LABEL[n.trust]);
+  if (lens === "evidence") parts.push(nodeTrustText(n));
   return parts.join(", ");
 }
 
 function Content({ n, lens }: { n: LaidOutNode; lens: string }) {
   const rl = lens === "runs" ? runsLine(n) : null;
-  const tone = lens === "evidence" ? <span className="pm-tone">{TRUST_TONE_LABEL[n.trust]}</span> : null;
+  const tone = lens === "evidence" ? <span className="pm-tone">{nodeTrustText(n)}</span> : null;
   switch (n.type) {
     case "step":
       return (

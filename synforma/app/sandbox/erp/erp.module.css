@@ -555,7 +555,10 @@
 /* ───────────── Tables ───────────── */
 
 .tableWrap {
+  position: relative; /* contains visually-hidden (absolutely positioned) captions and labels inside the scroll area */
   overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .table {
@@ -602,10 +605,15 @@
 .itemTable td {
   vertical-align: top;
   padding: 8px 6px;
+  white-space: normal;
 }
 
 .itemTable th {
   padding: 8px 6px;
+}
+
+.itemTable .error {
+  max-width: 220px;
 }
 
 .itemTable .control {

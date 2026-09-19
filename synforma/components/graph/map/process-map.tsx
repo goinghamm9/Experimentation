@@ -4,7 +4,7 @@ import "./process-map.css";
 import * as React from "react";
 import Link from "next/link";
 import { Background, BackgroundVariant, Controls, MarkerType, MiniMap, Panel, ReactFlow, ReactFlowProvider, useReactFlow } from "@xyflow/react";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { GraphNode, NodeType } from "@/lib/synforma/types";
 import { cn } from "@/lib/utils";
 import { COLORS } from "../constants";
@@ -38,8 +38,6 @@ export interface ProcessMapProps {
   /** Screen that contains a node the map does not draw (an action or a field): the map pans there instead. */
   containerOf?: ReadonlyMap<string, string>;
   sample?: boolean;
-  /** Open the legend by default (large viewports). */
-  legendOpen?: boolean;
   /** Node count of the stored graph, for "N of M nodes on this lens". */
   totalNodes: number;
   className?: string;
@@ -65,100 +63,73 @@ const TONE_COLOR: Record<TrustTone, string> = {
   illustrative: "var(--mist)",
 };
 
-function Legend({ layout, lens, sample, open, totalNodes }: { layout: ProcessLayout; lens: Lens; sample: boolean; open: boolean; totalNodes: number }) {
-  const { model } = layout;
-  const shown = layout.nodes.length;
-  const dialogs = layout.nodes.filter((n) => n.type === "screen" && n.dialog).length;
+function LegendItem({ children, testId, swatch }: { children: React.ReactNode; testId?: string; swatch: React.ReactNode }) {
   return (
-    <details className="pm-legend" open={open} data-testid="graph-legend" data-lens={lens}>
-      <summary>
-        <span className="eyebrow text-[9px]">Legend · {LENSES.find((l) => l.value === lens)?.label ?? lens}</span>
-        <ChevronDown className="h-3 w-3 text-mist" aria-hidden="true" />
-      </summary>
-      <div className="pm-legend-body">
-        <p className="pm-legend-note mono-data" data-testid="graph-legend-count">
-          {shown} of {totalNodes} nodes on this lens
-        </p>
-        {lens === "workflow" || lens === "evidence" || lens === "runs" ? (
-          <>
-            <div className="pm-legend-row">
-              <span className={cn("pm-legend-line", lens === "runs" && "pm-legend-line--traffic")} aria-hidden="true" />
-              <span>{lens === "runs" ? "Intended path · width and count: runs that took it" : "Intended path (objective → steps → outcome)"}</span>
-            </div>
-            {lens === "runs" ? (
-              <div className="pm-legend-row">
-                <span className="pm-legend-line pm-legend-line--observed" aria-hidden="true" />
-                <span>Observed detour: back or skip</span>
-              </div>
-            ) : null}
-            <div className="pm-legend-row">
-              <span className="pm-legend-line pm-legend-line--dashed" aria-hidden="true" />
-              <span>Attached: screen a step touches, requirement, policy</span>
-            </div>
-            <div className="pm-legend-row">
-              <span className="pm-legend-line pm-legend-line--thin" aria-hidden="true" />
-              <span>Navigation between screens</span>
-            </div>
-            {lens === "runs" ? (
-              <>
-                <div className="pm-legend-row">
-                  <span className="pm-badge pm-badge--friction">3</span>
-                  <span>Friction events on the step: hesitation, validation error, backtrack, inferred states</span>
-                </div>
-                <div className="pm-legend-row">
-                  <span className="pm-badge pm-badge--heal">2</span>
-                  <span>Self-healed: actions re-grounded after the interface changed</span>
-                </div>
-                <div className="pm-legend-row">
-                  <span className="pm-badge pm-badge--drop">−1</span>
-                  <span>Runs that ended on the step without completing</span>
-                </div>
-                <p className="pm-legend-note">Median time is step entered → step completed, across all runs of this program.</p>
-              </>
-            ) : null}
-            {lens === "evidence" ? (
-              <>
-                {TONES.map((t) => (
-                  <div key={t} className="pm-legend-row" data-testid={`graph-legend-tone-${t}`}>
-                    <span className="pm-legend-swatch" style={{ borderLeft: `4px solid ${TONE_COLOR[t]}` }} aria-hidden="true" />
-                    <span>{TRUST_TONE_LABEL[t]}</span>
-                  </div>
-                ))}
-                {sample ? <p className="pm-legend-note">The sample carries no provenance: every node is illustrative.</p> : null}
-              </>
-            ) : null}
-            {model.hiddenScreens ? (
-              <p className="pm-legend-note" data-testid="graph-hidden-screens" data-count={model.hiddenScreens}>
-                {model.hiddenScreens} discovered screen{model.hiddenScreens === 1 ? "" : "s"} not on the workflow are hidden.
-              </p>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <div className="pm-legend-row">
-              <span className="pm-legend-line pm-legend-line--thin" aria-hidden="true" />
-              <span>Navigation observed during discovery, labelled by the control that caused it</span>
-            </div>
-            <div className="pm-legend-row">
-              <span className="pm-legend-line" aria-hidden="true" />
-              <span>Navigation the intended workflow uses</span>
-            </div>
-            <div className="pm-legend-row">
-              <span className="pm-legend-line pm-legend-line--dashed" aria-hidden="true" />
-              <span>Entry from the application · object a screen shows</span>
-            </div>
-            <p className="pm-legend-note">
-              Actions and fields are counted on each screen; select a screen to list them.
-              {dialogs ? ` ${dialogs} dialog${dialogs === 1 ? "" : "s"} appear as screens.` : ""}
-            </p>
-          </>
-        )}
-      </div>
-    </details>
+    <span className="pm-legend-item" data-testid={testId}>
+      {swatch}
+      <span>{children}</span>
+    </span>
   );
 }
 
-function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, containerOf, sample = false, legendOpen = true, totalNodes }: ProcessMapProps) {
+/** One line under the toolbar, never over the map: what the current lens draws. */
+function Legend({ layout, lens, sample, totalNodes }: { layout: ProcessLayout; lens: Lens; sample: boolean; totalNodes: number }) {
+  const { model } = layout;
+  const shown = layout.nodes.length;
+  const dialogs = layout.nodes.filter((n) => n.type === "screen" && n.dialog).length;
+  const workflowFamily = lens !== "application";
+  return (
+    <div className="pm-legend" data-testid="graph-legend" data-lens={lens} role="note" aria-label="Legend">
+      <span className="pm-legend-title eyebrow">{LENSES.find((l) => l.value === lens)?.label ?? lens}</span>
+      <span className="pm-legend-item mono-data" data-testid="graph-legend-count">
+        {shown} of {totalNodes} nodes
+      </span>
+      {workflowFamily ? (
+        <>
+          <LegendItem swatch={<span className={cn("pm-legend-line", lens === "runs" && "pm-legend-line--traffic")} aria-hidden="true" />}>
+            {lens === "runs" ? "Intended path · count and width: runs that took it" : "Intended path: objective → steps → outcome"}
+          </LegendItem>
+          {lens === "runs" ? <LegendItem swatch={<span className="pm-legend-line pm-legend-line--observed" aria-hidden="true" />}>Observed detour (back or skip)</LegendItem> : null}
+          <LegendItem swatch={<span className="pm-legend-line pm-legend-line--dashed" aria-hidden="true" />}>Attached: screen a step touches, requirement, policy</LegendItem>
+          <LegendItem swatch={<span className="pm-legend-line pm-legend-line--thin" aria-hidden="true" />}>Navigation between screens</LegendItem>
+          {lens === "runs" ? (
+            <>
+              <LegendItem swatch={<span className="pm-badge pm-badge--friction">3</span>}>Friction events: hesitation, validation error, backtrack, inferred states</LegendItem>
+              <LegendItem swatch={<span className="pm-badge pm-badge--heal">2</span>}>Self-healed: actions re-grounded after the interface changed</LegendItem>
+              <LegendItem swatch={<span className="pm-badge pm-badge--drop">−1</span>}>Runs that ended on the step</LegendItem>
+              <span className="pm-legend-item pm-legend-note">Median: step entered → completed, all runs of this program</span>
+            </>
+          ) : null}
+          {lens === "evidence"
+            ? TONES.map((t) => (
+                <LegendItem key={t} testId={`graph-legend-tone-${t}`} swatch={<span className="pm-legend-swatch" style={{ borderLeft: `4px solid ${TONE_COLOR[t]}` }} aria-hidden="true" />}>
+                  {TRUST_TONE_LABEL[t]}
+                </LegendItem>
+              ))
+            : null}
+          {lens === "evidence" && sample ? <span className="pm-legend-item pm-legend-note">The sample carries no provenance: every node is illustrative</span> : null}
+          {model.hiddenScreens ? (
+            <span className="pm-legend-item pm-legend-note" data-testid="graph-hidden-screens" data-count={model.hiddenScreens}>
+              {model.hiddenScreens} screen{model.hiddenScreens === 1 ? "" : "s"} not on the workflow hidden
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <LegendItem swatch={<span className="pm-legend-line pm-legend-line--thin" aria-hidden="true" />}>Navigation observed during discovery, labelled by the control that caused it</LegendItem>
+          <LegendItem swatch={<span className="pm-legend-line" aria-hidden="true" />}>Navigation the intended workflow uses</LegendItem>
+          <LegendItem swatch={<span className="pm-legend-line pm-legend-line--dashed" aria-hidden="true" />}>Entry from the application · object a screen shows</LegendItem>
+          <span className="pm-legend-item pm-legend-note">
+            Actions and fields are counted per screen; select a screen to list them
+            {dialogs ? ` · ${dialogs} dialog${dialogs === 1 ? "" : "s"} shown as screens` : ""}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, containerOf, sample = false, totalNodes }: ProcessMapProps) {
   const rf = useReactFlow<MapFlowNode, MapFlowEdge>();
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
 
@@ -223,14 +194,48 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, c
     [lens, selectedId, hoveredId, highlight, related, dimFocus, layout.model.maxTraffic, sample, select],
   );
 
-  // Fit the view on mount, on lens change and when the set of nodes changes.
+  // Fit the view on mount, on lens change and when the set of nodes changes; the legend strip and the bottom
+  // controls are kept clear of the map.
+  const topRef = React.useRef<HTMLDivElement>(null);
+  const fit = React.useCallback(
+    (duration: number) => {
+      const top = (topRef.current?.offsetHeight ?? 0) + 14;
+      void rf.fitView({ padding: { top: `${top}px`, right: "14px", bottom: "44px", left: "14px" }, maxZoom: 1.1, duration });
+    },
+    [rf],
+  );
   const nodeKey = React.useMemo(() => layout.nodes.map((n) => n.id).join("|"), [layout]);
   React.useEffect(() => {
-    const id = window.requestAnimationFrame(() => {
-      void rf.fitView({ padding: 0.06, maxZoom: 1.1, duration: 280 });
-    });
+    const id = window.requestAnimationFrame(() => fit(280));
     return () => window.cancelAnimationFrame(id);
-  }, [rf, lens, nodeKey]);
+  }, [fit, lens, nodeKey]);
+
+  // Refit when the canvas itself changes size (a rotated phone, the detail panel appearing), not on the first measure.
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let last: string | null = null;
+    let timer = 0;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0]?.contentRect;
+      if (!r) return;
+      const key = `${Math.round(r.width)}x${Math.round(r.height)}`;
+      if (last === null) {
+        last = key;
+        return;
+      }
+      if (key === last) return;
+      last = key;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => fit(200), 120);
+    });
+    ro.observe(el);
+    return () => {
+      window.clearTimeout(timer);
+      ro.disconnect();
+    };
+  }, [fit]);
 
   // Pan to a node on request (search result, intent-flow hop, detail-panel neighbour). A request for a node
   // the current lens does not draw waits for a layout that has it (or its containing screen).
@@ -259,14 +264,14 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, c
 
   return (
     <MapInteractionContext.Provider value={interaction}>
-      <div className="process-map" data-testid="process-map" data-lens={lens} data-nodes={layout.nodes.length} onKeyDown={onKeyDown}>
+      <div ref={wrapperRef} className="process-map" data-testid="process-map" data-lens={lens} data-nodes={layout.nodes.length} onKeyDown={onKeyDown}>
         <ReactFlow<MapFlowNode, MapFlowEdge>
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
-          fitViewOptions={{ padding: 0.06, maxZoom: 1.1 }}
+          fitViewOptions={{ padding: { top: "52px", right: "14px", bottom: "44px", left: "14px" }, maxZoom: 1.1 }}
           minZoom={0.1}
           maxZoom={2.5}
           nodesDraggable={false}
@@ -287,23 +292,21 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, c
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={COLORS.lineStrong} />
           <Controls position="bottom-left" showInteractive={false} />
           <MiniMap position="bottom-left" pannable zoomable nodeColor={minimapColor} nodeStrokeWidth={0} nodeBorderRadius={2} className="pm-minimap" />
-          <Panel position="bottom-right">
-            <Legend layout={layout} lens={lens} sample={sample} open={legendOpen} totalNodes={totalNodes} />
+          <Panel position="top-left" className="pm-top">
+            <div ref={topRef}>
+              <Legend layout={layout} lens={lens} sample={sample} totalNodes={totalNodes} />
+              {lens === "runs" && layout.model.runCount === 0 ? (
+                <div className="pm-note" data-testid="graph-runs-empty">
+                  <span className="font-medium text-ink">No runs recorded for this workflow.</span>
+                  <span className="text-slate"> Run the demo in Mission Control first; traffic, friction and self-healing then appear on the intended path.</span>
+                  <Link href="/demo" className="ml-2 inline-flex items-center gap-1 text-ink underline-offset-2 hover:underline">
+                    Open Mission Control
+                    <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                  </Link>
+                </div>
+              ) : null}
+            </div>
           </Panel>
-          {lens === "runs" && layout.model.runCount === 0 ? (
-            <Panel position="top-left">
-              <div className="max-w-xs rounded-md border border-line bg-surface/95 px-3 py-2 text-xs text-graphite shadow-sm backdrop-blur-sm" data-testid="graph-runs-empty">
-                <p className="font-medium text-ink">No runs recorded for this workflow.</p>
-                <p className="mt-1 leading-relaxed text-slate">
-                  Run the demo in Mission Control first; traffic, friction and self-healing then appear on the intended path.
-                </p>
-                <Link href="/demo" className="mt-1.5 inline-flex items-center gap-1 text-ink underline-offset-2 hover:underline">
-                  Open Mission Control
-                  <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-                </Link>
-              </div>
-            </Panel>
-          ) : null}
         </ReactFlow>
         {layout.nodes.length === 0 ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6" data-testid="process-map-empty">

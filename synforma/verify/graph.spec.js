@@ -206,7 +206,10 @@ async function seedStore(page) {
       await lens(page, "runs");
       record("(b) Runs lens without runs shows the empty-state note", (await page.getByTestId("graph-runs-empty").count()) === 1);
       await lens(page, "workflow");
-      await page.keyboard.press("Escape");
+      const pane = await page.locator(".react-flow__pane").boundingBox();
+      await page.mouse.click(pane.x + 6, pane.y + pane.height - 6); // bottom-left corner: clear of the legend strip and the controls
+      await page.waitForTimeout(300);
+      record("(b) clicking empty canvas clears the selection", (await page.locator('[data-testid="map-node"][data-selected="true"]').count()) === 0 && (await page.getByTestId("node-detail-empty").count()) === 1);
 
       // (d) 390 px viewport
       await page.setViewportSize({ width: 390, height: 844 });

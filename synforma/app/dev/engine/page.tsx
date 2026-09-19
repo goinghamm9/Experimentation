@@ -40,6 +40,14 @@ export default function EngineHarness() {
       planner,
       logs,
       events: [] as Partial<RunEvent>[],
+      target: T,
+      defaultContext(): Record<string, string> {
+        return contextFor(T);
+      },
+      /** Simulated vendor update: switch the target's UI version through its settings page. */
+      async vendorUpdate(v: "v1" | "v2") {
+        await driver.goto(`${T.baseUrl}/settings?ui=${v}`);
+      },
       async snapshot(url?: string) {
         if (url) await driver.goto(url);
         return driver.snapshot().page;

@@ -425,46 +425,52 @@
   opacity: 0.15;
 }
 
-/* ── legend ── */
+/* ── legend strip (top of the canvas, never over the map) ── */
+.process-map .react-flow__panel.pm-top {
+  margin: 0;
+  left: 0;
+  right: 0;
+  width: auto;
+  pointer-events: none;
+}
+.process-map .react-flow__panel.pm-top > * {
+  pointer-events: auto;
+}
 .pm-legend {
-  width: 232px;
-  max-width: calc(100vw - 32px);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--surface) 94%, transparent);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
   backdrop-filter: blur(4px);
   font-size: 11px;
+  line-height: 1.3;
   color: var(--graphite);
 }
-.pm-legend summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 6px 10px;
-  display: flex;
+@media (max-width: 639px) {
+  .pm-legend {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+.pm-legend-title {
+  font-size: 9px;
+  flex: 0 0 auto;
+}
+.pm-legend-item {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.pm-legend summary::-webkit-details-marker {
-  display: none;
-}
-.pm-legend[open] summary {
-  border-bottom: 1px solid var(--line);
-}
-.pm-legend-body {
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
   gap: 6px;
-}
-.pm-legend-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 16px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .pm-legend-line {
-  flex: 0 0 28px;
+  flex: 0 0 22px;
   height: 0;
   border-top: 2px solid var(--ink);
 }
@@ -494,5 +500,11 @@
 }
 .pm-legend-note {
   color: var(--slate);
+}
+.pm-note {
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--amber-soft) 70%, var(--surface));
+  font-size: 11px;
   line-height: 1.4;
 }

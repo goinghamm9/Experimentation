@@ -294,7 +294,7 @@ export function RefundWizard({ db, payment }: { db: BillingDb; payment: Payment 
                 </span>
               </div>
             ) : null}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field id={fieldId("amount")} label="Amount" required help={`Up to ${formatMoney(remaining)}`} error={errors.amount} className={fieldClass}>
                 {({ id, describedBy, invalid }) => (
                   <div className={s.adorn}>
@@ -356,7 +356,7 @@ export function RefundWizard({ db, payment }: { db: BillingDb; payment: Payment 
             <h2 id={`${prefix}-step-case-heading`} className={s.h2}>
               Case details
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field id={fieldId("case-reference")} label="Case reference" required help="Format: CS-1234" error={errors.caseReference} className={fieldClass}>
                 {({ id, describedBy, invalid }) => (
                   <input

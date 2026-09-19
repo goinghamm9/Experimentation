@@ -129,7 +129,7 @@ export function Card({
 export function StatCard({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
     <div className={cn(s.card, s.cardBody)}>
-      <div className={cn(s.h3, "mb-2")}>{label}</div>
+      <div className={s.statLabel}>{label}</div>
       <div className={s.stat}>{value}</div>
       {hint ? <div className={cn(s.muted, "mt-1 text-xs")}>{hint}</div> : null}
     </div>
@@ -285,7 +285,7 @@ export function Toggle({
   return (
     <div className={cn(checked ? s.toggleRowOn : s.toggleRow, className)}>
       <div className="min-w-0">
-        <label htmlFor={id} className={cn(s.label, "mb-0.5")}>
+        <label htmlFor={id} className={s.labelInline}>
           {label}
         </label>
         {help ? (

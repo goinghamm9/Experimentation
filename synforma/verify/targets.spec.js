@@ -20,15 +20,18 @@ const inDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return
       await page.waitForFunction(() => Boolean(window.__synforma), null, { timeout: 60000 });
       const disc = await page.evaluate(async () => { const r = await window.__synforma.discover(); return { screens: r.states.length, actions: r.stats.actions ?? null, fields: r.stats.fields ?? null, stats: r.stats }; });
       console.log("DISCOVER", JSON.stringify(disc).slice(0, 300));
-      const plan = await page.evaluate(async () => { const r = await window.__synforma.plan(); return { requirements: r.parsed.requirements.map((q) => q.text), steps: r.workflow.steps.map((s) => `${s.index + 1}. ${s.title} [${s.mode}]${s.commit ? " (commit)" : ""}`) }; });
+      const plan = await page.evaluate(async () => { const r = await window.__synforma.plan(); return { outcome: r.workflow.outcomeRoutePattern ?? null, requirements: r.parsed.requirements.map((q) => q.text), steps: r.workflow.steps.map((s) => `${s.index + 1}. ${s.title} [${s.mode}]${s.commit ? " (commit)" : ""}`) }; });
+      console.log("OUTCOME PATTERN", plan.outcome);
       console.log("REQUIREMENTS", JSON.stringify(plan.requirements));
       console.log("STEPS", JSON.stringify(plan.steps));
       const ctxPatch = id === "erp" ? { deliveryDate: inDays(14) } : {};
-      const act1 = await page.evaluate(async (patch) => { const ctx = { ...window.__synforma.defaultContext(), ...patch }; const r = await window.__synforma.act(ctx, true); return { outcome: r.result.outcome, met: r.result.requirementsMet, failed: r.result.failedStepId ?? null, error: r.result.error ?? null, url: r.result.outcomeUrl ?? null }; }, ctxPatch);
-      console.log("ACT v1", JSON.stringify(act1));
+      const act1 = await page.evaluate(async (patch) => { const ctx = { ...window.__synforma.defaultContext(), ...patch }; const r = await window.__synforma.act(ctx, true); const tail = r.events.slice(-8).map((e) => `${e.type}${e.stepId ? `@${e.stepId}` : ""}: ${e.message ?? ""}`); return { outcome: r.result.outcome, met: r.result.requirementsMet, failed: r.result.failedStepId ?? null, error: r.result.error ?? null, url: r.result.outcomeUrl ?? null, tail }; }, ctxPatch);
+      console.log("ACT v1", JSON.stringify({ ...act1, tail: undefined }));
+      if (act1.outcome !== "completed") console.log("  last events:\n   " + act1.tail.join("\n   "));
       await page.evaluate(async () => { await window.__synforma.vendorUpdate("v2"); });
-      const act2 = await page.evaluate(async (patch) => { const ctx = { ...window.__synforma.defaultContext(), ...patch }; const r = await window.__synforma.act(ctx, true); const heals = r.events.filter((e) => e.type === "action_regrounded").length; return { outcome: r.result.outcome, met: r.result.requirementsMet, regroundings: r.result.regroundings, heals, failed: r.result.failedStepId ?? null, error: r.result.error ?? null }; }, ctxPatch);
-      console.log("ACT v2", JSON.stringify(act2));
+      const act2 = await page.evaluate(async (patch) => { const ctx = { ...window.__synforma.defaultContext(), ...patch }; const r = await window.__synforma.act(ctx, true); const heals = r.events.filter((e) => e.type === "action_regrounded").length; const tail = r.events.slice(-10).map((e) => `${e.type}${e.stepId ? `@${e.stepId}` : ""}: ${e.message ?? ""}`); return { outcome: r.result.outcome, met: r.result.requirementsMet, regroundings: r.result.regroundings, heals, failed: r.result.failedStepId ?? null, error: r.result.error ?? null, tail }; }, ctxPatch);
+      console.log("ACT v2", JSON.stringify({ ...act2, tail: undefined }));
+      if (act2.outcome !== "completed") console.log("  last events:\n   " + act2.tail.join("\n   "));
       await page.evaluate(async () => { await window.__synforma.vendorUpdate("v1"); });
       summary.push({ id, screens: disc.screens, steps: plan.steps.length, v1: `${act1.outcome} ${act1.met.length}/${plan.requirements.length}`, v2: `${act2.outcome} ${act2.met.length}/${plan.requirements.length} · ${act2.regroundings} re-grounded`, errors: errors.length });
     } catch (e) {

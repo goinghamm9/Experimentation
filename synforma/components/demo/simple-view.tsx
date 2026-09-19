@@ -345,6 +345,31 @@ function TrustLine({ program }: { program: Program | null }) {
   );
 }
 
+/** The target's presenter lines, one per scene, for a five-minute walkthrough. Collapsed by default. */
+function PresenterNotes() {
+  const { target, act, discovery } = useMissionSession();
+  const [open, setOpen] = React.useState(false);
+  const scene = act.state.status === "running" || act.state.result ? (act.state.regroundings > 0 ? 4 : 3) : discovery.state.status === "done" ? 2 : 0;
+  return (
+    <div className="rounded-lg border border-line bg-surface" data-testid="presenter-notes" data-open={open ? "true" : "false"}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-slate hover:text-ink" aria-expanded={open} data-testid="presenter-notes-toggle">
+        <span>Presenter notes · {target.name}</span>
+        {open ? <ChevronDown className="h-3 w-3" aria-hidden="true" /> : <ChevronRight className="h-3 w-3" aria-hidden="true" />}
+      </button>
+      {open ? (
+        <ol className="space-y-1.5 border-t border-line px-3 py-2.5">
+          {target.script.map((line, i) => (
+            <li key={i} className={cn("flex gap-2 text-[12px] leading-snug", i === scene ? "text-ink" : "text-slate")} data-testid="presenter-note" data-current={i === scene ? "true" : "false"}>
+              <span className={cn("mono-data shrink-0 text-[10px]", i === scene ? "text-ink" : "text-mist")}>{i + 1}</span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </div>
+  );
+}
+
 export function SimpleView() {
   const { ready, program } = useMissionSession();
   if (!ready) return <PanelSkeleton />;
@@ -354,6 +379,7 @@ export function SimpleView() {
       <ObjectiveStage key={program?.id ?? "new"} program={program} />
       <RunStage program={program} />
       <TrustLine program={program} />
+      <PresenterNotes />
     </div>
   );
 }

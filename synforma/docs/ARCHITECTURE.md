@@ -185,7 +185,8 @@ in `localStorage`; it is the same graph and selection, not a separate model.
 | `science/techniques.ts`, `science/citations.ts` | The only sources of techniques and citations |
 | `analysis/stimulus.ts` | Stimulus analysis contract (Zod): the predicted cortical response of an average subject to recorded screen content, produced offline by the TRIBE v2 bridge (`services/tribe-bridge`) and imported as JSON; `parseStimulusAnalysis`, per-step means, the verbatim disclaimer. A property of the screens, never a measurement of a person |
 | `store/index.ts` | zustand + localStorage persistence (programs, graphs, discoveries, runs, events, signals, hypotheses, interventions, audit, approvals, proficiency, claims, ledger, contracts, analyses, settings), export/import, settings migration |
-| `demo.ts` | Demo defaults: sandbox descriptor, default objective and context |
+| `demo.ts` | Demo defaults for the CRM: descriptor, default objective and context |
+| `targets.ts` | Target-application registry: the four replica apps with base URL, entry record, UI-version key, objective, work context, context fields and presenter notes; `targetForProgram`, `contextFor` |
 
 ## Data model
 

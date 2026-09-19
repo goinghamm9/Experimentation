@@ -20,6 +20,8 @@ export interface ContextField {
 export interface TargetApp {
   id: string;
   name: string;
+  /** "ready": the engine runs the objective end to end on both UI versions. "preview": usable app, engine still short. */
+  status: "ready" | "preview";
   /** Category of software the replica reproduces ("CRM", "Billing dashboard", …). */
   category: string;
   /** One honest sentence shown next to the name. */
@@ -49,6 +51,7 @@ function isoDaysFromNow(days: number): string {
 const CRM: TargetApp = {
   id: "crm",
   name: "Meridian CRM",
+  status: "ready",
   category: "CRM",
   replicaNote: "Fictional CRM built for this demonstration.",
   version: "4.2",
@@ -72,6 +75,7 @@ const CRM: TargetApp = {
 const BILLING: TargetApp = {
   id: "billing",
   name: "Ledgerline Billing",
+  status: "ready",
   category: "Billing dashboard",
   replicaNote: "Fictional replica of a billing-dashboard pattern; not affiliated with any vendor.",
   version: "3.8",
@@ -114,6 +118,7 @@ Agents must not refund charges older than 90 days without a manager. Success is 
 const DATA: TargetApp = {
   id: "data",
   name: "Nimbus Data Console",
+  status: "preview",
   category: "Developer console",
   replicaNote: "Fictional replica of a developer-console pattern; not affiliated with any vendor.",
   version: "2.14",
@@ -156,6 +161,7 @@ Developers must not disable row level security on existing tables. Success is ev
 const ERP: TargetApp = {
   id: "erp",
   name: "Atlas ERP",
+  status: "ready",
   category: "Enterprise ERP",
   replicaNote: "Fictional replica of an enterprise-ERP pattern; not affiliated with any vendor.",
   version: "24.1",
@@ -204,7 +210,9 @@ Requesters must not split orders to stay under approval limits. Success is every
   ],
 };
 
-export const TARGET_APPS: readonly TargetApp[] = [CRM, BILLING, DATA, ERP];
+export const TARGET_APPS: readonly TargetApp[] = [CRM, BILLING, ERP, DATA];
+/** The applications offered in Mission Control and on the site. */
+export const DEMO_TARGETS: readonly TargetApp[] = TARGET_APPS.filter((t) => t.status === "ready");
 export const DEFAULT_TARGET_ID = CRM.id;
 
 export function targetById(id: string | null | undefined): TargetApp {
