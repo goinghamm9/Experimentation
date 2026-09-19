@@ -1,9 +1,14 @@
-# Netlify configuration for the Synforma prototype (subfolder of this repository).
+# Netlify configuration for Synforma (subfolder of this repository).
 # Import this repository in Netlify ("Add new project → Import from Git"); nothing else needs to be set.
+# The site runs on Netlify's Next.js runtime so the optional planner route (/api/planner) works in production.
+# Set ANTHROPIC_API_KEY (Claude) or GEMINI_API_KEY (Gemini) under Site configuration → Environment variables to enable it.
 [build]
   base = "synforma"
-  command = "npm run build:static"
-  publish = "synforma/out"
+  command = "npm run build"
+  publish = "synforma/.next"
 
 [build.environment]
   NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
