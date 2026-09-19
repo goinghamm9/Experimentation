@@ -1,0 +1,9 @@
+# Netlify configuration for the Synforma prototype (subfolder of this repository).
+# Import this repository in Netlify ("Add new project → Import from Git"); nothing else needs to be set.
+[build]
+  base = "synforma"
+  command = "npm run build:static"
+  publish = "synforma/out"
+
+[build.environment]
+  NODE_VERSION = "20"
