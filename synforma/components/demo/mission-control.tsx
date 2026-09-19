@@ -81,7 +81,7 @@ export function MissionControl() {
           ) : null}
           <div className="ml-auto flex shrink-0 items-center gap-2">
             {busyLabel ? (
-              <span className="hidden items-center gap-1.5 text-xs text-slate sm:inline-flex">
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate">
                 <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
                 {busyLabel}…
               </span>
