@@ -13,9 +13,10 @@ export interface MapInteraction {
   hoveredId: string | null;
   /** Search, intent-flow or "inferred only" highlight. */
   highlight: ReadonlySet<string>;
-  /** The hovered (else selected) node and its neighbours; null when nothing is focused. */
+  /** The hovered (else selected, when it is on the map and nothing is highlighted) node and its neighbours; null when nothing dims. */
   related: ReadonlySet<string> | null;
-  focusId: string | null;
+  /** The node `related` is built around. */
+  dimFocus: string | null;
   maxTraffic: number;
   sample: boolean;
   setHovered: (id: string | null) => void;
@@ -30,7 +31,7 @@ export const MapInteractionContext = React.createContext<MapInteraction>({
   hoveredId: null,
   highlight: EMPTY,
   related: null,
-  focusId: null,
+  dimFocus: null,
   maxTraffic: 0,
   sample: false,
   setHovered: () => {},

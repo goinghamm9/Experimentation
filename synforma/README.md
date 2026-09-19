@@ -18,7 +18,7 @@ setting may ask for a Netlify team login).
 | `/` | The site (`/thesis` for the long form) |
 | `/demo` | Mission Control: the whole loop against the bundled CRM |
 | `/employee` | Employee view: do the workflow yourself with the Synforma overlay |
-| `/graph` | Interactive 3D Work Graph of the discovered application and program |
+| `/graph` | Work Graph as a 2D process map: Workflow, Application, Runs and Evidence lenses, with the 3D scene behind a toggle |
 | `/science` | Barrier model, intervention registry, evidence classes, decision policy, citations |
 | `/settings` | Planner preference, assistance and sensing controls, data export / import / delete |
 | `/sandbox/crm` | Meridian CRM, the target application (works standalone too) |

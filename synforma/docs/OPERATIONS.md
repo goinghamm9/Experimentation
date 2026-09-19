@@ -70,7 +70,7 @@ route; a static host works with `npm run build:static`.
 - Discovery takes about ten seconds and drives the embedded CRM visibly.
 - Everything is per browser: two people opening the same URL each get their own state. Use Settings →
   Export / Import to move a program between browsers.
-- The 3D Work Graph needs WebGL.
+- The Work Graph's 3D view needs WebGL; the default process map does not.
 
 ## Environment variables
 

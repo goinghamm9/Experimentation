@@ -11,7 +11,7 @@ import { COLORS } from "../constants";
 import { MapInteractionContext, type MapInteraction } from "./context";
 import { edgeColor, edgeTypes, type MapFlowEdge } from "./edges";
 import type { ProcessLayout } from "./layout";
-import { TRUST_TONE_LABEL, type Lens, type MapNode, type TrustTone } from "./model";
+import { LENSES, TRUST_TONE_LABEL, type Lens, type MapNode, type TrustTone } from "./model";
 import { nodeTypes, type MapFlowNode } from "./nodes";
 
 /**
@@ -35,6 +35,8 @@ export interface ProcessMapProps {
   onSelectNode: (node: GraphNode | null) => void;
   /** Pan and zoom to this node whenever the nonce changes. */
   focus?: FocusRequest | null;
+  /** Screen that contains a node the map does not draw (an action or a field): the map pans there instead. */
+  containerOf?: ReadonlyMap<string, string>;
   sample?: boolean;
   /** Open the legend by default (large viewports). */
   legendOpen?: boolean;
@@ -70,7 +72,7 @@ function Legend({ layout, lens, sample, open, totalNodes }: { layout: ProcessLay
   return (
     <details className="pm-legend" open={open} data-testid="graph-legend" data-lens={lens}>
       <summary>
-        <span className="eyebrow text-[9px]">Legend · {lens}</span>
+        <span className="eyebrow text-[9px]">Legend · {LENSES.find((l) => l.value === lens)?.label ?? lens}</span>
         <ChevronDown className="h-3 w-3 text-mist" aria-hidden="true" />
       </summary>
       <div className="pm-legend-body">
@@ -156,7 +158,7 @@ function Legend({ layout, lens, sample, open, totalNodes }: { layout: ProcessLay
   );
 }
 
-function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, sample = false, legendOpen = true, totalNodes }: ProcessMapProps) {
+function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, containerOf, sample = false, legendOpen = true, totalNodes }: ProcessMapProps) {
   const rf = useReactFlow<MapFlowNode, MapFlowEdge>();
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
 
@@ -203,37 +205,45 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, s
     return m;
   }, [layout]);
   const highlight = React.useMemo(() => new Set(highlightIds), [highlightIds]);
-  const related = React.useMemo(() => {
-    const focusId = hoveredId ?? (highlight.size ? null : selectedId);
-    if (!focusId) return null;
-    const set = new Set<string>([focusId]);
-    for (const id of adjacency.get(focusId) ?? []) set.add(id);
-    return set;
+  const dimFocus = React.useMemo(() => {
+    if (hoveredId) return hoveredId;
+    if (highlight.size || !selectedId || !adjacency.has(selectedId)) return null;
+    return selectedId;
   }, [hoveredId, selectedId, highlight, adjacency]);
+  const related = React.useMemo(() => {
+    if (!dimFocus) return null;
+    const set = new Set<string>([dimFocus]);
+    for (const id of adjacency.get(dimFocus) ?? []) set.add(id);
+    return set;
+  }, [dimFocus, adjacency]);
 
   const select = React.useCallback((n: MapNode | null) => onSelectNode(n ? n.node : null), [onSelectNode]);
   const interaction = React.useMemo<MapInteraction>(
-    () => ({ lens, selectedId, hoveredId, highlight, related, focusId: focus?.id ?? null, maxTraffic: layout.model.maxTraffic, sample, setHovered: setHoveredId, select }),
-    [lens, selectedId, hoveredId, highlight, related, focus, layout.model.maxTraffic, sample, select],
+    () => ({ lens, selectedId, hoveredId, highlight, related, dimFocus, maxTraffic: layout.model.maxTraffic, sample, setHovered: setHoveredId, select }),
+    [lens, selectedId, hoveredId, highlight, related, dimFocus, layout.model.maxTraffic, sample, select],
   );
 
   // Fit the view on mount, on lens change and when the set of nodes changes.
   const nodeKey = React.useMemo(() => layout.nodes.map((n) => n.id).join("|"), [layout]);
   React.useEffect(() => {
     const id = window.requestAnimationFrame(() => {
-      void rf.fitView({ padding: 0.12, maxZoom: 1, duration: 280 });
+      void rf.fitView({ padding: 0.06, maxZoom: 1.1, duration: 280 });
     });
     return () => window.cancelAnimationFrame(id);
   }, [rf, lens, nodeKey]);
 
-  // Pan to a node on request (search result, intent-flow hop, detail-panel neighbour).
+  // Pan to a node on request (search result, intent-flow hop, detail-panel neighbour). A request for a node
+  // the current lens does not draw waits for a layout that has it (or its containing screen).
+  const handledFocus = React.useRef(0);
   React.useEffect(() => {
-    if (!focus) return;
-    const n = layout.nodes.find((x) => x.id === focus.id);
+    if (!focus || handledFocus.current === focus.nonce) return;
+    const container = containerOf?.get(focus.id);
+    const n = layout.nodes.find((x) => x.id === focus.id) ?? (container ? layout.nodes.find((x) => x.id === container) : undefined);
     if (!n) return;
+    handledFocus.current = focus.nonce;
     const zoom = Math.min(1.2, Math.max(rf.getZoom(), 0.85));
     void rf.setCenter(n.x + n.width / 2, n.y + n.height / 2, { zoom, duration: 360 });
-  }, [rf, focus, layout]);
+  }, [rf, focus, layout, containerOf]);
 
   const onPaneClick = React.useCallback(() => onSelectNode(null), [onSelectNode]);
   const onKeyDown = React.useCallback(
@@ -253,7 +263,7 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, s
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
-          fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
+          fitViewOptions={{ padding: 0.06, maxZoom: 1.1 }}
           minZoom={0.1}
           maxZoom={2.5}
           nodesDraggable={false}
@@ -272,8 +282,8 @@ function Canvas({ layout, lens, selectedId, highlightIds, onSelectNode, focus, s
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={COLORS.lineStrong} />
           <Controls position="bottom-left" showInteractive={false} />
-          <MiniMap position="bottom-right" pannable zoomable nodeColor={minimapColor} nodeStrokeWidth={0} nodeBorderRadius={2} />
-          <Panel position="top-right">
+          <MiniMap position="bottom-left" pannable zoomable nodeColor={minimapColor} nodeStrokeWidth={0} nodeBorderRadius={2} className="pm-minimap" />
+          <Panel position="bottom-right">
             <Legend layout={layout} lens={lens} sample={sample} open={legendOpen} totalNodes={totalNodes} />
           </Panel>
           {lens === "runs" && layout.model.runCount === 0 ? (

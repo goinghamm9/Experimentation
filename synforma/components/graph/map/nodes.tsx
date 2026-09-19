@@ -100,14 +100,12 @@ function Content({ n, lens }: { n: LaidOutNode; lens: string }) {
         <span className="pm-body">
           <span className="pm-eyebrow">{n.dialog ? "Dialog" : "Screen"}</span>
           <span className="pm-title">{n.label}</span>
-          <span className="pm-meta">
-            {n.route ? <span className="pm-route mono-data">{n.route}</span> : null}
-            {n.counts && (n.counts.actions || n.counts.fields) ? (
-              <span className="pm-meta-item mono-data" data-testid="map-screen-counts">
-                {n.counts.actions} action{n.counts.actions === 1 ? "" : "s"} · {n.counts.fields} field{n.counts.fields === 1 ? "" : "s"}
-              </span>
-            ) : null}
-          </span>
+          {n.route ? <span className="pm-route mono-data">{n.route}</span> : null}
+          {n.counts && (n.counts.actions || n.counts.fields) ? (
+            <span className="pm-meta mono-data" data-testid="map-screen-counts">
+              {n.counts.actions} action{n.counts.actions === 1 ? "" : "s"} · {n.counts.fields} field{n.counts.fields === 1 ? "" : "s"}
+            </span>
+          ) : null}
           {rl ? <span className="pm-runs mono-data">{rl}</span> : null}
           {tone}
         </span>

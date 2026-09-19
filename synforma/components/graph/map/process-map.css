@@ -71,6 +71,13 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
+  margin-left: 52px;
+  width: 160px;
+  height: 100px;
+}
+.process-map .react-flow__minimap svg {
+  width: 160px;
+  height: 100px;
 }
 .process-map .react-flow__attribution {
   font-size: 9px;
@@ -351,9 +358,24 @@
 .pm-node.tone-illustrative {
   border-left-color: var(--mist);
 }
+.pm-node--objective.is-path[class*="tone-"],
+.pm-node--outcome.is-path[class*="tone-"] {
+  background: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.pm-node--objective.is-path[class*="tone-"] .pm-eyebrow,
+.pm-node--outcome.is-path[class*="tone-"] .pm-eyebrow,
+.pm-node--objective.is-path[class*="tone-"] .pm-tone,
+.pm-node--outcome.is-path[class*="tone-"] .pm-tone {
+  color: var(--slate);
+}
 .pm-node--objective.is-path.tone-approved,
 .pm-node--outcome.is-path.tone-approved {
   border-left-color: var(--ink);
+}
+.pm-node--workflow.is-path {
+  background: var(--surface-2);
 }
 
 /* ── edges ── */

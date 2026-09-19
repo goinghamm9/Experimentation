@@ -517,13 +517,20 @@ function buildWorkflowLens(input: ProcessMapInput, idx: Index, spine: Spine, con
 
   const onPath = new Set<string>([spine.objectiveId, spine.workflowId, ...spine.stepIds, ...spine.outcomeIds].filter((x): x is string => Boolean(x)));
 
-  // Main lane: people → roles → objectives → workflows → steps → outcomes.
+  // Main lane: people → roles → objectives → (workflows without steps) → steps → outcomes. The main
+  // workflow, whose steps form the chain, sits above its first step as the chain's header.
+  const headerWorkflow = spine.workflowId && spine.stepIds.length ? spine.workflowId : null;
   for (const n of graph.nodes) {
+    if (n.id === headerWorkflow) continue;
     if (n.type === "person" || n.type === "role" || n.type === "objective" || n.type === "workflow" || n.type === "outcome") add(n, "main", { onPath: onPath.has(n.id) });
   }
   for (const sid of spine.stepIds) {
     const n = idx.byId.get(sid);
     if (n) add(n, "main", { onPath: true });
+  }
+  if (headerWorkflow) {
+    const n = idx.byId.get(headerWorkflow);
+    if (n) add(n, "above", { onPath: true, anchorIds: [spine.stepIds[0]] });
   }
   // Steps of other workflows (rare) stay attached to their workflow.
   for (const n of graph.nodes) {
@@ -538,16 +545,20 @@ function buildWorkflowLens(input: ProcessMapInput, idx: Index, spine: Spine, con
     if (!a || !b) continue;
     if (e.type === "assigned_to" && a.type === "person" && b.type === "role") link("path", a.id, b.id, e);
     else if (e.type === "targets" && a.type === "role" && b.type === "objective") link("path", a.id, b.id, e);
-    else if (e.type === "fulfills" && a.type === "workflow" && b.type === "objective") link("path", b.id, a.id, e, spine.workflowId === a.id && spine.objectiveId === b.id, "fulfilled by");
-    else if (e.type === "fulfills" && a.type === "outcome" && b.type === "objective") link("structural", a.id, b.id, e, false, "fulfils");
+    else if (e.type === "fulfills" && a.type === "workflow" && b.type === "objective") {
+      if (a.id === headerWorkflow) link("structural", b.id, a.id, e, false, "fulfilled by");
+      else link("path", b.id, a.id, e, false, "fulfilled by");
+    }
+    // outcome → objective ("fulfils") would close a loop over the whole map; the detail panel lists it instead.
     else if (e.type === "produces" && a.type === "workflow" && b.type === "outcome") {
       // The main workflow reaches its outcome through its last step; other workflows link directly.
       if (a.id === spine.workflowId && spine.stepIds.length) continue;
       link("path", a.id, b.id, e, false, "produces");
     }
   }
-  if (spine.workflowId && spine.stepIds.length) {
-    link("path", spine.workflowId, spine.stepIds[0], undefined, true);
+  if (headerWorkflow) {
+    if (spine.objectiveId) link("path", spine.objectiveId, spine.stepIds[0], undefined, true);
+    link("structural", headerWorkflow, spine.stepIds[0], undefined, false, "contains");
     for (let i = 1; i < spine.stepIds.length; i += 1) link("path", spine.stepIds[i - 1], spine.stepIds[i], undefined, true);
     const last = spine.stepIds[spine.stepIds.length - 1];
     for (const o of spine.outcomeIds) link("path", last, o, undefined, true);
@@ -737,8 +748,7 @@ function overlayRuns(model: ProcessMapModel, input: ProcessMapInput, idx: Index,
     if (!a || !b) continue;
     let t: number | undefined;
     if (a.type === "step" && b.type === "step") t = reading.transitions.get(`${a.id}->${b.id}`) ?? 0;
-    else if (a.type === "objective" && b.type === "workflow") t = reading.runCount;
-    else if (a.type === "workflow" && b.type === "step") t = reading.enteredFirst;
+    else if ((a.type === "objective" || a.type === "workflow") && b.type === "step") t = reading.enteredFirst;
     else if (a.type === "step" && b.type === "outcome") t = reading.completedRuns;
     if (t !== undefined) {
       e.traffic = t;

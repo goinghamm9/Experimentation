@@ -35,12 +35,11 @@ function strokeWidth(e: LaidOutEdge, maxTraffic: number): number {
 }
 
 function MapEdgeViewInner({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, markerEnd }: EdgeProps<MapFlowEdge>) {
-  const { hoveredId, selectedId, focusId, maxTraffic, lens } = useMapInteraction();
+  const { dimFocus, maxTraffic, lens } = useMapInteraction();
   const e = data?.edge;
-  const focus = hoveredId ?? focusId ?? selectedId;
-  const touches = e ? e.source === focus || e.target === focus : false;
-  const dimmed = focus !== null && !touches;
-  const lit = focus !== null && touches;
+  const touches = e ? e.source === dimFocus || e.target === dimFocus : false;
+  const dimmed = dimFocus !== null && !touches;
+  const lit = dimFocus !== null && touches;
 
   const [path, labelX, labelY] = React.useMemo(() => {
     if (e?.back) {

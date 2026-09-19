@@ -39,29 +39,29 @@ export interface ProcessLayout {
 }
 
 export const NODE_SIZE: Record<NodeType, { width: number; height: number }> = {
-  objective: { width: 224, height: 76 },
-  workflow: { width: 224, height: 64 },
-  step: { width: 240, height: 84 },
-  screen: { width: 212, height: 72 },
-  requirement: { width: 208, height: 50 },
-  outcome: { width: 224, height: 76 },
-  application: { width: 208, height: 60 },
-  object: { width: 172, height: 50 },
-  role: { width: 172, height: 50 },
-  person: { width: 172, height: 50 },
-  policy: { width: 208, height: 50 },
-  intervention: { width: 208, height: 50 },
-  capability: { width: 172, height: 50 },
-  action: { width: 172, height: 42 },
-  field: { width: 172, height: 42 },
+  objective: { width: 196, height: 66 },
+  workflow: { width: 204, height: 56 },
+  step: { width: 204, height: 72 },
+  screen: { width: 196, height: 76 },
+  requirement: { width: 188, height: 46 },
+  outcome: { width: 196, height: 66 },
+  application: { width: 188, height: 56 },
+  object: { width: 160, height: 46 },
+  role: { width: 160, height: 46 },
+  person: { width: 160, height: 46 },
+  policy: { width: 188, height: 46 },
+  intervention: { width: 188, height: 46 },
+  capability: { width: 160, height: 46 },
+  action: { width: 160, height: 40 },
+  field: { width: 160, height: 40 },
 };
 
-const NODESEP = 32;
-const RANKSEP = 88;
-const LANE_GAP = 64;
-const ROW_GAP = 14;
-const COL_GAP = 18;
-const EXTRA_GAP = 72;
+const NODESEP = 28;
+const RANKSEP = 48;
+const LANE_GAP = 56;
+const ROW_GAP = 12;
+const COL_GAP = 16;
+const EXTRA_GAP = 64;
 const MARGIN = 24;
 
 export function nodeSize(n: MapNode, lens: Lens): { width: number; height: number } {
@@ -112,7 +112,10 @@ interface Row {
   items: { x1: number; x2: number }[];
 }
 
-/** Pack satellites into rows near their anchors: first row closest to the main lane, shifting right only a little before dropping a row. */
+/**
+ * Pack satellites into rows near their anchors: the first row is closest to the main lane; a satellite
+ * sits centred on its anchor, else one slot to the left or right of it, else it drops to the next row.
+ */
 function layoutSatellites(sats: MapNode[], sizes: Map<string, Box>, mainBoxes: Box[], dir: -1 | 1, startY: number): number {
   if (!sats.length) return startY;
   const fallbackX = mainBoxes.length ? Math.max(...mainBoxes.map((b) => b.x + b.width)) + RANKSEP : 0;
@@ -129,16 +132,14 @@ function layoutSatellites(sats: MapNode[], sizes: Map<string, Box>, mainBoxes: B
     const s = sizes.get(n.id)!;
     const desired = cx - s.width / 2;
     let placed = false;
+    const slot = s.width + COL_GAP;
+    const candidates = [desired, desired - slot, desired + slot, desired - 2 * slot, desired + 2 * slot];
     for (let k = 0; k < rows.length + 1 && !placed; k += 1) {
       if (k === rows.length) rows.push({ y: rowY(k), items: [] });
       const row = rows[k];
-      let x = desired;
-      for (let guard = 0; guard < 64; guard += 1) {
-        const hit = row.items.find((it) => x < it.x2 + COL_GAP && x + s.width + COL_GAP > it.x1);
-        if (!hit) break;
-        x = hit.x2 + COL_GAP;
-      }
-      if (x - desired <= s.width * 0.75) {
+      const free = (x: number) => !row.items.some((it) => x < it.x2 + COL_GAP && x + s.width + COL_GAP > it.x1);
+      const x = candidates.find(free);
+      if (x !== undefined) {
         row.items.push({ x1: x, x2: x + s.width });
         s.x = x;
         s.y = row.y + (dir === -1 ? rowH - s.height : 0);
