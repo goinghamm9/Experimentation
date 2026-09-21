@@ -3,5 +3,5 @@ Experimenting with Claude Code and Cursor to generate cool new stuff for client 
 
 ## Projects
 
-- `synforma/` — SYNFORMA: autonomous digital adoption. A Next.js prototype that discovers an application it has never seen, infers the workflow from a plain-language objective, performs it under approval, guides people, adapts to struggle, and measures the Intent-to-Outcome Rate. See `synforma/README.md`.
+- Synforma (autonomous digital adoption) moved to its own repository: **https://github.com/goinghamm9/synforma** (live at https://synforma.netlify.app). The history up to the move remains in this repository's log under `synforma/`.
 - `digital-ethnography/`, `email-to-jira/`, `hft-agent/`, `pearme-ocean-prototype/` — earlier experiments.
