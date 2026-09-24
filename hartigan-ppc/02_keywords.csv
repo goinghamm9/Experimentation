@@ -1,0 +1,110 @@
+cluster,procedure,keyword,intent_tier,match_type,searches_low,searches_high,cpc_low,cpc_high,competition,priority,source_id,confidence,notes
+hip_replacement,computer-navigated total hip replacement,hip replacement surgeon,1,phrase and exact,20,67,7,20,high,1,B8;B56;B57;B60,low,RFP seed. Surgeon-seeking share modeled at 3 to 8 pct of head term. National modeled 1800 to 4800.
+hip_replacement,computer-navigated total hip replacement,hip replacement doctor,1,phrase and exact,6,21,7,18,high,1,B8;B56;B57;B60,low,RFP seed. Doctor variant modeled at about 0.3x the surgeon variant. National modeled 500 to 1500.
+hip_replacement,computer-navigated total hip replacement,hip replacement surgeon near me,1,phrase and exact,16,63,8,22,high,1,B7;B57;B60,low,Near me variant modeled at 0.8 to 1.0x the surgeon term (B7 shows near me terms rival plain terms). National modeled 1500 to 4500.
+hip_replacement,computer-navigated total hip replacement,hip surgeon near me,1,phrase,16,56,8,22,high,1,B7;B57;B60,low,Broader than replacement; add negatives for arthroscopy-only intent if it drifts. National modeled 1500 to 4000.
+hip_replacement,computer-navigated total hip replacement,best hip replacement surgeon,1,phrase,9,35,7,20,high,1,B57;B60,low,Includes best ... near me close variants. National modeled 800 to 2500.
+hip_replacement,computer-navigated total hip replacement,hip surgeon Edina,1,phrase,10,50,6,16,medium,1,B58;B60,low,Geo-modified; whole volume is local and counted as-is. Modeled 10 to 50 per month.
+hip_replacement,computer-navigated total hip replacement,hip replacement surgeon Maple Grove,1,phrase,10,50,6,16,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 50 per month.
+hip_replacement,computer-navigated total hip replacement,hip surgeon Plymouth MN,1,phrase,10,40,6,16,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 40 per month.
+hip_replacement,computer-navigated total hip replacement,hip replacement surgeon Minneapolis,1,phrase,50,200,7,18,high,1,B58;B60,low,Geo-modified; counted as-is. Modeled 50 to 200 per month.
+hip_replacement,computer-navigated total hip replacement,hip pain doctor,1,phrase,16,56,5,12,medium,2,B57;B60,low,Doctor-seeking on a condition; mixed intent (non-surgical). National modeled 1500 to 4000.
+hip_replacement,computer-navigated total hip replacement,hip pain specialist near me,1,phrase,11,42,5,12,medium,2,B57;B60,low,Mixed intent; route to hip hub page. National modeled 1000 to 3000.
+hip_replacement,computer-navigated total hip replacement,hip replacement,2,phrase,440,1300,5,14,high,2,B8;B56;B60,low,Head term; research-heavy. Phrase match with heavy negatives; hold until Tier 1 data exists. National modeled 4x to 9x the B8 anchor.
+hip_replacement,computer-navigated total hip replacement,hip replacement surgery,2,phrase and exact,76,180,6,15,high,1,B8;B54;B60,medium,"Third-party anchor 9900 per month (B8, undated, US presumed) with 0.7x to 1.3x band."
+hip_replacement,computer-navigated total hip replacement,total hip replacement,2,phrase,55,170,6,15,high,2,B56;B60,low,Modeled at roughly 0.1x the head term. National modeled 5000 to 12000.
+hip_replacement,computer-navigated total hip replacement,anterior hip replacement,2,phrase,55,170,6,15,high,2,B56;B60,low,Approach interest is high nationally; only run if the surgeon offers this approach (unverified). National modeled 5000 to 12000.
+hip_replacement,computer-navigated total hip replacement,computer navigated hip replacement,2,phrase,1,6,6,16,medium,1,B56;B60,low,"RFP procedure. Thin term; keep for message match, expect few searches. National modeled 100 to 400."
+hip_replacement,computer-navigated total hip replacement,robotic hip replacement,2,phrase,16,56,6,16,high,2,B10;B56;B60,low,Technology-adjacent; patients conflate robotic and navigated. Interest rising per B10. National modeled 1500 to 4000.
+hip_replacement,computer-navigated total hip replacement,outpatient hip replacement,2,phrase,9,35,6,15,medium,1,B56;B60,low,Same-day discharge interest; ties to the practice's outpatient listing (unverified). National modeled 800 to 2500.
+hip_replacement,computer-navigated total hip replacement,hip replacement near me,2,phrase and exact,22,84,7,18,high,1,B7;B57;B60,low,Local intent without the word surgeon. National modeled 2000 to 6000.
+hip_replacement,computer-navigated total hip replacement,hip replacement Minneapolis,2,phrase,50,200,6,15,high,2,B58;B60,low,Geo-modified; counted as-is. Modeled 50 to 200 per month.
+hip_replacement,computer-navigated total hip replacement,hip arthritis treatment,3,exact,33,110,3,8,medium,2,B56;B60,low,RFP seed (treatment for hip arthritis). Research intent; small budget cap. National modeled 3000 to 8000.
+hip_replacement,computer-navigated total hip replacement,treatment for hip arthritis,3,exact,6,21,3,8,medium,2,B56;B60,low,RFP seed in natural form; Google may fold into the row above. National modeled 500 to 1500.
+hip_replacement,computer-navigated total hip replacement,hip osteoarthritis,3,exact,88,280,3,7,medium,3,B56;B60,low,Condition head term; test only. National modeled 8000 to 20000.
+hip_replacement,computer-navigated total hip replacement,hip replacement cost,3,exact,33,110,4,10,medium,3,B56;B60,low,"Judgment call: keep as a test, not a negative; cost searchers can be candidates. National modeled 3000 to 8000."
+hip_replacement,computer-navigated total hip replacement,hip replacement recovery time,3,exact,55,170,2,6,low,3,B56;B60,low,Judgment call: recommend recovery as a negative in Tier 1 and 2 ad groups; most searchers are existing patients. Listed to size it. National modeled 5000 to 12000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement surgeon,1,phrase and exact,25,87,7,20,high,1,B8;B9;B56;B57;B60,low,RFP seed. Knee terms set at 1.29x hip (B9 GSVI ratio). National modeled 2300 to 6200.
+knee_replacement,robotic-assisted total knee replacement,knee replacement doctor,1,phrase and exact,8,28,7,18,high,1,B8;B9;B56;B57;B60,low,RFP seed. Doctor variant at about 0.3x the surgeon variant. National modeled 700 to 2000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement surgeon near me,1,phrase and exact,22,84,8,22,high,1,B7;B57;B60,low,Near me variant at 0.8 to 1.0x the surgeon term. National modeled 2000 to 6000.
+knee_replacement,robotic-assisted total knee replacement,knee surgeon near me,1,phrase,22,77,8,22,high,1,B7;B57;B60,low,Also captures sports knee intent; route by ad copy. National modeled 2000 to 5500.
+knee_replacement,robotic-assisted total knee replacement,best knee replacement surgeon,1,phrase,11,42,7,20,high,1,B57;B60,low,Includes near me close variants. National modeled 1000 to 3000.
+knee_replacement,robotic-assisted total knee replacement,knee surgeon Edina,1,phrase,10,50,6,16,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 50 per month.
+knee_replacement,robotic-assisted total knee replacement,knee replacement surgeon Maple Grove,1,phrase,10,50,6,16,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 50 per month.
+knee_replacement,robotic-assisted total knee replacement,knee surgeon Plymouth MN,1,phrase,10,40,6,16,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 40 per month.
+knee_replacement,robotic-assisted total knee replacement,knee replacement surgeon Minneapolis,1,phrase,50,250,7,18,high,1,B58;B60,low,Geo-modified; counted as-is. Modeled 50 to 250 per month.
+knee_replacement,robotic-assisted total knee replacement,knee pain doctor,1,phrase,22,70,5,12,medium,2,B57;B60,low,"Mixed intent (non-surgical, injections). National modeled 2000 to 5000."
+knee_replacement,robotic-assisted total knee replacement,knee pain specialist near me,1,phrase,16,56,5,12,medium,2,B57;B60,low,Mixed intent; route to knee hub page. National modeled 1500 to 4000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement,2,phrase,550,1700,5,14,high,2,B8;B9;B56;B60,low,Head term; research-heavy. Phrase match with heavy negatives; phase 2. National modeled at 1.29x hip head term.
+knee_replacement,robotic-assisted total knee replacement,knee replacement surgery,2,phrase and exact,99,240,6,15,high,1,B8;B9;B54;B60,medium,"Modeled from the B8 hip anchor times the B9 knee to hip ratio, with band. National modeled 9000 to 17000."
+knee_replacement,robotic-assisted total knee replacement,total knee replacement,2,phrase,88,250,6,15,high,2,B56;B60,low,Modeled at roughly 0.15x the head term. National modeled 8000 to 18000.
+knee_replacement,robotic-assisted total knee replacement,robotic knee replacement,2,phrase and exact,33,110,6,16,high,1,B10;B56;B60,low,RFP procedure. Interest rising per B10; device makers also advertise. National modeled 3000 to 8000.
+knee_replacement,robotic-assisted total knee replacement,robotic assisted knee replacement,2,phrase,9,35,6,16,high,1,B10;B56;B60,low,RFP wording; Google may fold into robotic knee replacement. National modeled 800 to 2500.
+knee_replacement,robotic-assisted total knee replacement,mako knee replacement,2,phrase,16,56,6,16,high,2,B10;B56;B60,low,Brand of robot; run only if the practice uses this system (unverified). National modeled 1500 to 4000.
+knee_replacement,robotic-assisted total knee replacement,partial knee replacement,2,phrase,55,170,6,15,high,2,B56;B60,low,Only if offered (unverified). National modeled 5000 to 12000.
+knee_replacement,robotic-assisted total knee replacement,outpatient knee replacement,2,phrase,7,28,6,15,medium,2,B56;B60,low,Same-day discharge interest. National modeled 600 to 2000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement near me,2,phrase and exact,28,98,7,18,high,1,B7;B57;B60,low,Local intent without the word surgeon. National modeled 2500 to 7000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement Minneapolis,2,phrase,50,250,6,15,high,2,B58;B60,low,Geo-modified; counted as-is. Modeled 50 to 250 per month.
+knee_replacement,robotic-assisted total knee replacement,knee arthritis treatment,3,exact,44,140,3,8,medium,2,B56;B60,low,RFP seed (treatment for knee arthritis). Research intent; small budget cap. National modeled 4000 to 10000.
+knee_replacement,robotic-assisted total knee replacement,treatment for knee arthritis,3,exact,7,28,3,8,medium,2,B56;B60,low,RFP seed in natural form. National modeled 600 to 2000.
+knee_replacement,robotic-assisted total knee replacement,knee osteoarthritis,3,exact,160,490,3,7,medium,3,B56;B60,low,Condition head term; test only. National modeled 15000 to 35000.
+knee_replacement,robotic-assisted total knee replacement,bone on bone knee,3,exact,55,170,3,7,medium,3,B56;B60,low,Late-stage arthritis language patients use; test. National modeled 5000 to 12000.
+knee_replacement,robotic-assisted total knee replacement,knee replacement cost,3,exact,44,140,4,10,medium,3,B56;B60,low,"Judgment call: keep as a test, not a negative. National modeled 4000 to 10000."
+knee_replacement,robotic-assisted total knee replacement,knee replacement recovery time,3,exact,66,210,2,6,low,3,B56;B60,low,Judgment call: recommend recovery as a negative in Tier 1 and 2 ad groups. Listed to size it. National modeled 6000 to 15000.
+hip_preservation,hip arthroscopy for labral tears,hip preservation surgeon,1,phrase and exact,1,6,5,14,medium,1,B59;B60,low,RFP seed. Subspecialty term; thin but high intent. National modeled 100 to 400.
+hip_preservation,hip arthroscopy for labral tears,hip preservation doctor,1,phrase and exact,1,2,5,12,low,1,B59;B60,low,RFP seed. Very thin; Google may show low volume. National modeled 30 to 150.
+hip_preservation,hip arthroscopy for labral tears,hip preservation specialist,1,phrase,1,3,5,12,low,2,B59;B60,low,Close variant of the rows above. National modeled 50 to 200.
+hip_preservation,hip arthroscopy for labral tears,labral repair surgeon,1,phrase and exact,1,3,5,14,medium,1,B59;B60,low,RFP seed. Ambiguous with shoulder labrum; add hip to ad copy. National modeled 50 to 200.
+hip_preservation,hip arthroscopy for labral tears,hip labral tear surgeon,1,phrase and exact,2,8,6,15,medium,1,B59;B60,low,Core surgeon-seeking term for this cluster. National modeled 200 to 600.
+hip_preservation,hip arthroscopy for labral tears,hip labral tear specialist near me,1,phrase,2,7,6,15,medium,1,B59;B60,low,Near me variant. National modeled 150 to 500.
+hip_preservation,hip arthroscopy for labral tears,hip impingement surgeon,1,phrase and exact,1,6,5,14,medium,1,B59;B60,low,RFP seed. National modeled 100 to 400.
+hip_preservation,hip arthroscopy for labral tears,hip arthroscopy surgeon near me,1,phrase,2,7,6,15,medium,1,B59;B60,low,Procedure plus surgeon plus local. National modeled 150 to 500.
+hip_preservation,hip arthroscopy for labral tears,hip arthroscopy surgeon Minneapolis,1,phrase,10,60,5,14,low,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 60 per month.
+hip_preservation,hip arthroscopy for labral tears,hip preservation Minnesota,1,phrase,10,40,5,12,low,2,B58;B60,low,Geo-modified (statewide intent); counted as-is. Modeled 10 to 40 per month.
+hip_preservation,hip arthroscopy for labral tears,hip arthroscopy,2,phrase,55,170,5,12,medium,1,B59;B60,low,Procedure head term; mixed research and candidate intent. National modeled 5000 to 12000.
+hip_preservation,hip arthroscopy for labral tears,hip arthroscopy labral tear,2,phrase,3,14,5,13,medium,1,B59;B60,low,Procedure plus condition. National modeled 300 to 1000.
+hip_preservation,hip arthroscopy for labral tears,hip labral tear surgery,2,phrase and exact,16,56,5,13,medium,1,B59;B60,low,Strongest Tier 2 term in the cluster. National modeled 1500 to 4000.
+hip_preservation,hip arthroscopy for labral tears,hip impingement surgery,2,phrase and exact,9,35,5,13,medium,1,B59;B60,low,National modeled 800 to 2500.
+hip_preservation,hip arthroscopy for labral tears,FAI surgery,2,phrase,3,14,5,12,medium,2,B59;B60,low,Clinical abbreviation; ambiguous outside hip context; watch search terms. National modeled 300 to 1000.
+hip_preservation,hip arthroscopy for labral tears,hip preservation surgery,2,phrase,2,8,5,12,low,2,B59;B60,low,National modeled 200 to 600.
+hip_preservation,hip arthroscopy for labral tears,periacetabular osteotomy,2,exact,11,42,4,10,low,3,B59;B60,low,Only if the surgeon performs PAO (unverified); dysplasia patients travel. National modeled 1000 to 3000.
+hip_preservation,hip arthroscopy for labral tears,hip labral tear,3,exact,160,490,3,8,medium,2,B59;B60,low,"Condition head term; younger searchers, long research phase. National modeled 15000 to 35000."
+hip_preservation,hip arthroscopy for labral tears,hip impingement,3,exact,130,420,3,8,medium,2,B59;B60,low,Condition head term. National modeled 12000 to 30000.
+hip_preservation,hip arthroscopy for labral tears,femoroacetabular impingement,3,exact,33,110,3,7,low,3,B59;B60,low,Clinical term; test. National modeled 3000 to 8000.
+hip_preservation,hip arthroscopy for labral tears,hip labral tear symptoms,3,exact,55,170,2,6,low,3,B59;B60,low,Early research; AI Overviews reduce clicks. National modeled 5000 to 12000.
+acl,ACL reconstruction,ACL reconstruction surgeon,1,phrase and exact,1,6,6,16,medium,1,B59;B60,low,RFP seed. National modeled 100 to 400.
+acl,ACL reconstruction,ACL surgeon near me,1,phrase and exact,3,14,7,18,medium,1,B59;B60,low,Main surgeon-seeking term for the cluster. National modeled 300 to 1000.
+acl,ACL reconstruction,best ACL surgeon,1,phrase,2,8,6,16,medium,2,B59;B60,low,Includes near me variants; parents of athletes. National modeled 200 to 600.
+acl,ACL reconstruction,ACL surgeon Minneapolis,1,phrase,10,60,6,15,low,1,B58;B60,low,Geo-modified; counted as-is. Modeled 10 to 60 per month.
+acl,ACL reconstruction,sports medicine doctor near me,1,phrase,88,280,5,12,high,2,B7;B57;B60,low,"Generic sports intent serving ACL, meniscus and rotator cuff; mixed with non-surgical. National modeled 8000 to 20000."
+acl,ACL reconstruction,ACL reconstruction,2,phrase and exact,44,140,5,12,medium,1,B59;B60,low,RFP procedure. National modeled 4000 to 10000.
+acl,ACL reconstruction,ACL surgery,2,phrase,160,490,5,12,medium,1,B14;B59;B60,low,Procedure head term; ACL has the highest relative interest among knee ligament terms (B14). National modeled 15000 to 35000.
+acl,ACL reconstruction,torn ACL surgery,2,phrase,16,56,5,12,medium,2,B59;B60,low,National modeled 1500 to 4000.
+acl,ACL reconstruction,ACL repair,2,phrase,33,110,5,12,medium,2,B59;B60,low,Patients say repair for reconstruction; keep. National modeled 3000 to 8000.
+acl,ACL reconstruction,ACL tear,3,exact,440,1300,2,6,medium,3,B14;B59;B60,low,Condition head term; heavy research and sports-news noise. National modeled 40000 to 90000.
+acl,ACL reconstruction,torn ACL,3,exact,220,700,2,6,medium,3,B14;B59;B60,low,Condition head term; test only. National modeled 20000 to 50000.
+acl,ACL reconstruction,ACL tear treatment,3,exact,16,56,3,8,medium,2,B59;B60,low,Treatment-seeking; better than the bare condition term. National modeled 1500 to 4000.
+meniscus,meniscus repair,meniscus surgeon near me,1,phrase and exact,2,8,6,16,medium,1,B59;B60,low,Main surgeon-seeking term. National modeled 200 to 600.
+meniscus,meniscus repair,meniscus repair surgeon,1,phrase and exact,1,3,6,15,medium,1,B59;B60,low,RFP procedure plus surgeon. National modeled 50 to 200.
+meniscus,meniscus repair,torn meniscus doctor,1,phrase,1,6,6,15,medium,1,B59;B60,low,National modeled 100 to 400.
+meniscus,meniscus repair,knee arthroscopy surgeon near me,1,phrase,1,6,6,16,medium,2,B59;B60,low,Procedure-led surgeon search. National modeled 100 to 400.
+meniscus,meniscus repair,meniscus repair,2,phrase and exact,33,110,4,11,medium,1,B59;B60,low,RFP procedure. National modeled 3000 to 8000.
+meniscus,meniscus repair,meniscus surgery,2,phrase,88,280,5,12,medium,1,B59;B60,low,Procedure head term. National modeled 8000 to 20000.
+meniscus,meniscus repair,torn meniscus surgery,2,phrase,33,110,5,12,medium,1,B59;B60,low,National modeled 3000 to 8000.
+meniscus,meniscus repair,meniscus tear treatment,2,phrase,33,110,3,9,medium,2,B59;B60,low,Treatment-seeking; includes non-surgical. National modeled 3000 to 8000.
+meniscus,meniscus repair,knee arthroscopy,2,phrase,55,170,4,11,medium,2,B59;B60,low,Procedure term shared with other knee scopes. National modeled 5000 to 12000.
+meniscus,meniscus repair,torn meniscus,3,exact,660,2000,2,6,medium,3,B59;B60,low,Largest condition term in the file; research-heavy; test with tight cap. National modeled 60000 to 140000.
+meniscus,meniscus repair,meniscus tear,3,exact,440,1300,2,6,medium,3,B59;B60,low,Condition head term; test only. National modeled 40000 to 90000.
+rotator_cuff,rotator cuff repair,rotator cuff repair surgeon,1,phrase and exact,1,3,6,16,medium,1,B59;B60,low,RFP seed. National modeled 50 to 200.
+rotator_cuff,rotator cuff repair,rotator cuff surgeon near me,1,phrase and exact,3,14,7,18,medium,1,B59;B60,low,Main surgeon-seeking term. National modeled 300 to 1000.
+rotator_cuff,rotator cuff repair,shoulder surgeon near me,1,phrase,22,70,7,18,high,1,B7;B57;B60,low,"Broader shoulder intent (replacement, instability); route by ad copy. National modeled 2000 to 5000."
+rotator_cuff,rotator cuff repair,rotator cuff specialist,1,phrase,2,8,6,15,medium,2,B59;B60,low,National modeled 200 to 600.
+rotator_cuff,rotator cuff repair,shoulder surgeon Minneapolis,1,phrase,20,80,6,15,medium,1,B58;B60,low,Geo-modified; counted as-is. Modeled 20 to 80 per month.
+rotator_cuff,rotator cuff repair,rotator cuff surgery,2,phrase and exact,160,490,5,12,medium,1,B13;B59;B60,low,Procedure head term; interest rising 2010 to 2024 (B13). National modeled 15000 to 35000.
+rotator_cuff,rotator cuff repair,rotator cuff repair,2,phrase and exact,55,170,5,12,medium,1,B59;B60,low,RFP procedure. National modeled 5000 to 12000.
+rotator_cuff,rotator cuff repair,arthroscopic rotator cuff repair,2,phrase,9,35,5,12,medium,2,B59;B60,low,National modeled 800 to 2500.
+rotator_cuff,rotator cuff repair,torn rotator cuff surgery,2,phrase,16,56,5,12,medium,2,B59;B60,low,National modeled 1500 to 4000.
+rotator_cuff,rotator cuff repair,rotator cuff tear,3,exact,330,980,2,6,medium,3,B59;B60,low,Condition head term; test only. National modeled 30000 to 70000.
+rotator_cuff,rotator cuff repair,torn rotator cuff,3,exact,220,700,2,6,medium,3,B59;B60,low,Condition head term; test only. National modeled 20000 to 50000.
+rotator_cuff,rotator cuff repair,rotator cuff tear treatment,3,exact,22,70,3,8,medium,2,B59;B60,low,Treatment-seeking. National modeled 2000 to 5000.
+rotator_cuff,rotator cuff repair,rotator cuff surgery recovery,3,exact,55,170,2,5,low,3,B13;B59;B60,low,Judgment call: recovery is the most searched rotator cuff topic (B13) but mostly post-op; negative in Tier 1 and 2. Listed to size it. National modeled 5000 to 12000.
