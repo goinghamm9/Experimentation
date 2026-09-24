@@ -30,6 +30,9 @@ Each agent prefixes IDs with its letter (A1, B1, C1, D1, E1). Agents write their
 - Source: ID | publisher | URL | date accessed | what it measures | geography | year | verification depth (page read, search snippet, search summary)
 - Assumption: ID | statement | reasoning | what would change it
 
+## Status at close (2026-09-24)
+All phases complete. Phase 4 fixes applied and rechecked once by Agent G. Files delivered: 06_proposal.docx and .md, 04_budget_model.xlsx, 08_note_to_kristina.md, 01 to 05, 07_qa_report.md, sources.md, decisions.md.
+
 ## Protection order if time runs short
 1. 06_proposal (docx and md)
 2. 04_budget_model.xlsx
