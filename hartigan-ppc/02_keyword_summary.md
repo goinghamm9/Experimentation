@@ -8,7 +8,7 @@ Run date 2026-09-24. Companion files: 02_keywords.csv (109 rows), sources_B.md (
 |---|---|---|
 | hip_replacement | computer-navigated total hip replacement | Launch. Highest case value, clear surgeon-seeking demand, includes the hip and knee arthritis Tier 3 seeds. |
 | knee_replacement | robotic-assisted total knee replacement | Launch. Largest cluster; robotic terms carry a technology story patients already search for (B10). |
-| hip_preservation | hip arthroscopy for labral tears, impingement, hip preservation | Launch small, Minnesota-wide. The surgeon's subspecialty differentiator; too thin at metro level for its own budget line (see flag). |
+| hip_preservation | hip arthroscopy for labral tears, impingement, hip preservation | Launch small, metro plus a 60-mile ring from Maple Grove (O11). The surgeon's subspecialty differentiator; too thin at metro level for its own budget line (see flag). |
 | acl | ACL reconstruction | Phase 1 as part of one combined sports medicine campaign. |
 | meniscus | meniscus repair | Same combined sports campaign; almost no surgeon-seeking volume on its own. |
 | rotator_cuff | rotator cuff repair | Same combined sports campaign; "shoulder surgeon near me" carries most of the intent. |
@@ -27,7 +27,7 @@ Run date 2026-09-24. Companion files: 02_keywords.csv (109 rows), sources_B.md (
 
 Tier detail (metro, low to high): hip_replacement Tier 1 120 to 460, Tier 2 680 to 2,100, Tier 3 220 to 690; knee_replacement Tier 1 150 to 560, Tier 2 900 to 2,700, Tier 3 380 to 1,200; hip_preservation Tier 1 21 to 92, Tier 2 99 to 340, Tier 3 380 to 1,200; acl Tier 1 99 to 340, Tier 2 250 to 800; meniscus Tier 1 5 to 23, Tier 2 240 to 780; rotator_cuff Tier 1 33 to 120, Tier 2 240 to 750.
 
-Flags. Hip preservation Tier 1 plus Tier 2 is 120 to 430 searches per month in the metro and 180 to 590 statewide: enough for a small Minnesota-wide campaign, not enough to spend more than a few hundred dollars a month against. Meniscus (Tier 1 of 5 to 23) and rotator cuff (33 to 120) cannot justify separate campaigns at an entry budget; combine acl, meniscus and rotator_cuff into one sports medicine campaign with procedure-level ad groups. The priority suburbs alone (240 to 1,600 across all clusters) are too thin to run as the only geography; use the metro with location bid adjustments up for the three suburbs. Spend cannot usefully exceed available demand: at the metro Tier 1 plus Tier 2 ceiling of 2,800 to 9,100 searches, a plausible 5% to 10% click share means roughly 140 to 910 clicks per month across all clusters.
+Flags. Hip preservation Tier 1 plus Tier 2 is 120 to 430 searches per month in the metro and 180 to 590 statewide: enough for a small campaign covering the metro plus a 60-mile ring from Maple Grove (O11), not enough to spend more than a few hundred dollars a month against. Meniscus (Tier 1 of 5 to 23) and rotator cuff (33 to 120) cannot justify separate campaigns at an entry budget; combine acl, meniscus and rotator_cuff into one sports medicine campaign with procedure-level ad groups. The priority suburbs alone (240 to 1,600 across all clusters) are too thin to run as the only geography; use the metro with location bid adjustments up for the three suburbs. Spend cannot usefully exceed available demand: at the metro Tier 1 plus Tier 2 ceiling of 2,800 to 9,100 searches, a plausible 5% to 10% click share means roughly 140 to 910 clicks per month across all clusters.
 
 ## Top 25 keywords (priority 1, Tier 1 and 2, ranked by metro searches high)
 

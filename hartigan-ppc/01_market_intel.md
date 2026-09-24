@@ -7,7 +7,7 @@ Agent A, 2026-09-24. Fetches were blocked; facts come from search snippets and p
 - TCO is Twin Cities Orthopedics: his group profile is at tcomn.com/physicians/david-hartigan/ [A1] and his personal site has a TCO page [A18].
 - Training: board certified; Mayo Clinic orthopedic residency, completed 2014; dual fellowship in hip preservation and replacement (American Hip Institute, Chicago) and sports medicine (OrthoCarolina, Charlotte) [A1, A23]. His bio says "the first three years" of his career went to building Mayo Clinic's sports medicine program in Phoenix [A4].
 - Clinics: TCO's welcome post lists Edina, Maple Grove, and Robbinsdale [A2]; the personal site adds the TCO Plymouth address [A16]. Edina Crosstown, 4010 W 65th St, 55435 [A33]; Maple Grove, 9630 Grove Circle N, 55369 [A34]; Robbinsdale, 3366 Oakdale Ave N, 55422 [A35]; Plymouth, 16800 37th Pl N, 55446 [A36]. Clinic days per site: unverified.
-- Surgery: Crosstown Surgery Center, Edina [A37]; North Memorial Ambulatory Surgery Center, 9855 Hospital Dr, Maple Grove, which lists him [A22]; MDsave outpatient hip replacement at $27,500 [A20]; a TCO EXCEL testimonial for an outpatient hip replacement [A38].
+- Surgery: North Memorial Ambulatory Surgery Center, 9855 Hospital Dr, Maple Grove, which lists him [A22]; Crosstown Surgery Center, Edina, is TCO's Edina surgery center [A37], and his use of it is unverified; MDsave outpatient hip replacement at $27,500 [A20]; a TCO EXCEL testimonial for an outpatient hip replacement [A38].
 - The six target procedures. Hip arthroscopy for labral tears: strongly emphasized; his profile lists hip arthroscopy, FAI, labral repair, periacetabular osteotomy, and surgical hip dislocation [A1], with dedicated site pages [A5, A6]. Total hip replacement: emphasized as anterior and outpatient [A1, A7, A20]; computer navigation appears nowhere: unverified. Robotic-assisted total knee: absent from his profile [A1] and knee page [A9]; the only robotic item on his site is syndicated news [A14]; a search summary claiming he "specializes in robotic-assisted TKA" has no supporting page. TCO as a group uses robotic assistance for knee and hip replacement [A40, A38]; no system name (Mako, ROSA, VELYS, CORI, OrthAlign) surfaced for TCO or for him. ACL, meniscus repair, rotator cuff repair: pages and rehab protocols exist [A9, A10, A12, A13], secondary to hip.
 - Web presence: group profile [A1]; personal site, phone (763) 302-2279, appointment form [A3, A17]; Healthgrades [A23]; Vitals 4.3 of 5 [A24]; Sharecare 5.0 of 5, 14 reviews [A25]; US News, WebMD [A26, A27].
 
@@ -62,6 +62,7 @@ Recommendation: widen the hip preservation cluster, but not statewide. Target th
 ## Unverified and gaps
 
 - Computer-navigated hip and robotic knee for Hartigan himself: unverified; the practice should name the system and facility.
+- Surgery at Crosstown Surgery Center, Edina: unverified for him (A37 describes the center, not his cases); North Memorial ASC lists him (A22).
 - Clinic days at Robbinsdale and Plymouth, and any Google Business Profile: unverified.
 - Search ads by TCO or any competitor: unverified. TCO physician-level marketing policy: none found.
 - Healthgrades affiliations and review counts: directory data only [A23]; a directory's "17 years of experience" conflicts with 2014 residency completion.

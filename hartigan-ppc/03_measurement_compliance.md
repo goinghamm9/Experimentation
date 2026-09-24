@@ -13,7 +13,7 @@ Rubric (under one minute; five yes answers = qualified; record codes only, plus 
 | Question | If no, code |
 |---|---|
 | New to Dr. Hartigan? | NQ-existing |
-| Can be seen in Edina, Maple Grove, or Plymouth (or wants a hip preservation opinion)? | NQ-area |
+| Can be seen at Edina, Maple Grove, Plymouth, or Robbinsdale (or wants a hip preservation opinion)? | NQ-area |
 | Asking about hip or knee replacement, labral tear, ACL, meniscus, or rotator cuff? | NQ-condition |
 | Insurance accepted, or self-pay or MDsave path? | NQ-insurance |
 | A real patient, not a vendor, recruiter, or misdial? | NQ-spam |
@@ -69,7 +69,7 @@ f. Google restricts trademarks in ad text only after an owner complaint, not as 
 
 g. Consent signals apply only to EEA, UK, and Swiss traffic (C22); restricted data processing is counsel's call (C21).
 
-h. Target CPA needs about 30 conversions in 30 days to evaluate (C14 to C16): Maximize conversions at launch, Target CPA after two months at 30 or more primary conversions (C58).
+h. Target CPA needs about 30 conversions in 30 days to evaluate (C14 to C16): Maximize clicks with a bid limit for days 1 to 30, Maximize conversions at 15 verified conversions in 30 days, Target CPA at 30 in 30 days (C58, D63).
 
 | Flag | What it affects | Default we hold | Owner | Status as verified (date) | Source ID |
 |---|---|---|---|---|---|
@@ -83,4 +83,4 @@ h. Target CPA needs about 30 conversions in 30 days to evaluate (C14 to C16): Ma
 | Google call recording | Call assets | Call reporting off; vendor static number | Humanus, compliance | 2026-09-24 | C17 to C20 |
 | Offline import, enhanced conversions | Bidding | Off until privacy officer and counsel approve | Compliance, counsel | 2026-09-24 | C8, C10 to C12, C56 |
 | Vendor BAAs | Calls, forms, CRM | BAA before go-live; Humanus BAA with practice | Compliance, Humanus | 2026-09-24 | C42 to C48, C55 |
-| Bidding thresholds | Strategy by phase | Maximize conversions, then Target CPA at 30 per month | Humanus | 2026-09-24 | C14 to C16, C58 |
+| Bidding thresholds | Strategy by phase | Maximize clicks, then Maximize conversions at 15, then Target CPA at 30 per month | Humanus | 2026-09-24 | C14 to C16, C58 |

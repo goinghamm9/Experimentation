@@ -2,7 +2,7 @@
 
 # Google Ads program for Dr. David Hartigan: proposal
 
-Prepared for: Stephanie, [STEPHANIE'S TITLE], office of Dr. David Hartigan, MD  
+Prepared for: Stephanie, [STEPHANIE'S TITLE], office of David Hartigan, MD  
 Prepared by: Kristina Hansen | Founder, Humanus Marketing  
 [KMH Consulting LLC d/b/a Humanus Marketing: KRISTINA TO CONFIRM how the entity is shown]  
 Date: [SEND DATE, for example September 25, 2026] | Valid through: [DATE, 30 days from send]  
@@ -18,7 +18,7 @@ Thank you for meeting with us and for the clear request that followed. You asked
 | Item | Summary |
 |---|---|
 | Recommended entry budget | $3,000 a month in media (range $2,000 to $4,000), paid directly to Google by the practice, plus the management fee (section 11). |
-| Strategy | Three search campaigns at launch (hip replacement, knee replacement, small hip preservation); sports medicine (ACL, meniscus, rotator cuff) phases in at day 60 or the next tier. Twin Cities metro, weighted to Plymouth, Maple Grove, and Edina. |
+| Strategy | Three search campaigns at launch (hip replacement, knee replacement, small hip preservation); sports medicine (ACL, meniscus, rotator cuff) phases in at day 60 or the next tier. Twin Cities metro (a 30-mile radius on Robbinsdale), weighted to Plymouth, Maple Grove, and Edina. |
 | What we measure | Qualified patient inquiries and consultations booked and attended, counted by the practice. Clicks and Google's conversion count steer bidding only. |
 | Time to launch | 3 to 4 weeks from signature, dependent on account access, approvals, and tracking. |
 | Terms | 90-day pilot, then month-to-month with [30 days'] written notice; the practice owns its account, data, and pages (section 12). |
@@ -37,15 +37,15 @@ Thank you for meeting with us and for the clear request that followed. You asked
 
 **Goal.** More qualified patients for the six procedures you listed: computer-navigated total hip replacement, robotic-assisted total knee replacement, hip arthroscopy for labral tears, ACL reconstruction, meniscus repair, and rotator cuff repair.
 
-**Geography.** Plymouth, Maple Grove, and Edina first, then the broader Twin Cities. Our research shows Dr. Hartigan seeing patients at Twin Cities Orthopedics clinics in Edina, Maple Grove, Robbinsdale, and Plymouth, with outpatient surgery at Crosstown Surgery Center in Edina and North Memorial Ambulatory Surgery Center in Maple Grove. Maple Grove and Robbinsdale cover the northwest suburbs, Edina the southwest, and Plymouth sits within 15 minutes of both. Hip preservation is where his fellowship training stands out most, so that campaign also reaches a ring of about 60 miles from Maple Grove (the St. Cloud corridor and western Wisconsin), leaving out Rochester (Mayo's home market), Eau Claire, and Duluth.
+**Geography.** Plymouth, Maple Grove, and Edina first, then the broader Twin Cities. Our research shows Dr. Hartigan at Twin Cities Orthopedics clinics in Edina, Maple Grove, and Robbinsdale, with a Plymouth address on his personal site, and outpatient surgery at North Memorial Ambulatory Surgery Center in Maple Grove, which lists him, and, we understand, at Crosstown Surgery Center in Edina; we confirm clinic days by site and surgery sites at kickoff. Maple Grove and Robbinsdale cover the northwest suburbs, Edina the southwest, and Plymouth sits within 15 minutes of both. Hip preservation is where his fellowship training stands out most, so that campaign also reaches a ring of about 60 miles from Maple Grove (the St. Cloud corridor and western Wisconsin), leaving out Rochester (Mayo's home market), Eau Claire, and Duluth.
 
-**The market.** Allina Health Orthopedics (Plymouth and Edina), TRIA, Summit, M Health Fairview, and Mayo Clinic offer the same procedures nearby, and TCO's own hip and knee pages name other surgeons, so the ads lead with what is verifiable and his: board certification, Mayo Clinic residency, and dual fellowship training.
+**The market.** Allina Health Orthopedics (Plymouth and Edina), TRIA, Summit, M Health Fairview, and Mayo Clinic each offer hip or knee replacement nearby, Allina, TRIA, Summit, and Mayo also advertise hip arthroscopy or hip preservation, and TCO's own hip and knee pages name other surgeons, so the ads lead with what is verifiable and his: board certification, Mayo Clinic residency, and dual fellowship training.
 
 **The standard.** Our provisional definition of a qualified inquiry, for the practice to confirm at kickoff: a new patient, in the service area, seeking care for one of the six procedures or its underlying condition, with accepted insurance or a payment path; excludes spam, vendors, job seekers, and existing patients calling to schedule. Consults booked and attended and surgeries scheduled come from the practice as monthly counts.
 
 ## 4. Recommended Google Ads strategy
 
-Launch three search campaigns: hip replacement, knee replacement, and a small hip preservation campaign. ACL, meniscus, and rotator cuff run as one sports medicine campaign with three ad groups, added at day 60 if the launch campaigns are demand-bound and cost per qualified inquiry is at or below our base estimate, or sooner at the Growth tier. Why: hip and knee replacement carry the demand (an estimated 800 to 3,300 surgeon-seeking and procedure searches a month each in the metro, against 250 to 1,100 per sports procedure and 120 to 590 for hip preservation), hip arthroscopy and anterior outpatient hip replacement are his verified emphasis, and at $3,000 a month, three campaigns each yield a readable search-term report by day 30; six would not.
+Launch three search campaigns: hip replacement, knee replacement, and a small hip preservation campaign. ACL, meniscus, and rotator cuff run as one sports medicine campaign with four ad groups, added at day 60 if the launch campaigns are demand-bound and cost per qualified inquiry is at or below our base estimate, or sooner at the Growth tier. Why: hip and knee replacement carry the demand (an estimated 800 to 2,500 surgeon-seeking and procedure searches a month for hip and 1,000 to 3,300 for knee in the metro, against 250 to 1,100 per sports procedure and 120 to 590 for hip preservation), hip arthroscopy and anterior outpatient hip replacement are his verified emphasis, and at $3,000 a month, three campaigns each yield a readable search-term report by day 30; six would not.
 
 | Campaign | Ad groups | Geography |
 |---|---|---|
@@ -61,7 +61,7 @@ Launch three search campaigns: hip replacement, knee replacement, and a small hi
 
 ## 5. Suggested monthly ad spend
 
-We recommend $3,000 a month in media (range $2,000 to $4,000), the Pilot tier, plus the management fee in section 11. It sits above the base-case demand ceiling for the three launch campaigns (about $2,050 a month), so demand, not budget, is the first constraint; in the high case it deploys fully at about 27 contacts a month, near Google's 30-conversion threshold for Target CPA. The practice pays Google directly, and Google bills only what serves: 90-day exposure is at most $9,000, with about $1,000 to $9,000 expected to deploy.
+We recommend $3,000 a month in media (range $2,000 to $4,000), the Pilot tier, plus the management fee in section 11. It sits above the base-case spend the model can deploy for the three launch campaigns (about $2,050 a month), so demand, not budget, is the first constraint; in the high case it deploys fully at about 27 contacts a month, near Google's 30-conversion threshold for Target CPA. The practice pays Google directly, and Google bills only what serves: 90-day exposure is at most $9,000, with about $1,000 to $9,000 expected to deploy.
 
 | Tier and monthly cap | Hip replacement | Knee replacement | Hip preservation | ACL | Meniscus | Rotator cuff |
 |---|---|---|---|---|---|---|
@@ -69,7 +69,7 @@ We recommend $3,000 a month in media (range $2,000 to $4,000), the Pilot tier, p
 | Growth, $6,000 | $1,920 | $1,800 | $600 | $720 | $360 | $600 |
 | Full coverage, $9,000 | $2,700 | $2,700 | $900 | $1,080 | $630 | $990 |
 
-| Expected monthly results (low / base / high) | Contacts (calls and forms) | Qualified inquiries | Consults attended |
+| Modeled monthly results (low / base / high) | Contacts (calls and forms) | Qualified inquiries | Consults attended |
 |---|---|---|---|
 | Pilot ($3,000) | 2.8 / 20.8 / 27.2 | 0.8 / 9.4 / 16.3 | 0.3 / 5.2 / 12.0 |
 | Growth ($6,000) | 4.6 / 35.1 / 52.2 | 1.4 / 15.8 / 31.3 | 0.5 / 8.7 / 23.1 |
@@ -77,19 +77,20 @@ We recommend $3,000 a month in media (range $2,000 to $4,000), the Pilot tier, p
 
 These are model averages, so fractions appear; the arithmetic is in Appendix B. The low case is a demand-bound case, not a spending plan: if local demand sits at the low end of our estimate, Google finds only a few hundred dollars of relevant searches a month and consults are rare; the day 30 impression share report tells us which case is real.
 
-## 6. Expected cost per click, per inquiry, and per consult
+## 6. Expected cost per click, per contact, per inquiry, and per consult
 
 | Measure | Modeled range | Basis |
 |---|---|---|
 | Cost per click, blended | $7 to $17 | National physicians and surgeons benchmark CPC of $4.76 to $5.00 (WordStream, 2025 and 2026) with an uplift for surgical terms in a top-20 market; surgeon-seeking terms $7 to $22 |
+| Cost per contact (a call of 60 seconds or more, or a form) | $100 to $125 | Deployed spend divided by contacts, across every tier and case; the national physicians and surgeons cost per lead is $40 to $66 (WordStream 2026, LocalIQ 2025), and ours runs higher because surgical terms cost more per click and only 60-second calls and forms count |
 | Cost per qualified inquiry | $180 to $390 | 6% to 14% of clicks become a 60-second call or a form; 30% to 60% of those contacts qualify |
-| Cost per attended consult | $250 to $1,000 | About 65% of qualified inquiries book and 85% attend; before management fees |
+| Cost per attended consult | $250 to $1,050 | 50% to 80% of qualified inquiries book and 75% to 92% attend; before management fees |
 
 These are modeled from published national benchmarks and our demand estimates, not local auction data, and none is a Twin Cities figure. The first 30 days replace them with real numbers from the account and your intake log.
 
 ## 7. Landing page recommendations
 
-No existing page is a finished ad destination, which is common: pages built for visitors and pages built for ads do different jobs. The TCO group pages carry the booking path and the brand but name other surgeons and give us no control over tracking. The personal site, davidhartiganmd.com, carries his credentials and phone on every page, but the procedure pages are template copy, hip replacement is split across three pages, and there is no knee replacement page.
+No existing page is a finished ad destination, which is common: pages built for visitors and pages built for ads do different jobs. The TCO group pages carry the booking path and the brand but name other surgeons and give us no control over tracking. The personal site, davidhartiganmd.com, carries his credentials and phone on the pages we reviewed, but the procedure pages are template copy, hip replacement is split across three pages, and there is no knee replacement page.
 
 We recommend three paid-only pages on davidhartiganmd.com, with a sports medicine page added at the day 60 gate: Anterior Outpatient Hip Replacement; Knee Replacement (no robotic wording until confirmed); and Hip Arthroscopy and Labral Repair, with a block for patients traveling from greater Minnesota and western Wisconsin. Each page carries a headline that echoes the ad, his credentials, who is a candidate and what the consult covers, the four clinics, insurance and a self-pay path, the phone number first, a short BAA-covered form, and a privacy line; no promised recovery timelines or superiority claims, and testimonials only with written authorization.
 
@@ -111,7 +112,7 @@ The funnel: click, contact (call or form), qualified inquiry, consult booked, co
 
 No Google Analytics on these pages unless the privacy officer approves a stripped configuration, since Google offers no BAA for it. Offline conversion import (bidding toward consults instead of contacts) stays off unless the privacy officer and counsel approve it in writing, and then only in minimum-data form: click ID, a neutral conversion name, and a timestamp.
 
-**Qualified-inquiry rubric,** applied by intake in under a minute: new to Dr. Hartigan; can be seen in Edina, Maple Grove, or Plymouth, or wants a hip preservation opinion; asking about one of the six procedures; insurance accepted or a self-pay or MDsave path; a real patient, not a vendor, recruiter, or misdial. Five yes answers means qualified; otherwise intake records only a reason code plus whether a consult was booked. A monthly 20-minute de-identified review with the intake lead covers counts by code, campaign, day, and hour. The practice's compliance team and counsel review this setup before launch; nothing here is legal advice.
+**Qualified-inquiry rubric,** applied by intake in under a minute: new to Dr. Hartigan; can be seen at Edina, Maple Grove, Plymouth, or Robbinsdale, or wants a hip preservation opinion; asking about one of the six procedures; insurance accepted or a self-pay or MDsave path; a real patient, not a vendor, recruiter, or misdial. Five yes answers means qualified; otherwise intake records only a reason code plus whether a consult was booked. A monthly 20-minute de-identified review with the intake lead covers counts by code, campaign, day, and hour. The practice's compliance team and counsel review this setup before launch; nothing here is legal advice. Counsel also confirms the practice's notices under Minnesota's Consumer Data Privacy Act and Health Records Act and decides on restricted data processing in the tag setup; our defaults do not change either way.
 
 ## 9. Reporting
 
@@ -125,7 +126,7 @@ No Google Analytics on these pages unless the privacy officer approves a strippe
 
 | Week | What happens |
 |---|---|
-| Week 1 | Kickoff; Google Ads access or account creation; qualified-inquiry definition, intake hours, and the three confirmations in section 16; call and form vendors chosen and BAAs sent; TCO approval requested if required. |
+| Week 1 | Kickoff; Google Ads access or account creation; qualified-inquiry definition, intake hours, and the four confirmations in section 16; call and form vendors chosen and BAAs sent; TCO approval requested if required. |
 | Week 2 | Landing page briefs and build with the site vendor; tracking installed (number swap, form event, conversion tag); campaigns built and paused. |
 | Week 3 | Quality check; test calls and forms verified in the vendor log and Google Ads; practice and counsel approve copy and pages. |
 | End of week 3 or week 4 | Launch, in staffed hours. |
@@ -135,7 +136,7 @@ Account access, TCO approval if required, and the site vendor's turnaround are t
 | 90-day pilot | Milestone and decision rule |
 |---|---|
 | Week 2 after launch | Tracking verified: 60-second calls and forms appear in the vendor log and as conversions, call reporting off, no patient information in any tag. If not, we pause. |
-| Day 30 | Search-term and lead-quality review; contacts against the 3 to 27 range; if fewer than about 30% of contacts qualify, we tighten terms first; if more than 20% of impressions are lost to budget, the cap rises in $500 steps at day 60. |
+| Day 30 | Search-term and lead-quality review; contacts against the 3 to 27 range; if fewer than about 30% of contacts qualify, we tighten terms first; if more than 10% of impressions are lost to budget, the cap rises in $500 steps between day 60 and day 90. |
 | Day 60 | Sports medicine starts at about $1,700 a month if the launch campaigns are demand-bound and cost per qualified inquiry is at or below about $220. Target CPA only once 30 conversions land in 30 days. |
 | Days 60 to 90 | Scale to Growth ($6,000) if two-month cost per qualified inquiry is at or below about $220 and cost per attended consult at or below about $400, with more than 10% lost to budget; hold at $3,000 between about $220 and $380 per qualified inquiry; cut (lower the cap to the strongest campaign's deployed spend, or pause the weakest) above about $380 per qualified inquiry or about $1,000 per consult for two months running. |
 
@@ -167,7 +168,7 @@ Ad spend; website work beyond the three scoped landing pages and the later sport
 
 ## 15. Market exclusivity [KRISTINA TO DECIDE]
 
-We are open to exclusivity and suggest defining it on four points at our call. It is a starting point for conversation, not contract language.
+We are open to exclusivity and suggest defining it on four points at our call. [Suggested position, KRISTINA TO CONFIRM OR EDIT: exclusivity for the six procedures in this proposal, across the Twin Cities metro, for the engagement term plus a 90-day tail, conditioned on a minimum term and a minimum monthly media budget; broader exclusivity, across all orthopedic and sports medicine surgical services or statewide, is available at a different fee level.] The four points below are a starting point for conversation, not contract language.
 
 - **Scope:** [the six procedures in this proposal, or all orthopedic and sports medicine surgical services].
 - **Geography:** [the Twin Cities metro, or Minnesota].
@@ -178,7 +179,7 @@ We are open to exclusivity and suggest defining it on four points at our call. I
 
 A 30-minute call to walk through this proposal, review the sample ads and page outline, and settle the conflict and exclusivity questions: [WINDOW 1, for example Tuesday, September 29, 10:00 am] or [WINDOW 2, for example Wednesday, September 30, 2:00 pm].
 
-To start, we need Google Ads admin access (or we create the account in the practice's name and card), a contact at the website vendor for davidhartiganmd.com, the TCO marketing contact if group approval is required, the intake lead (definition and phone hours), the privacy officer (BAAs), and three confirmations: knee replacement volume and setting, the navigation and robotic systems and facilities Dr. Hartigan uses, and whether the practice offers second opinions.
+To start, we need Google Ads admin access (or we create the account in the practice's name and card), a contact at the website vendor for davidhartiganmd.com, the TCO marketing contact if group approval is required for the campaign, the pages, or use of the TCO name in ads, the intake lead (definition and phone hours), the privacy officer (BAAs), and four confirmations: knee replacement volume and setting, the navigation and robotic systems and facilities Dr. Hartigan uses, his clinic days by site and his surgery sites, and whether the practice offers second opinions.
 
 Week one delivers the confirmed definition and rubric, vendor selection with BAAs sent, the landing page briefs, the keyword and negative lists for approval, and a written launch date.
 
@@ -223,7 +224,7 @@ Monthly searches for the Minneapolis-St. Paul metro and cost per click in dollar
 
 ### B. Tier detail
 
-Monthly results by tier, low / base / high, from the budget model. Clicks are the lower of budget divided by CPC and the demand cap (searches x query expansion x impression share x click-through rate); deployed spend is clicks times CPC. The cap binds in the low and base cases at every tier, never in the high case, which is why base deployed spend sits below the cap.
+Monthly results by tier, low / base / high, from the budget model. Clicks are the lower of budget divided by CPC and the demand cap (searches x query expansion x impression share x click-through rate); deployed spend is clicks times CPC. The cap binds in the low and base cases at every tier, never in the high case, which is why base deployed spend sits below the cap. In the high case the cost per click is also high ($16 rather than $10 for hip replacement), so the same budget buys fewer clicks than at base even though more demand exists.
 
 | Measure (low / base / high) | Pilot, $3,000 | Growth, $6,000 | Full coverage, $9,000 |
 |---|---|---|---|
@@ -236,7 +237,7 @@ Monthly results by tier, low / base / high, from the budget model. Clicks are th
 | Cost per qualified inquiry | $382 / $219 / $184 | $365 / $219 / $192 | $390 / $236 / $208 |
 | Cost per consult attended | $1,019 / $396 / $250 | $973 / $396 / $260 | $1,040 / $427 / $282 |
 
-Arithmetic example, Pilot base case, hip replacement: 1,400 searches x 1.25 query expansion = 1,750 eligible searches; cap 1,750 x 60% impression share x 8% click-through rate = 84 clicks, below the 135 the $1,350 budget could buy at $10 a click, so the cap binds; 84 x $10 = $840 deployed; contacts 8.4 (10% of clicks); qualified 3.8 (45%); booked 2.5 (65%); attended 2.1 (85%); $840 / 3.8 = $222 per qualified inquiry; $840 / 2.1 = $402 per consult. Blended CPC across the account runs $6.88 to $17.46.
+Arithmetic example, Pilot base case, hip replacement: 1,400 searches x 1.25 query expansion = 1,750 eligible searches; cap 1,750 x 60% impression share x 8% click-through rate = 84 clicks, below the 135 the $1,350 budget could buy at $10 a click, so the cap binds; 84 x $10 = $840 deployed; contacts 8.4 (10% of clicks); qualified 3.78 (45%); booked 2.46 (65%); attended 2.09 (85%); $840 / 3.78 = $222 per qualified inquiry; $840 / 2.09 = $402 per consult. Blended CPC across the account runs $6.57 to $17.46.
 
 ### C. Assumptions and sources
 

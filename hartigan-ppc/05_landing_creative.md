@@ -31,7 +31,7 @@ One new page per launch cluster, built for paid traffic and kept out of the main
 | Hip replacement (first priority) | Anterior Outpatient Hip Replacement, Dr. David Hartigan | Full outline in section 4 | A1, A7, A20, A22, A37, A38 |
 | Knee replacement | Knee Replacement with Dr. David Hartigan | Same skeleton as section 4 with knee content; candidacy and arthritis options section; no robotic wording until the practice confirms the system and facility (O12); launch only after the practice confirms his knee replacement volume and surgery setting (E53) | A1, E4 (group context only) |
 | Hip preservation | Hip Arthroscopy and Labral Repair, Dr. David Hartigan | Fellowship credential first; labral tear, FAI, and dysplasia explained; non-surgical options stated; "traveling to us" block for the 60-mile ring (O11); second-opinion line if the practice confirms it (E57) | A1, A5, A6, E10 |
-| Sports medicine (phase-in) | Sports Injury Surgery: ACL, Meniscus, Rotator Cuff | One page, three anchors, built at the day 30 to 60 gate (O13) | A9, A10, A13, E18, E19 |
+| Sports medicine (phase-in) | Sports Injury Surgery: ACL, Meniscus, Rotator Cuff | One page, three anchors, built before the day 60 gate (O13) | A9, A10, A13, E18, E19 |
 
 Where the pages live:
 
@@ -45,7 +45,7 @@ Recommendation: build the three pages on davidhartiganmd.com as new URLs, with t
 
 ## 3. Sample responsive search ads
 
-Rules applied to every line: verified facts only (A1, A3, A7, A17, A20, A22); no outcome promises, superlatives, device brand names, or competitor names; "Twin Cities Orthopedics" lines are flagged for group approval (C53); robotic and navigation lines are labeled CONDITIONAL and are not entered until the practice confirms the system and facility (O12); the "Second Opinions Offered" callout waits on practice confirmation (E57). "Mayo Clinic" is named as a training credential; counsel confirms the practice is comfortable with that (C23, E58). Character counts come from Python with spaces included: headlines at most 30, descriptions at most 90, sitelink text at most 25 with 35-character description lines, callouts at most 25 (E25 to E27). Fifteen headlines per ad includes the conditional lines; an ad launches with 13 or 14 until they are confirmed.
+Rules applied to every line: verified facts only (A1, A3, A7, A17, A20, A22); no outcome promises, superlatives, device brand names, or competitor names; "Twin Cities Orthopedics" lines are flagged for group approval (C53); robotic and navigation lines are labeled CONDITIONAL and are not entered until the practice confirms the system and facility (O12); the "Second Opinions Offered" callout waits on practice confirmation (E57); the clinic city lines (the Plymouth and Robbinsdale clinics in description D3, the Clinic Locations sitelink, the "Edina, Maple Grove & Plymouth" headline, and the "Four Metro Clinics" callout) are CONFIRM AT KICKOFF, because his clinic days by site are unverified (A80). "Mayo Clinic" is named as a training credential; counsel confirms the practice is comfortable with that (C23, E58). Character counts come from Python with spaces included: headlines at most 30, descriptions at most 90, sitelink text at most 25 with 35-character description lines, callouts at most 25 (E25 to E27). Fifteen headlines per ad includes the conditional lines; an ad launches with 13 or 14 until they are confirmed.
 
 Pinning: pin only the two keyword headlines marked "1" to position 1 so one always leads; leave everything else unpinned, since pinning lowers reported Ad Strength and removes most testable combinations (E30). Run two ads per ad group at launch: this one and a copy with the phone description pinned to description position 1, to test call-first messaging.
 
@@ -67,7 +67,7 @@ Keywords this ad answers (from 02_keywords.csv): hip replacement surgeon; hip re
 | H8 | B | Same-Day Hip Replacement | 24 |  |  |
 | H9 | B | Muscle-Sparing Approach | 23 |  |  |
 | H10 | B | Computer-Navigated Hip Surgery | 30 |  | CONDITIONAL O12: enter only after the practice confirms the system and facility |
-| H11 | C | Edina, Maple Grove & Plymouth | 29 |  |  |
+| H11 | C | Edina, Maple Grove & Plymouth | 29 |  | CONFIRM AT KICKOFF A80: clinic sites and days |
 | H12 | C | Hip Surgeon Near Maple Grove | 28 |  |  |
 | H13 | C | Call for a Consultation | 23 |  |  |
 | H14 | C | Request a Consultation | 22 |  |  |
@@ -77,7 +77,7 @@ Keywords this ad answers (from 02_keywords.csv): hip replacement surgeon; hip re
 |---|---|---|
 | D1 | Board certified hip surgeon. Mayo Clinic residency and dual fellowship training. | 80 |
 | D2 | Anterior, muscle-sparing hip replacement as outpatient surgery. Ask if you are a candidate | 90 |
-| D3 | Edina, Maple Grove, Plymouth, and Robbinsdale clinics. Call (763) 302-2279 or book online. | 90 |
+| D3 | Edina, Maple Grove, Plymouth, and Robbinsdale clinics. Call (763) 302-2279 or book online. | 90 (CONFIRM AT KICKOFF A80: clinic sites and days) |
 | D4 | See what the anterior approach is, what a consult covers, and what to expect afterward. | 87 |
 
 What each angle tests:
@@ -89,12 +89,12 @@ What each angle tests:
 |---|---|---|---|---|---|
 | Anterior Approach | 17 | Muscle-sparing hip replacement | 30 | Ask if you are a candidate | 26 |
 | Meet Dr. Hartigan | 17 | Mayo Clinic residency | 21 | Dual fellowship training | 24 |
-| Clinic Locations | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
+| Clinic Locations (CONFIRM AT KICKOFF A80) | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
 | Request a Consultation | 22 | Secure online form | 18 | Or call (763) 302-2279 | 22 |
 | Insurance & Cost | 16 | Plans accepted, self-pay path | 29 | Ask about outpatient pricing | 28 |
 | What to Expect | 14 | Consult, surgery, recovery | 26 | Plain answers to your questions | 31 |
 
-Callouts (max 25): Board Certified (15); Mayo Clinic Residency (21); Dual Fellowship Trained (23); Anterior Approach (17); Outpatient Surgery Center (25); Four Metro Clinics (18); Ask About Insurance (19); Second Opinions Offered (23).
+Callouts (max 25): Board Certified (15); Mayo Clinic Residency (21); Dual Fellowship Trained (23); Anterior Approach (17); Outpatient Surgery Center (25); Four Metro Clinics (18; CONFIRM AT KICKOFF A80: clinic sites and days); Ask About Insurance (19); Second Opinions Offered (23; CONDITIONAL E57).
 
 #### RSA: Knee replacement
 
@@ -112,7 +112,7 @@ Keywords this ad answers (from 02_keywords.csv): knee replacement surgeon; knee 
 | H8 | B | Knee Arthritis Treatment | 24 |  |  |
 | H9 | B | Robotic-Assisted Knee Surgery | 29 |  | CONDITIONAL O12: enter only after the practice confirms the system and facility |
 | H10 | B | Robotic Knee Replacement | 24 |  | CONDITIONAL O12: enter only after the practice confirms the system and facility |
-| H11 | C | Edina, Maple Grove & Plymouth | 29 |  |  |
+| H11 | C | Edina, Maple Grove & Plymouth | 29 |  | CONFIRM AT KICKOFF A80: clinic sites and days |
 | H12 | C | Knee Surgeon Near Maple Grove | 29 |  |  |
 | H13 | C | Call for a Consultation | 23 |  |  |
 | H14 | C | Request a Consultation | 22 |  |  |
@@ -122,7 +122,7 @@ Keywords this ad answers (from 02_keywords.csv): knee replacement surgeon; knee 
 |---|---|---|
 | D1 | Board certified orthopedic surgeon. Mayo Clinic residency and fellowship training. | 82 |
 | D2 | Is knee replacement right for you? The consult reviews surgical and non-surgical options. | 89 |
-| D3 | Edina, Maple Grove, Plymouth, and Robbinsdale clinics. Call (763) 302-2279 or book online. | 90 |
+| D3 | Edina, Maple Grove, Plymouth, and Robbinsdale clinics. Call (763) 302-2279 or book online. | 90 (CONFIRM AT KICKOFF A80: clinic sites and days) |
 | D4 | See what a knee replacement consultation covers and what to expect after surgery. | 81 |
 
 What each angle tests:
@@ -134,12 +134,12 @@ What each angle tests:
 |---|---|---|---|---|---|
 | Knee Replacement | 16 | Total knee replacement | 22 | Who is a candidate | 18 |
 | Meet Dr. Hartigan | 17 | Mayo Clinic residency | 21 | Fellowship trained | 18 |
-| Clinic Locations | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
+| Clinic Locations (CONFIRM AT KICKOFF A80) | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
 | Request a Consultation | 22 | Secure online form | 18 | Or call (763) 302-2279 | 22 |
 | Knee Arthritis Options | 22 | Non-surgical and surgical | 25 | Reviewed at your consult | 24 |
 | Insurance & Cost | 16 | Plans accepted, self-pay path | 29 | Ask before you book | 19 |
 
-Callouts (max 25): Board Certified (15); Mayo Clinic Residency (21); Fellowship Trained (18); Four Metro Clinics (18); Ask About Insurance (19); Second Opinions Offered (23); Bring Your Imaging (18).
+Callouts (max 25): Board Certified (15); Mayo Clinic Residency (21); Fellowship Trained (18); Four Metro Clinics (18; CONFIRM AT KICKOFF A80: clinic sites and days); Ask About Insurance (19); Second Opinions Offered (23; CONDITIONAL E57); Bring Your Imaging (18).
 
 #### RSA: Hip preservation (arthroscopy, labral repair)
 
@@ -156,7 +156,7 @@ Keywords this ad answers (from 02_keywords.csv): hip arthroscopy; hip labral tea
 | H7 | B | Hip Impingement (FAI) Surgery | 29 |  |  |
 | H8 | B | Labral Tear Treatment Options | 29 |  |  |
 | H9 | B | Non-Surgical Options Reviewed | 29 |  |  |
-| H10 | C | Edina, Maple Grove & Plymouth | 29 |  |  |
+| H10 | C | Edina, Maple Grove & Plymouth | 29 |  | CONFIRM AT KICKOFF A80: clinic sites and days |
 | H11 | C | Minnesota & Western Wisconsin | 29 |  |  |
 | H12 | C | Hip Arthroscopy Minneapolis | 27 |  |  |
 | H13 | C | Call for a Consultation | 23 |  |  |
@@ -167,7 +167,7 @@ Keywords this ad answers (from 02_keywords.csv): hip arthroscopy; hip labral tea
 |---|---|---|
 | D1 | Fellowship trained in hip preservation. Hip arthroscopy, labral repair, and FAI surgery. | 88 |
 | D2 | Hip pain in active adults is not always arthritis. We review your imaging and each option. | 90 |
-| D3 | Edina, Maple Grove, and Plymouth clinics. Greater Minnesota and western Wisconsin welcome. | 90 |
+| D3 | Edina, Maple Grove, and Plymouth clinics. Greater Minnesota and western Wisconsin welcome. | 90 (CONFIRM AT KICKOFF A80: clinic sites and days) |
 | D4 | Mayo Clinic residency and dual fellowship training. Call (763) 302-2279 or book online. | 87 |
 
 What each angle tests:
@@ -181,10 +181,10 @@ What each angle tests:
 | Labral Tears | 12 | Symptoms, imaging, options | 26 | Non-surgical care first | 23 |
 | Meet Dr. Hartigan | 17 | Hip preservation fellowship | 27 | Mayo Clinic residency | 21 |
 | Request a Consultation | 22 | Secure online form | 18 | Or call (763) 302-2279 | 22 |
-| Clinic Locations | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
+| Clinic Locations (CONFIRM AT KICKOFF A80) | 16 | Edina, Maple Grove, Plymouth | 28 | Robbinsdale clinic as well | 26 |
 | Traveling to Us | 15 | Greater MN and W. Wisconsin | 27 | Plan your visit | 15 |
 
-Callouts (max 25): Hip Preservation Trained (24); Mayo Clinic Residency (21); Board Certified (15); Labral Repair (13); FAI Surgery (11); Four Metro Clinics (18); Second Opinions Offered (23); Ask About Insurance (19).
+Callouts (max 25): Hip Preservation Trained (24); Mayo Clinic Residency (21); Board Certified (15); Labral Repair (13); FAI Surgery (11); Four Metro Clinics (18; CONFIRM AT KICKOFF A80: clinic sites and days); Second Opinions Offered (23; CONDITIONAL E57); Ask About Insurance (19).
 
 ## 4. First-priority landing page outline: anterior outpatient hip replacement
 
@@ -194,7 +194,7 @@ Content order for the page, not visual design. Every section keeps to verified f
 |---|---|---|---|
 | 1 | Headline and subhead | "Anterior, outpatient hip replacement in Edina and Maple Grove." Subhead: Dr. David Hartigan, board certified, Mayo Clinic residency, dual fellowship trained. Headline echoes the ad's pinned headline for message match (A1, A7). | Phone number in the header inside the DNI swap container, also as a tel: link |
 | 2 | Credentials block | Board certified; Mayo Clinic orthopedic residency (2014); fellowship in hip preservation and replacement at the American Hip Institute and in sports medicine at OrthoCarolina; three years on the Mayo Clinic Arizona faculty; TCO sports medicine fellowship faculty (A1, A4, A23, A32). One photo of Dr. Hartigan. | None |
-| 3 | Procedure explanation | What the direct anterior approach is (front of the hip, between muscles rather than through them), why it is done as outpatient surgery at Crosstown Surgery Center in Edina or North Memorial Ambulatory Surgery Center in Maple Grove, and that the choice of approach is made with the patient (A7, A22, A37). No navigation or robotic wording until confirmed (O12). | None |
+| 3 | Procedure explanation | What the direct anterior approach is (front of the hip, between muscles rather than through them), why it is done as outpatient surgery at North Memorial Ambulatory Surgery Center in Maple Grove or, if the practice confirms, Crosstown Surgery Center in Edina (A7, A22; Crosstown is unverified for him, A37), and that the choice of approach is made with the patient. No navigation or robotic wording until confirmed (O12). | None |
 | 4 | Who is a candidate | Hip arthritis limiting daily activity after non-surgical care; general health suitable for same-day discharge; "the consultation decides," with a line that not every patient is an outpatient candidate (A20 notes a consultation is required). | None |
 | 5 | What to expect | Consult (history, exam, imaging review, options including non-surgical); surgery day in an ambulatory surgery center with a stay under 24 hours (A20); recovery in general terms: walking with support the day of surgery is the goal for outpatient patients, physical therapy follows, and timelines vary by patient. No promised dates. | None |
 | 6 | Locations and map | Edina Crosstown, 4010 W 65th St; Maple Grove, 9630 Grove Circle N; Plymouth, 16800 37th Pl N; Robbinsdale, 3366 Oakdale Ave N (A33 to A36); clinic days per site once the practice confirms (A80). Static map image or an embedded map with no identifier passed. | Directions clicks as a secondary conversion only |
