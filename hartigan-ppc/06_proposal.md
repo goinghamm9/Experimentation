@@ -11,7 +11,7 @@ Date: [SEND DATE, for example September 25, 2026] | Valid through: [DATE, 30 day
 
 ## 1. Opening
 
-Thank you for meeting with us and for the clear request that followed. You asked for a Google Ads strategy, monthly spend, fees, expected costs per click and per lead, landing pages, conversion tracking, reporting, contract terms, a conflict disclosure, and a discussion of market exclusivity. This proposal answers each item in the order you listed it, with every figure given as a range and its basis in one line. It is built around the standard you set: we measure qualified patient inquiries and surgical consultations, not clicks or traffic.
+Thank you for meeting with us and for the clear request that followed. You asked for a strategy, monthly spend, fees, expected costs per click and per lead, landing pages, tracking, reporting, contract terms, a conflict disclosure, and a view on market exclusivity. This proposal answers each item in the order you listed it, with every figure given as a range and its basis in one line. It is built around the standard you set: we measure qualified patient inquiries and surgical consultations, not clicks or traffic.
 
 ## 2. At a glance
 
@@ -37,7 +37,7 @@ Thank you for meeting with us and for the clear request that followed. You asked
 
 **Goal.** More qualified patients for the six procedures you listed: computer-navigated total hip replacement, robotic-assisted total knee replacement, hip arthroscopy for labral tears, ACL reconstruction, meniscus repair, and rotator cuff repair.
 
-**Geography.** Plymouth, Maple Grove, and Edina first, then the broader Twin Cities. Our research shows Dr. Hartigan at Twin Cities Orthopedics clinics in Edina, Maple Grove, and Robbinsdale, with a Plymouth address on his personal site, and outpatient surgery at North Memorial Ambulatory Surgery Center in Maple Grove, which lists him, and, we understand, at Crosstown Surgery Center in Edina; we confirm clinic days by site and surgery sites at kickoff. Maple Grove and Robbinsdale cover the northwest suburbs, Edina the southwest, and Plymouth sits within 15 minutes of both. Hip preservation is where his fellowship training stands out most, so that campaign also reaches a ring of about 60 miles from Maple Grove (the St. Cloud corridor and western Wisconsin), leaving out Rochester (Mayo's home market), Eau Claire, and Duluth.
+**Geography.** Plymouth, Maple Grove, and Edina first, then the broader Twin Cities. Our research shows Dr. Hartigan at Twin Cities Orthopedics clinics in Edina, Maple Grove, and Robbinsdale, with a Plymouth address on his personal site, and outpatient surgery at North Memorial Ambulatory Surgery Center in Maple Grove, which lists him, and, we understand, at Crosstown Surgery Center in Edina; we confirm clinic days by site and surgery sites at kickoff. Maple Grove and Robbinsdale cover the northwest suburbs, Edina the southwest, and Plymouth sits within 15 minutes of both. Hip preservation is where his fellowship training stands out most, so that campaign also reaches a ring of about 60 miles from Maple Grove, leaving out Rochester (Mayo's home market), Eau Claire, and Duluth.
 
 **The market.** Allina Health Orthopedics (Plymouth and Edina), TRIA, Summit, M Health Fairview, and Mayo Clinic each offer hip or knee replacement nearby, Allina, TRIA, Summit, and Mayo also advertise hip arthroscopy or hip preservation, and TCO's own hip and knee pages name other surgeons, so the ads lead with what is verifiable and his: board certification, Mayo Clinic residency, and dual fellowship training.
 
@@ -56,7 +56,7 @@ Launch three search campaigns: hip replacement, knee replacement, and a small hi
 
 - **Targeting and match types:** presence-only location targeting; phrase match on surgeon and procedure terms, exact match on the ten highest-intent terms, no broad match at launch; ads run only in staffed phone hours (Monday to Friday, 8 am to 5 pm Central as a placeholder the practice confirms).
 - **Bidding by phase:** Maximize clicks with a $16 bid limit for days 1 to 30; Maximize conversions at 15 verified conversions in 30 days; Target CPA at 30, Google's own threshold.
-- **Negatives and audiences:** about 70 starter negatives (jobs, residency, veterinary, lawsuits, exercises, recovery, medical tourism) plus competitor and hospital names; no health-based audiences, remarketing, or customer lists.
+- **Negatives and audiences:** about 70 starter negatives (jobs, veterinary, lawsuits, recovery, and similar) plus competitor and hospital names; no health-based audiences, remarketing, or customer lists.
 - **Confirmations:** navigation and robotic terms run once the practice confirms the system and facility; knee replacement is confirmed at kickoff (volume and setting), and if not, its budget moves to the two hip campaigns. Microsoft Advertising is a later test, after day 90, at $300 to $450 a month.
 
 ## 5. Suggested monthly ad spend
@@ -82,7 +82,7 @@ These are model averages, so fractions appear; the arithmetic is in Appendix B. 
 | Measure | Modeled range | Basis |
 |---|---|---|
 | Cost per click, blended | $7 to $17 | National physicians and surgeons benchmark CPC of $4.76 to $5.00 (WordStream, 2025 and 2026) with an uplift for surgical terms in a top-20 market; surgeon-seeking terms $7 to $22 |
-| Cost per contact (a call of 60 seconds or more, or a form) | $100 to $125 | Deployed spend divided by contacts, across every tier and case; the national physicians and surgeons cost per lead is $40 to $66 (WordStream 2026, LocalIQ 2025), and ours runs higher because surgical terms cost more per click and only 60-second calls and forms count |
+| Cost per contact (a call of 60 seconds or more, or a form) | $100 to $125 | Deployed spend divided by contacts; the national physicians and surgeons cost per lead is $40 to $66 (WordStream 2026, LocalIQ 2025), and ours runs higher because surgical clicks cost more and only 60-second calls and forms count |
 | Cost per qualified inquiry | $180 to $390 | 6% to 14% of clicks become a 60-second call or a form; 30% to 60% of those contacts qualify |
 | Cost per attended consult | $250 to $1,050 | 50% to 80% of qualified inquiries book and 75% to 92% attend; before management fees |
 
@@ -90,19 +90,19 @@ These are modeled from published national benchmarks and our demand estimates, n
 
 ## 7. Landing page recommendations
 
-No existing page is a finished ad destination, which is common: pages built for visitors and pages built for ads do different jobs. The TCO group pages carry the booking path and the brand but name other surgeons and give us no control over tracking. The personal site, davidhartiganmd.com, carries his credentials and phone on the pages we reviewed, but the procedure pages are template copy, hip replacement is split across three pages, and there is no knee replacement page.
+No existing page is a finished ad destination, which is common. The TCO group pages carry the booking path and the brand but name other surgeons and give us no control over tracking. The personal site, davidhartiganmd.com, carries his credentials and phone on the pages we reviewed, but the procedure pages are template copy, hip replacement is split across three pages, and there is no knee replacement page.
 
-We recommend three paid-only pages on davidhartiganmd.com, with a sports medicine page added at the day 60 gate: Anterior Outpatient Hip Replacement; Knee Replacement (no robotic wording until confirmed); and Hip Arthroscopy and Labral Repair, with a block for patients traveling from greater Minnesota and western Wisconsin. Each page carries a headline that echoes the ad, his credentials, who is a candidate and what the consult covers, the four clinics, insurance and a self-pay path, the phone number first, a short BAA-covered form, and a privacy line; no promised recovery timelines or superiority claims, and testimonials only with written authorization.
+We recommend three paid-only pages on davidhartiganmd.com, with a sports medicine page added at the day 60 gate: Anterior Outpatient Hip Replacement; Knee Replacement (no robotic wording until confirmed); and Hip Arthroscopy and Labral Repair, with a block for patients traveling from greater Minnesota and western Wisconsin. Each page carries a headline that echoes the ad, his credentials, who is a candidate and what the consult covers, clinic locations, insurance and a self-pay path, the phone number first, a short BAA-covered form, and a privacy line; no promised recovery timelines or superiority claims, and testimonials only with written authorization.
 
-**Hosting.** The personal site already carries his name and credentials, and its vendor advertises integrations, so the tracking snippet and form should be a ticket rather than a rebuild. Two conditions change this: if TCO marketing requires physician campaigns to land on tcomn.com, we ask for a physician-specific page with the tag in TCO's container and accept the slower release cycle; if the site vendor cannot install the snippet and form within two weeks of kickoff, we build a dedicated landing domain and move the pages back later.
+**Hosting.** The personal site already carries his name and credentials, and its vendor advertises integrations, so the tracking snippet and form should be a ticket rather than a rebuild. If TCO marketing requires physician campaigns to land on tcomn.com, we ask for a physician-specific page with the tag in TCO's container; if the site vendor cannot install the snippet and form within two weeks, we build a dedicated landing domain.
 
-Sample ads for all three campaigns and a full outline of the hip replacement page are ready for review at our call; sample headlines include "Hip Replacement Surgeon", "Anterior Hip Replacement", and "Hip Preservation Fellowship".
+Sample ads for all three campaigns and a full outline of the hip replacement page are ready for review at our call.
 
 ## 8. Conversion tracking, privacy-first
 
 The funnel: click, contact (call or form), qualified inquiry, consult booked, consult attended, surgery scheduled. Tracking measures the first two; the practice counts the rest.
 
-**Calls.** A call-tracking vendor that signs a Business Associate Agreement (CallRail Healthcare, CallTrackingMetrics, WhatConverts, and Invoca do) swaps the number on the landing pages for each paid visit, so every call carries the click ID, campaign, and keyword; the ads' call button uses a static campaign number from the same vendor. Google's call reporting and recording stay off: they route calls through Google numbers, and Google signs no BAA for Google Ads.
+**Calls.** A call-tracking vendor that signs a Business Associate Agreement (CallRail Healthcare, CallTrackingMetrics, WhatConverts, and Invoca do) swaps the landing page number for each paid visit, so every call carries the click ID, campaign, and keyword; the ads' call button uses a static number from the same vendor. Google's call reporting and recording stay off, because Google signs no BAA for Google Ads.
 
 **Forms.** A BAA-covered form tool (Jotform HIPAA or Formstack) sends Google Ads only a "form submitted" event with no contents; the contents go to the practice's intake inbox; no Google lead form assets.
 
@@ -112,13 +112,13 @@ The funnel: click, contact (call or form), qualified inquiry, consult booked, co
 
 No Google Analytics on these pages unless the privacy officer approves a stripped configuration, since Google offers no BAA for it. Offline conversion import (bidding toward consults instead of contacts) stays off unless the privacy officer and counsel approve it in writing, and then only in minimum-data form: click ID, a neutral conversion name, and a timestamp.
 
-**Qualified-inquiry rubric,** applied by intake in under a minute: new to Dr. Hartigan; can be seen at Edina, Maple Grove, Plymouth, or Robbinsdale, or wants a hip preservation opinion; asking about one of the six procedures; insurance accepted or a self-pay or MDsave path; a real patient, not a vendor, recruiter, or misdial. Five yes answers means qualified; otherwise intake records only a reason code plus whether a consult was booked. A monthly 20-minute de-identified review with the intake lead covers counts by code, campaign, day, and hour. The practice's compliance team and counsel review this setup before launch; nothing here is legal advice. Counsel also confirms the practice's notices under Minnesota's Consumer Data Privacy Act and Health Records Act and decides on restricted data processing in the tag setup; our defaults do not change either way.
+**Qualified-inquiry rubric,** applied by intake in under a minute: new to Dr. Hartigan; can be seen at Edina, Maple Grove, Plymouth, or Robbinsdale, or wants a hip preservation opinion; asking about one of the six procedures; insurance accepted or a self-pay or MDsave path; a real patient, not a vendor, recruiter, or misdial. Five yes answers means qualified; otherwise intake records only a reason code plus whether a consult was booked. A monthly de-identified review with the intake lead covers counts by code, campaign, day, and hour. The practice's compliance team and counsel review this setup before launch; nothing here is legal advice. Counsel also confirms the practice's notices under Minnesota's Consumer Data Privacy Act and Health Records Act and decides on restricted data processing; our defaults do not change either way.
 
 ## 9. Reporting
 
 **Monthly, by campaign:** spend, clicks, cost per click, calls, forms, qualified inquiries, consults booked and attended, cost per qualified inquiry, cost per consult, search-term findings, and next actions with any budget change in dollars. A one-line check each week in month one. A quarterly review covers the funnel, cost per consult against the section 6 range, intake, compliance settings, the pages, and next quarter's budget. No report carries patient information.
 
-**We steer by** the practice's count of qualified inquiries and consults, the measure you set. Google's conversion count runs higher and is the bidding signal only: it counts repeat calls, callers who also submit a form, and calls outside its window, while intake logs can miss a contact. We reconcile the two monthly inside the call vendor by call ID and timestamp and report the gap.
+**We steer by** the practice's count of qualified inquiries and consults, the measure you set. Google's conversion count runs higher (repeat calls, callers who also submit a form, calls outside its window) and is the bidding signal only; we reconcile the two monthly by call ID and timestamp and report the gap.
 
 ## 10. Timeline
 
@@ -138,7 +138,7 @@ Account access, TCO approval if required, and the site vendor's turnaround are t
 | Week 2 after launch | Tracking verified: 60-second calls and forms appear in the vendor log and as conversions, call reporting off, no patient information in any tag. If not, we pause. |
 | Day 30 | Search-term and lead-quality review; contacts against the 3 to 27 range; if fewer than about 30% of contacts qualify, we tighten terms first; if more than 10% of impressions are lost to budget, the cap rises in $500 steps between day 60 and day 90. |
 | Day 60 | Sports medicine starts at about $1,700 a month if the launch campaigns are demand-bound and cost per qualified inquiry is at or below about $220. Target CPA only once 30 conversions land in 30 days. |
-| Days 60 to 90 | Scale to Growth ($6,000) if two-month cost per qualified inquiry is at or below about $220 and cost per attended consult at or below about $400, with more than 10% lost to budget; hold at $3,000 between about $220 and $380 per qualified inquiry; cut (lower the cap to the strongest campaign's deployed spend, or pause the weakest) above about $380 per qualified inquiry or about $1,000 per consult for two months running. |
+| Days 60 to 90 | Scale to Growth ($6,000) if two-month cost per qualified inquiry is at or below about $220 and cost per attended consult at or below about $400, with more than 10% lost to budget; hold at $3,000 between about $220 and $380 per qualified inquiry; cut (lower the cap or pause the weakest campaign) above about $380 per qualified inquiry or about $1,000 per consult for two months running. |
 
 ## 11. Management and setup fees [KRISTINA TO SET]
 
@@ -177,9 +177,9 @@ We are open to exclusivity and suggest defining it on four points at our call. [
 
 ## 16. Next steps
 
-A 30-minute call to walk through this proposal, review the sample ads and page outline, and settle the conflict and exclusivity questions: [WINDOW 1, for example Tuesday, September 29, 10:00 am] or [WINDOW 2, for example Wednesday, September 30, 2:00 pm].
+A 30-minute call to walk through this proposal, the sample ads, and the conflict and exclusivity questions: [WINDOW 1, for example Tuesday, September 29, 10:00 am] or [WINDOW 2, for example Wednesday, September 30, 2:00 pm].
 
-To start, we need Google Ads admin access (or we create the account in the practice's name and card), a contact at the website vendor for davidhartiganmd.com, the TCO marketing contact if group approval is required for the campaign, the pages, or use of the TCO name in ads, the intake lead (definition and phone hours), the privacy officer (BAAs), and four confirmations: knee replacement volume and setting, the navigation and robotic systems and facilities Dr. Hartigan uses, his clinic days by site and his surgery sites, and whether the practice offers second opinions.
+To start, we need Google Ads admin access (or we create the account in the practice's name), the website vendor contact for davidhartiganmd.com, the TCO marketing contact if group approval is needed for the campaign, the pages, or the TCO name, the intake lead, the privacy officer, and four confirmations: knee replacement volume and setting, the navigation and robotic systems and facilities used, clinic days by site and surgery sites, and whether second opinions are offered.
 
 Week one delivers the confirmed definition and rubric, vendor selection with BAAs sent, the landing page briefs, the keyword and negative lists for approval, and a written launch date.
 
