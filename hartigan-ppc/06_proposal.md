@@ -39,7 +39,7 @@ Thank you for meeting with us and for the clear request that followed. You asked
 
 **Geography.** Plymouth, Maple Grove, and Edina first, then the broader Twin Cities. Our research shows Dr. Hartigan at Twin Cities Orthopedics clinics in Edina, Maple Grove, and Robbinsdale, with a Plymouth address on his personal site, and outpatient surgery at North Memorial Ambulatory Surgery Center in Maple Grove, which lists him, and, we understand, at Crosstown Surgery Center in Edina; we confirm clinic days by site and surgery sites at kickoff. Maple Grove and Robbinsdale cover the northwest suburbs, Edina the southwest, and Plymouth sits within 15 minutes of both. Hip preservation is where his fellowship training stands out most, so that campaign also reaches a ring of about 60 miles from Maple Grove, leaving out Rochester (Mayo's home market), Eau Claire, and Duluth.
 
-**The market.** Allina Health Orthopedics (Plymouth and Edina), TRIA, Summit, M Health Fairview, and Mayo Clinic each offer hip or knee replacement nearby, Allina, TRIA, Summit, and Mayo also advertise hip arthroscopy or hip preservation, and TCO's own hip and knee pages name other surgeons, so the ads lead with what is verifiable and his: board certification, Mayo Clinic residency, and dual fellowship training.
+**The market.** Allina Health Orthopedics (Plymouth and Edina), TRIA, Summit, and M Health Fairview each offer hip or knee replacement in the metro, Allina, TRIA, Summit, and Mayo Clinic (Minneapolis and Rochester) advertise hip arthroscopy or hip preservation, and TCO's own hip and knee pages name other surgeons, so the ads lead with what is verifiable and his: board certification, Mayo Clinic residency, and dual fellowship training.
 
 **The standard.** Our provisional definition of a qualified inquiry, for the practice to confirm at kickoff: a new patient, in the service area, seeking care for one of the six procedures or its underlying condition, with accepted insurance or a payment path; excludes spam, vendors, job seekers, and existing patients calling to schedule. Consults booked and attended and surgeries scheduled come from the practice as monthly counts.
 
@@ -82,7 +82,7 @@ These are model averages, so fractions appear; the arithmetic is in Appendix B. 
 | Measure | Modeled range | Basis |
 |---|---|---|
 | Cost per click, blended | $7 to $17 | National physicians and surgeons benchmark CPC of $4.76 to $5.00 (WordStream, 2025 and 2026) with an uplift for surgical terms in a top-20 market; surgeon-seeking terms $7 to $22 |
-| Cost per contact (a call of 60 seconds or more, or a form) | $100 to $125 | Deployed spend divided by contacts; the national physicians and surgeons cost per lead is $40 to $66 (WordStream 2026, LocalIQ 2025), and ours runs higher because surgical clicks cost more and only 60-second calls and forms count |
+| Cost per contact (a call of 60 seconds or more, or a form) | $100 to $125 | Deployed spend divided by contacts; the national cost per lead is $40 to $57 for physicians and surgeons (WordStream 2026 and 2025) and $66 for healthcare overall (LocalIQ 2025), and ours runs higher because surgical clicks cost more and only 60-second calls and forms count |
 | Cost per qualified inquiry | $180 to $390 | 6% to 14% of clicks become a 60-second call or a form; 30% to 60% of those contacts qualify |
 | Cost per attended consult | $250 to $1,050 | 50% to 80% of qualified inquiries book and 75% to 92% attend; before management fees |
 
@@ -251,8 +251,8 @@ The assumptions that most move the result, in order:
 
 **Sources** (publisher, what it measures, geography, year). Benchmarks and population figures:
 
-- B1. WordStream by LocalIQ, 2026 Google Ads benchmarks: physicians and surgeons category, average CPC $4.76, click-through rate 6.61%, conversion rate 12.43%; national, multi-account, not orthopedics-specific; 2026. https://www.wordstream.com/blog/2026-google-ads-benchmarks
-- B2. WordStream by LocalIQ, 2025 Google Ads benchmarks: physicians and surgeons conversion rate 11.62%, CPC about $5.00; national; 2025.
+- B1. WordStream by LocalIQ, 2026 Google Ads benchmarks: physicians and surgeons category, average CPC $4.76, click-through rate 6.61%, conversion rate 12.43%, cost per lead $40.04; national, multi-account, not orthopedics-specific; 2026. https://www.wordstream.com/blog/2026-google-ads-benchmarks
+- B2. WordStream by LocalIQ, 2025 Google Ads benchmarks: physicians and surgeons conversion rate 11.62%, cost per lead $56.83, CPC about $5.00; national; 2025.
 - B3. LocalIQ, healthcare search advertising benchmarks from 3,542 US campaigns: healthcare average CPC $5.64, cost per lead $66.02; national; data period October 2024 to September 2025.
 - B15 to B22. U.S. Census Bureau (2025 estimates), Nielsen DMA rankings (2025 to 2026), and city sources: United States 341,784,857; Minnesota 5,830,405; Minneapolis-St. Paul MSA about 3.76 million; Plymouth 78,942; Maple Grove 73,893; Edina 53,261; Minneapolis-St. Paul DMA 1,886,680 TV households. Used to scale national search volumes to the metro, the suburbs, and the state.
 - C14. Google Ads Help, About Target CPA bidding: evaluate over 30 days with at least 30 conversions; global; 2026. https://support.google.com/google-ads/answer/6268632
