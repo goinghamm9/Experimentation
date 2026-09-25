@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HFT Agent Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ------------------------------------------------------------------ */
+/* Reset & base                                                       */
+/* ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:       #0d1117;
+    --card:     #161b22;
+    --border:   #30363d;
+    --green:    #3fb950;
+    --red:      #f85149;
+    --blue:     #58a6ff;
+    --yellow:   #d29922;
+    --text:     #e6edf3;
+    --text-dim: #8b949e;
+    --text-bright: #ffffff;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    --radius: 6px;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout                                                             */
+/* ------------------------------------------------------------------ */
+.dashboard {
+    display: grid;
+    grid-template-rows: 48px 1fr auto;
+    grid-template-columns: 280px 1fr 300px;
+    grid-template-areas:
+        "top    top    top"
+        "left   center right"
+        "bottom bottom bottom";
+    height: 100vh;
+    gap: 1px;
+    background: var(--border);
+}
+
+@media (max-width: 1024px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: 48px auto auto auto auto;
+        grid-template-areas:
+            "top"
+            "left"
+            "center"
+            "right"
+            "bottom";
+        height: auto;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Card                                                               */
+/* ------------------------------------------------------------------ */
+.card {
+    background: var(--card);
+    padding: 12px;
+    overflow: hidden;
+}
+
+.card h3 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Top bar                                                            */
+/* ------------------------------------------------------------------ */
+.topbar {
+    grid-area: top;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+}
+
+.topbar .logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.topbar .logo span { color: var(--blue); }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.running  { background: rgba(63,185,80,0.15); color: var(--green); }
+.status-badge.halted   { background: rgba(248,81,73,0.15); color: var(--red);   }
+.status-badge.idle     { background: rgba(139,148,158,0.15); color: var(--text-dim); }
+
+.status-badge .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+}
+
+.status-badge.halted .dot { animation: none; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.agent-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.agent-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+}
+
+.agent-dot.running  { background: var(--green); border-color: var(--green); }
+.agent-dot.idle     { background: var(--yellow); border-color: var(--yellow); }
+.agent-dot.error    { background: var(--red); border-color: var(--red); }
+.agent-dot.halted   { background: var(--text-dim); border-color: var(--text-dim); }
+
+.agent-dot .tooltip {
+    display: none;
+    position: absolute;
+    top: 18px; left: 50%;
+    transform: translateX(-50%);
+    background: #1c2128;
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 100;
+    border: 1px solid var(--border);
+}
+
+.agent-dot:hover .tooltip { display: block; }
+
+.topbar .clock {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.topbar .uptime {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.topbar .controls {
+    display: flex;
+    gap: 6px;
+}
+
+.btn {
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn:hover { background: rgba(255,255,255,0.05); }
+.btn.halt  { border-color: var(--red); color: var(--red); }
+.btn.halt:hover  { background: rgba(248,81,73,0.15); }
+.btn.resume { border-color: var(--green); color: var(--green); }
+.btn.resume:hover { background: rgba(63,185,80,0.15); }
+
+/* ------------------------------------------------------------------ */
+/* Left panel -- Signal gauges                                        */
+/* ------------------------------------------------------------------ */
+.left-panel {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow-y: auto;
+}
+
+.gauge-card {
+    background: var(--card);
+    padding: 14px;
+}
+
+.gauge-card h3 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
+
+.gauge-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gauge-svg { flex-shrink: 0; }
+
+.gauge-label { flex: 1; min-width: 0; }
+
+.gauge-label .name {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+}
+
+.gauge-label .value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.signal-selector {
+    background: var(--card);
+    padding: 10px 14px;
+}
+
+.signal-selector select {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    font-family: var(--font);
+    font-size: 12px;
+}
+
+.regime-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+}
+
+.regime-badge.trending       { background: rgba(63,185,80,0.15); color: var(--green); }
+.regime-badge.mean_reverting { background: rgba(88,166,255,0.15); color: var(--blue);  }
+.regime-badge.random_walk    { background: rgba(139,148,158,0.15); color: var(--text-dim); }
+.regime-badge.toxic          { background: rgba(248,81,73,0.15); color: var(--red);    }
+
+/* ------------------------------------------------------------------ */
+/* Center panel                                                       */
+/* ------------------------------------------------------------------ */
+.center-panel {
+    grid-area: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.portfolio-header {
+    background: var(--card);
+    padding: 14px 16px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.metric-box { min-width: 100px; }
+
+.metric-box .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+}
+
+.metric-box .value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.metric-box .value.positive { color: var(--green); }
+.metric-box .value.negative { color: var(--red); }
+
+.chart-container {
+    background: var(--card);
+    padding: 12px;
+    flex: 1;
+    min-height: 220px;
+    position: relative;
+}
+
+.chart-container canvas { width: 100% !important; height: 100% !important; }
+
+.positions-table-wrap {
+    background: var(--card);
+    padding: 12px;
+    overflow-x: auto;
+}
+
+.positions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.positions-table th {
+    text-align: left;
+    padding: 6px 8px;
+    color: var(--text-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.positions-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(48,54,61,0.4);
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.positions-table .long  { color: var(--green); }
+.positions-table .short { color: var(--red); }
+.positions-table .positive { color: var(--green); }
+.positions-table .negative { color: var(--red); }
+
+/* ------------------------------------------------------------------ */
+/* Right panel                                                        */
+/* ------------------------------------------------------------------ */
+.right-panel {
+    grid-area: right;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.activity-feed {
+    background: var(--card);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.activity-feed h3 {
+    padding: 12px 12px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+.activity-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px 12px;
+}
+
+.activity-item {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(48,54,61,0.3);
+    cursor: pointer;
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-item .time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.activity-item .msg {
+    font-size: 12px;
+    color: var(--text);
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.activity-item .detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.35;
+    display: none;
+    padding: 6px 8px;
+    background: rgba(13,17,23,0.5);
+    border-radius: 4px;
+    border-left: 2px solid var(--blue);
+}
+
+.activity-item.expanded .detail { display: block; }
+
+.activity-item.warning .msg { color: var(--yellow); }
+.activity-item.critical .msg { color: var(--red); font-weight: 600; }
+
+.risk-panel {
+    background: var(--card);
+    padding: 12px;
+}
+
+.risk-gauge { margin-bottom: 10px; }
+
+.risk-gauge .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.risk-gauge .header .name {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.risk-gauge .header .val {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.risk-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.risk-bar .fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.risk-bar .fill.green  { background: var(--green); }
+.risk-bar .fill.yellow { background: var(--yellow); }
+.risk-bar .fill.red    { background: var(--red); }
+.risk-bar .fill.blue   { background: var(--blue); }
+
+/* ------------------------------------------------------------------ */
+/* Bottom panel -- Simulator                                          */
+/* ------------------------------------------------------------------ */
+.bottom-panel {
+    grid-area: bottom;
+    background: var(--card);
+    padding: 12px 16px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+}
+
+.bottom-panel h3 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.sim-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sim-field label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.sim-field input, .sim-field select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 140px;
+}
+
+.sim-field input:focus, .sim-field select:focus {
+    outline: none;
+    border-color: var(--blue);
+}
+
+.btn.sim-run {
+    border-color: var(--blue);
+    color: var(--blue);
+    padding: 5px 18px;
+    align-self: flex-end;
+}
+
+.btn.sim-run:hover { background: rgba(88,166,255,0.15); }
+.btn.sim-run:disabled { opacity: 0.4; cursor: default; }
+
+.sim-results {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sim-metric { text-align: center; }
+
+.sim-metric .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.sim-metric .value {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+}
+
+.sim-metric .value.positive { color: var(--green); }
+.sim-metric .value.negative { color: var(--red); }
+
+.sim-progress-bar {
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    align-self: center;
+}
+
+.sim-progress-bar .fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 2px;
+    transition: width 0.3s;
+    width: 0%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbar                                                          */
+/* ------------------------------------------------------------------ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+/* ------------------------------------------------------------------ */
+/* Connection indicator                                               */
+/* ------------------------------------------------------------------ */
+.ws-status {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ws-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+}
+
+.ws-status.connected .dot    { background: var(--green); }
+.ws-status.disconnected .dot { background: var(--red); }
+.ws-status.connecting .dot   { background: var(--yellow); animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- ============================================================ -->
+    <!-- TOP BAR                                                       -->
+    <!-- ============================================================ -->
+    <header class="topbar">
+        <div class="logo"><span>HFT</span> Agent</div>
+        <div id="systemStatus" class="status-badge idle">
+            <span class="dot"></span>
+            <span class="label">IDLE</span>
+        </div>
+        <div class="agent-dots" id="agentDots"></div>
+        <div class="ws-status disconnected" id="wsStatus">
+            <span class="dot"></span>
+            <span id="wsLabel">WS</span>
+        </div>
+        <div class="controls">
+            <button class="btn halt" id="btnHalt" onclick="haltTrading()">HALT</button>
+            <button class="btn resume" id="btnResume" onclick="resumeTrading()">RESUME</button>
+        </div>
+        <span class="uptime" id="uptime">00:00:00</span>
+        <span class="clock" id="clock"></span>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- LEFT PANEL -- Signals                                         -->
+    <!-- ============================================================ -->
+    <aside class="left-panel">
+        <div class="signal-selector">
+            <select id="symbolSelect" onchange="selectSymbol(this.value)"></select>
+        </div>
+        <div class="gauge-card">
+            <h3>Order Flow Imbalance</h3>
+            <div class="gauge-row">
+                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
+                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
+                    <path id="gaugeArcOFI" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--blue)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
+                </svg>
+                <div class="gauge-label">
+                    <div class="name">OFI</div>
+                    <div class="value" id="valOFI">0.000</div>
+                </div>
+            </div>
+        </div>
+        <div class="gauge-card">
+            <h3>Hurst Exponent</h3>
+            <div class="gauge-row">
+                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
+                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
+                    <path id="gaugeArcHurst" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--yellow)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
+                </svg>
+                <div class="gauge-label">
+                    <div class="name">Hurst</div>
+                    <div class="value" id="valHurst">0.500</div>
+                    <div class="regime-badge random_walk" id="regimeBadge">RANDOM WALK</div>
+                </div>
+            </div>
+        </div>
+        <div class="gauge-card">
+            <h3>VPIN Toxicity</h3>
+            <div class="gauge-row">
+                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
+                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
+                    <path id="gaugeArcVPIN" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
+                </svg>
+                <div class="gauge-label">
+                    <div class="name">VPIN</div>
+                    <div class="value" id="valVPIN">0.000</div>
+                </div>
+            </div>
+        </div>
+        <div class="gauge-card">
+            <h3>Multifractal Width</h3>
+            <div class="gauge-row">
+                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
+                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
+                    <path id="gaugeArcMF" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--blue)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
+                </svg>
+                <div class="gauge-label">
+                    <div class="name">Multifractal</div>
+                    <div class="value" id="valMF">0.000</div>
+                </div>
+            </div>
+        </div>
+        <div class="gauge-card">
+            <h3>Composite Signal</h3>
+            <div class="gauge-row">
+                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
+                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
+                    <path id="gaugeArcComp" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
+                </svg>
+                <div class="gauge-label">
+                    <div class="name">Composite</div>
+                    <div class="value" id="valComp">+0.000</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============================================================ -->
+    <!-- CENTER PANEL                                                  -->
+    <!-- ============================================================ -->
+    <main class="center-panel">
+        <div class="portfolio-header">
+            <div class="metric-box">
+                <div class="label">Total Equity</div>
+                <div class="value" id="metricEquity">$0.00</div>
+            </div>
+            <div class="metric-box">
+                <div class="label">Daily P&amp;L</div>
+                <div class="value" id="metricPnl">$0.00</div>
+            </div>
+            <div class="metric-box">
+                <div class="label">Daily Return</div>
+                <div class="value" id="metricReturn">0.00%</div>
+            </div>
+            <div class="metric-box">
+                <div class="label">Cash</div>
+                <div class="value" id="metricCash">$0.00</div>
+            </div>
+            <div class="metric-box">
+                <div class="label">Max Drawdown</div>
+                <div class="value" id="metricDrawdown">0.00%</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="equityChart"></canvas>
+        </div>
+
+        <div class="positions-table-wrap">
+            <h3 style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:8px;">Open Positions</h3>
+            <table class="positions-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Side</th>
+                        <th>Qty</th>
+                        <th>Entry</th>
+                        <th>Current</th>
+                        <th>Unreal. P&amp;L</th>
+                        <th>P&amp;L %</th>
+                    </tr>
+                </thead>
+                <tbody id="positionsBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- ============================================================ -->
+    <!-- RIGHT PANEL                                                   -->
+    <!-- ============================================================ -->
+    <aside class="right-panel">
+        <div class="risk-panel">
+            <h3>Risk Metrics</h3>
+            <div class="risk-gauge">
+                <div class="header">
+                    <span class="name">Exposure</span>
+                    <span class="val" id="riskExposure">0.0%</span>
+                </div>
+                <div class="risk-bar"><div class="fill green" id="barExposure" style="width:0%"></div></div>
+            </div>
+            <div class="risk-gauge">
+                <div class="header">
+                    <span class="name">CVaR (95%)</span>
+                    <span class="val" id="riskCvar">$0</span>
+                </div>
+                <div class="risk-bar"><div class="fill yellow" id="barCvar" style="width:0%"></div></div>
+            </div>
+            <div class="risk-gauge">
+                <div class="header">
+                    <span class="name">Daily P&amp;L</span>
+                    <span class="val" id="riskDailyPnl">$0</span>
+                </div>
+                <div class="risk-bar"><div class="fill blue" id="barDailyPnl" style="width:0%"></div></div>
+            </div>
+            <div class="risk-gauge">
+                <div class="header">
+                    <span class="name">Drawdown</span>
+                    <span class="val" id="riskDrawdown">0.0%</span>
+                </div>
+                <div class="risk-bar"><div class="fill red" id="barDrawdown" style="width:0%"></div></div>
+            </div>
+            <div class="risk-gauge">
+                <div class="header">
+                    <span class="name">Sharpe Ratio</span>
+                    <span class="val" id="riskSharpe">0.00</span>
+                </div>
+                <div class="risk-bar"><div class="fill green" id="barSharpe" style="width:0%"></div></div>
+            </div>
+        </div>
+
+        <div class="activity-feed">
+            <h3>Activity Feed</h3>
+            <div class="activity-list" id="activityList"></div>
+        </div>
+    </aside>
+
+    <!-- ============================================================ -->
+    <!-- BOTTOM PANEL -- Simulator                                     -->
+    <!-- ============================================================ -->
+    <footer class="bottom-panel">
+        <h3>Backtest Simulator</h3>
+        <div class="sim-field">
+            <label>Symbols</label>
+            <input type="text" id="simSymbols" value="SPY" placeholder="SPY,QQQ">
+        </div>
+        <div class="sim-field">
+            <label>Start Date</label>
+            <input type="date" id="simStart" value="2024-01-01">
+        </div>
+        <div class="sim-field">
+            <label>End Date</label>
+            <input type="date" id="simEnd" value="2024-12-31">
+        </div>
+        <div class="sim-field">
+            <label>Capital ($)</label>
+            <input type="number" id="simCapital" value="1000000" step="100000">
+        </div>
+        <button class="btn sim-run" id="btnSimRun" onclick="runSimulation()">RUN</button>
+        <div class="sim-progress-bar" id="simProgressBar" style="display:none">
+            <div class="fill" id="simProgressFill"></div>
+        </div>
+        <div class="sim-results" id="simResults" style="display:none">
+            <div class="sim-metric"><div class="label">Return</div><div class="value" id="simReturn">--</div></div>
+            <div class="sim-metric"><div class="label">Sharpe</div><div class="value" id="simSharpe">--</div></div>
+            <div class="sim-metric"><div class="label">Max DD</div><div class="value" id="simMaxDD">--</div></div>
+            <div class="sim-metric"><div class="label">Trades</div><div class="value" id="simTrades">--</div></div>
+            <div class="sim-metric"><div class="label">Win Rate</div><div class="value" id="simWinRate">--</div></div>
+        </div>
+    </footer>
+
+</div>
+
+<!-- ================================================================ -->
+<!-- JavaScript                                                        -->
+<!-- ================================================================ -->
+<script>
+/* ------------------------------------------------------------------ */
+/* State                                                               */
+/* ------------------------------------------------------------------ */
+var ws = null;
+var reconnectTimer = null;
+var reconnectDelay = 1000;
+var selectedSymbol = 'SPY';
+var equityChart = null;
+var currentSimRunId = null;
+var simPollTimer = null;
+
+/* ------------------------------------------------------------------ */
+/* Clock                                                               */
+/* ------------------------------------------------------------------ */
+function updateClock() {
+    var now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {
+        hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }) + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ------------------------------------------------------------------ */
+/* Formatting helpers                                                  */
+/* ------------------------------------------------------------------ */
+function fmtMoney(v) {
+    if (v == null) return '--';
+    var abs = Math.abs(v);
+    var sign = v < 0 ? '-' : '';
+    if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
+    return sign + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(v) {
+    if (v == null) return '--';
+    return v.toFixed(2) + '%';
+}
+
+function fmtTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+/* ------------------------------------------------------------------ */
+/* SVG arc gauge helpers                                               */
+/* ------------------------------------------------------------------ */
+/* The arc path is a semicircle from (8,46) to (72,46) with radius 36.
+   Its total length is pi * 36 ~= 113.1 */
+var ARC_LEN = Math.PI * 36;
+
+function setGauge(id, fraction, color) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var clamped = Math.max(0, Math.min(1, fraction));
+    var dashLen = clamped * ARC_LEN;
+    el.setAttribute('stroke-dasharray', dashLen + ' ' + ARC_LEN);
+    if (color) el.setAttribute('stroke', color);
+}
+
+function updateGaugeOFI(v) {
+    var frac = Math.abs(v);
+    var color = v > 0.3 ? 'var(--green)' : v < -0.3 ? 'var(--red)' : 'var(--blue)';
+    setGauge('gaugeArcOFI', frac, color);
+    document.getElementById('valOFI').textContent = v.toFixed(3);
+}
+
+function updateGaugeHurst(v, regime) {
+    setGauge('gaugeArcHurst', v,
+        v > 0.55 ? 'var(--green)' : v < 0.45 ? 'var(--blue)' : 'var(--yellow)');
+    document.getElementById('valHurst').textContent = v.toFixed(3);
+    var badge = document.getElementById('regimeBadge');
+    if (badge && regime) {
+        badge.textContent = regime.toUpperCase().replace(/_/g, ' ');
+        badge.className = 'regime-badge ' + regime;
+    }
+}
+
+function updateGaugeVPIN(v) {
+    setGauge('gaugeArcVPIN', v,
+        v > 0.75 ? 'var(--red)' : v > 0.5 ? 'var(--yellow)' : 'var(--green)');
+    document.getElementById('valVPIN').textContent = v.toFixed(3);
+}
+
+function updateGaugeMF(v) {
+    setGauge('gaugeArcMF', v,
+        v > 0.7 ? 'var(--yellow)' : 'var(--blue)');
+    document.getElementById('valMF').textContent = v.toFixed(3);
+}
+
+function updateGaugeComposite(v) {
+    var frac = (v + 1) / 2;
+    setGauge('gaugeArcComp', frac,
+        v > 0.3 ? 'var(--green)' : v < -0.3 ? 'var(--red)' : 'var(--text-dim)');
+    document.getElementById('valComp').textContent = (v >= 0 ? '+' : '') + v.toFixed(3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Equity chart (Chart.js)                                             */
+/* ------------------------------------------------------------------ */
+function initChart() {
+    var ctx = document.getElementById('equityChart').getContext('2d');
+    equityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Equity',
+                data: [],
+                borderColor: '#58a6ff',
+                backgroundColor: 'rgba(88,166,255,0.08)',
+                fill: true,
+                borderWidth: 1.5,
+                pointRadius: 0,
+                tension: 0.3,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 0 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1c2128',
+                    borderColor: '#30363d',
+                    borderWidth: 1,
+                    titleColor: '#8b949e',
+                    bodyColor: '#e6edf3',
+                    bodyFont: { family: "'SF Mono', 'Consolas', monospace", size: 12 },
+                    callbacks: {
+                        label: function(ctx) { return fmtMoney(ctx.raw); },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { color: 'rgba(48,54,61,0.4)', drawBorder: false },
+                    ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 8 },
+                },
+                y: {
+                    display: true,
+                    grid: { color: 'rgba(48,54,61,0.4)', drawBorder: false },
+                    ticks: {
+                        color: '#8b949e',
+                        font: { size: 10 },
+                        callback: function(v) { return '$' + (v/1000).toFixed(0) + 'k'; },
+                    },
+                },
+            },
+        },
+    });
+}
+
+function pushEquityPoint(t, equity) {
+    if (!equityChart) return;
+    var label = new Date(t).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    equityChart.data.labels.push(label);
+    equityChart.data.datasets[0].data.push(equity);
+    if (equityChart.data.labels.length > 200) {
+        equityChart.data.labels.shift();
+        equityChart.data.datasets[0].data.shift();
+    }
+    equityChart.update('none');
+}
+
+function loadEquityCurve(curve) {
+    if (!equityChart || !curve || !curve.length) return;
+    equityChart.data.labels = curve.map(function(p) {
+        return new Date(p.t).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    });
+    equityChart.data.datasets[0].data = curve.map(function(p) { return p.equity; });
+    equityChart.update('none');
+}
+
+/* ------------------------------------------------------------------ */
+/* Agent dots                                                          */
+/* ------------------------------------------------------------------ */
+var AGENT_NAMES = ['market_data', 'signal', 'risk', 'execution', 'portfolio'];
+var AGENT_LABELS = ['Data Feed', 'Signal', 'Risk', 'Execution', 'Portfolio'];
+
+function initAgentDots() {
+    var container = document.getElementById('agentDots');
+    container.innerHTML = '';
+    AGENT_NAMES.forEach(function(name, i) {
+        var dot = document.createElement('div');
+        dot.className = 'agent-dot idle';
+        dot.id = 'agentDot_' + name;
+        dot.innerHTML = '<span class="tooltip">' + AGENT_LABELS[i] + ': idle</span>';
+        container.appendChild(dot);
+    });
+}
+
+function updateAgentDots(agents) {
+    if (!agents) return;
+    Object.keys(agents).forEach(function(name) {
+        var info = agents[name];
+        var dot = document.getElementById('agentDot_' + name);
+        if (!dot) return;
+        var st = info.state || 'idle';
+        dot.className = 'agent-dot ' + st;
+        var idx = AGENT_NAMES.indexOf(name);
+        var label = idx >= 0 ? AGENT_LABELS[idx] : name;
+        dot.querySelector('.tooltip').textContent = label + ': ' + st +
+            (info.messages_processed ? ' (' + info.messages_processed.toLocaleString() + ' msgs)' : '');
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/* Positions table                                                     */
+/* ------------------------------------------------------------------ */
+function renderPositions(positions) {
+    var tbody = document.getElementById('positionsBody');
+    if (!tbody || !positions) return;
+    tbody.innerHTML = '';
+    positions.forEach(function(p) {
+        var pnlClass = p.unrealized_pnl >= 0 ? 'positive' : 'negative';
+        var sideClass = p.side === 'long' ? 'long' : 'short';
+        var pnlPct = p.pnl_pct || 0;
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td>' + p.symbol + '</td>' +
+            '<td class="' + sideClass + '">' + p.side.toUpperCase() + '</td>' +
+            '<td>' + p.qty + '</td>' +
+            '<td>' + fmtMoney(p.entry_price) + '</td>' +
+            '<td>' + fmtMoney(p.current_price) + '</td>' +
+            '<td class="' + pnlClass + '">' + fmtMoney(p.unrealized_pnl) + '</td>' +
+            '<td class="' + pnlClass + '">' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%</td>';
+        tbody.appendChild(tr);
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/* Risk panel                                                          */
+/* ------------------------------------------------------------------ */
+function updateRisk(risk) {
+    if (!risk) return;
+
+    var exposure = risk.exposure_pct || 0;
+    document.getElementById('riskExposure').textContent = fmtPct(exposure);
+    var barExp = document.getElementById('barExposure');
+    barExp.style.width = Math.min(exposure, 100) + '%';
+    barExp.className = 'fill ' + (exposure > 80 ? 'red' : exposure > 50 ? 'yellow' : 'green');
+
+    var cvar = risk.cvar_95 || 0;
+    document.getElementById('riskCvar').textContent = fmtMoney(cvar);
+    document.getElementById('barCvar').style.width = Math.min(cvar / 50, 100) + '%';
+
+    var dailyPnl = risk.daily_pnl || 0;
+    document.getElementById('riskDailyPnl').textContent = fmtMoney(dailyPnl);
+    var barPnl = document.getElementById('barDailyPnl');
+    barPnl.style.width = Math.min(Math.abs(dailyPnl) / 20, 100) + '%';
+    barPnl.className = 'fill ' + (dailyPnl >= 0 ? 'green' : 'red');
+
+    var dd = risk.max_drawdown || risk.drawdown_pct || 0;
+    document.getElementById('riskDrawdown').textContent = fmtPct(dd);
+    var barDD = document.getElementById('barDrawdown');
+    barDD.style.width = Math.min(dd * 10, 100) + '%';
+    barDD.className = 'fill ' + (dd > 5 ? 'red' : dd > 2 ? 'yellow' : 'green');
+
+    var sharpe = risk.sharpe_ratio || 0;
+    document.getElementById('riskSharpe').textContent = sharpe.toFixed(2);
+    document.getElementById('barSharpe').style.width = Math.min(sharpe / 3 * 100, 100) + '%';
+}
+
+/* ------------------------------------------------------------------ */
+/* Activity feed                                                       */
+/* ------------------------------------------------------------------ */
+function appendActivity(entries) {
+    var list = document.getElementById('activityList');
+    if (!list || !entries) return;
+    entries.forEach(function(a) {
+        var item = document.createElement('div');
+        item.className = 'activity-item ' + (a.severity || 'info');
+        item.innerHTML =
+            '<div class="time">' + fmtTime(a.timestamp) + '</div>' +
+            '<div class="msg">' + escHtml(a.message) + '</div>' +
+            (a.detail ? '<div class="detail">' + escHtml(a.detail) + '</div>' : '');
+        item.onclick = function() { this.classList.toggle('expanded'); };
+        list.prepend(item);
+    });
+    while (list.children.length > 100) list.removeChild(list.lastChild);
+}
+
+function escHtml(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+/* ------------------------------------------------------------------ */
+/* System status badge                                                 */
+/* ------------------------------------------------------------------ */
+function updateSystemStatus(halted) {
+    var badge = document.getElementById('systemStatus');
+    if (halted) {
+        badge.className = 'status-badge halted';
+        badge.querySelector('.label').textContent = 'HALTED';
+    } else {
+        badge.className = 'status-badge running';
+        badge.querySelector('.label').textContent = 'RUNNING';
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Uptime                                                              */
+/* ------------------------------------------------------------------ */
+var uptimeStart = null;
+function updateUptime() {
+    if (!uptimeStart) return;
+    var elapsed = (Date.now() / 1000) - uptimeStart;
+    var h = Math.floor(elapsed / 3600);
+    var m = Math.floor((elapsed % 3600) / 60);
+    var s = Math.floor(elapsed % 60);
+    document.getElementById('uptime').textContent =
+        String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+setInterval(updateUptime, 1000);
+
+/* ------------------------------------------------------------------ */
+/* Symbol selector                                                     */
+/* ------------------------------------------------------------------ */
+function initSymbolSelect(symbols) {
+    var sel = document.getElementById('symbolSelect');
+    sel.innerHTML = '';
+    (symbols || []).forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        if (s === selectedSymbol) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+function selectSymbol(sym) {
+    selectedSymbol = sym;
+    refreshGaugesFromCache();
+}
+
+/* ------------------------------------------------------------------ */
+/* Signal cache                                                        */
+/* ------------------------------------------------------------------ */
+var signalCache = {};
+var regimeCache = {};
+
+function refreshGaugesFromCache() {
+    var sig = signalCache[selectedSymbol];
+    if (!sig) return;
+    updateGaugeOFI(sig.ofi || 0);
+    updateGaugeHurst(sig.hurst || 0.5, regimeCache[selectedSymbol] || 'random_walk');
+    updateGaugeVPIN(sig.vpin || 0);
+    updateGaugeMF(sig.multifractal || 0);
+    updateGaugeComposite(sig.composite || 0);
+}
+
+/* ------------------------------------------------------------------ */
+/* Portfolio metrics header                                            */
+/* ------------------------------------------------------------------ */
+function updateMetrics(portfolio) {
+    if (!portfolio) return;
+    var eq = portfolio.total_equity || 0;
+    var pnl = portfolio.daily_pnl || 0;
+    var ret = portfolio.daily_return || 0;
+    var cash = portfolio.cash || 0;
+    var dd = portfolio.max_drawdown || 0;
+
+    document.getElementById('metricEquity').textContent = fmtMoney(eq);
+
+    var pnlEl = document.getElementById('metricPnl');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtMoney(pnl);
+    pnlEl.className = 'value ' + (pnl >= 0 ? 'positive' : 'negative');
+
+    var retEl = document.getElementById('metricReturn');
+    retEl.textContent = (ret >= 0 ? '+' : '') + fmtPct(ret);
+    retEl.className = 'value ' + (ret >= 0 ? 'positive' : 'negative');
+
+    document.getElementById('metricCash').textContent = fmtMoney(cash);
+
+    var ddEl = document.getElementById('metricDrawdown');
+    ddEl.textContent = fmtPct(dd);
+    ddEl.className = 'value ' + (dd > 5 ? 'negative' : '');
+}
+
+/* ------------------------------------------------------------------ */
+/* WebSocket                                                           */
+/* ------------------------------------------------------------------ */
+function setWsStatus(st) {
+    var el = document.getElementById('wsStatus');
+    el.className = 'ws-status ' + st;
+    document.getElementById('wsLabel').textContent =
+        st === 'connected' ? 'LIVE' : st === 'connecting' ? 'WS...' : 'WS';
+}
+
+function connectWS() {
+    if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
+
+    setWsStatus('connecting');
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(proto + '//' + location.host + '/ws');
+
+    ws.onopen = function() {
+        setWsStatus('connected');
+        reconnectDelay = 1000;
+    };
+
+    ws.onclose = function() {
+        setWsStatus('disconnected');
+        scheduleReconnect();
+    };
+
+    ws.onerror = function() {
+        setWsStatus('disconnected');
+    };
+
+    ws.onmessage = function(ev) {
+        try {
+            var msg = JSON.parse(ev.data);
+            handleWSMessage(msg);
+        } catch (e) { /* ignore parse errors */ }
+    };
+}
+
+function scheduleReconnect() {
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(function() {
+        connectWS();
+        reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+    }, reconnectDelay);
+}
+
+function handleWSMessage(msg) {
+    var type = msg.type;
+    var data = msg.data || msg;
+
+    if (type === 'init') {
+        updateSystemStatus(data.trading_halted);
+        if (data.uptime) {
+            var parts = data.uptime.split(':').map(Number);
+            uptimeStart = Date.now() / 1000 - (parts[0] * 3600 + parts[1] * 60 + parts[2]);
+        }
+        if (data.symbols) initSymbolSelect(data.symbols);
+        if (data.signals) {
+            signalCache = data.signals;
+            refreshGaugesFromCache();
+        }
+        if (data.regimes) regimeCache = data.regimes;
+        if (data.agents) updateAgentDots(data.agents);
+        if (data.portfolio) {
+            updateMetrics(data.portfolio);
+            var posObj = data.portfolio.positions;
+            if (posObj && typeof posObj === 'object') {
+                renderPositions(Array.isArray(posObj) ? posObj : Object.values(posObj));
+            }
+        }
+        if (data.risk) updateRisk(data.risk);
+        fetchInitialData();
+        return;
+    }
+
+    if (type === 'tick') {
+        if (data.equity != null && data.t != null) {
+            pushEquityPoint(data.t, data.equity);
+        }
+        if (data.signals) {
+            signalCache = data.signals;
+            refreshGaugesFromCache();
+        }
+        if (data.positions) renderPositions(data.positions);
+        if (data.risk) updateRisk(data.risk);
+        if (data.agents) updateAgentDots(data.agents);
+        if (data.activity) appendActivity(data.activity);
+        if (data.equity != null) {
+            document.getElementById('metricEquity').textContent = fmtMoney(data.equity);
+        }
+        if (data.daily_pnl != null) {
+            var pnlEl = document.getElementById('metricPnl');
+            pnlEl.textContent = (data.daily_pnl >= 0 ? '+' : '') + fmtMoney(data.daily_pnl);
+            pnlEl.className = 'value ' + (data.daily_pnl >= 0 ? 'positive' : 'negative');
+        }
+        return;
+    }
+
+    if (type === 'system') {
+        if (data.trading_halted != null) updateSystemStatus(data.trading_halted);
+        return;
+    }
+
+    if (type === 'sim_progress') {
+        var bar = document.getElementById('simProgressFill');
+        if (bar) bar.style.width = (data.progress || 0) + '%';
+        return;
+    }
+
+    if (type === 'sim_complete') {
+        showSimResults(data);
+        return;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* REST helpers                                                        */
+/* ------------------------------------------------------------------ */
+function fetchJSON(url, opts) {
+    return fetch(url, opts).then(function(res) { return res.json(); }).catch(function() { return null; });
+}
+
+function fetchInitialData() {
+    fetchJSON('/api/portfolio').then(function(portfolio) {
+        if (!portfolio) return;
+        if (portfolio.current) updateMetrics(portfolio.current);
+        if (portfolio.positions) renderPositions(portfolio.positions);
+        if (portfolio.equity_curve) loadEquityCurve(portfolio.equity_curve);
+    });
+
+    fetchJSON('/api/activity').then(function(data) {
+        if (!data || !data.activity) return;
+        var list = document.getElementById('activityList');
+        list.innerHTML = '';
+        appendActivity(data.activity.slice().reverse());
+    });
+
+    fetchJSON('/api/risk').then(function(risk) {
+        if (risk) updateRisk(risk);
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/* Control actions                                                     */
+/* ------------------------------------------------------------------ */
+function haltTrading() {
+    fetchJSON('/api/halt', { method: 'POST' });
+}
+
+function resumeTrading() {
+    fetchJSON('/api/resume', { method: 'POST' });
+}
+
+/* ------------------------------------------------------------------ */
+/* Simulator                                                           */
+/* ------------------------------------------------------------------ */
+function runSimulation() {
+    var btn = document.getElementById('btnSimRun');
+    btn.disabled = true;
+    btn.textContent = 'RUNNING...';
+
+    document.getElementById('simProgressBar').style.display = 'block';
+    document.getElementById('simProgressFill').style.width = '0%';
+    document.getElementById('simResults').style.display = 'none';
+
+    var symbols = document.getElementById('simSymbols').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var body = {
+        symbols: symbols,
+        start_date: document.getElementById('simStart').value,
+        end_date: document.getElementById('simEnd').value,
+        initial_capital: parseFloat(document.getElementById('simCapital').value) || 1000000,
+    };
+
+    fetchJSON('/api/simulator/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    }).then(function(result) {
+        if (result && result.run_id) {
+            currentSimRunId = result.run_id;
+            simPollTimer = setInterval(function() {
+                fetchJSON('/api/simulator/results/' + currentSimRunId).then(function(res) {
+                    if (res && res.status === 'completed') {
+                        clearInterval(simPollTimer);
+                        showSimResults(res);
+                    } else if (res && res.status === 'failed') {
+                        clearInterval(simPollTimer);
+                        btn.disabled = false;
+                        btn.textContent = 'RUN';
+                        document.getElementById('simProgressBar').style.display = 'none';
+                    }
+                });
+            }, 1000);
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'RUN';
+        }
+    });
+}
+
+function showSimResults(data) {
+    var btn = document.getElementById('btnSimRun');
+    btn.disabled = false;
+    btn.textContent = 'RUN';
+    document.getElementById('simProgressBar').style.display = 'none';
+    document.getElementById('simProgressFill').style.width = '100%';
+
+    var results = document.getElementById('simResults');
+    results.style.display = 'flex';
+
+    var ret = data.total_return || 0;
+    var retEl = document.getElementById('simReturn');
+    retEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
+    retEl.className = 'value ' + (ret >= 0 ? 'positive' : 'negative');
+
+    document.getElementById('simSharpe').textContent = (data.sharpe_ratio || 0).toFixed(2);
+    document.getElementById('simMaxDD').textContent = (data.max_drawdown || 0).toFixed(2) + '%';
+    document.getElementById('simTrades').textContent = data.total_trades || 0;
+    document.getElementById('simWinRate').textContent = (data.win_rate || 0).toFixed(1) + '%';
+}
+
+/* ------------------------------------------------------------------ */
+/* Init                                                                */
+/* ------------------------------------------------------------------ */
+document.addEventListener('DOMContentLoaded', function() {
+    initChart();
+    initAgentDots();
+    connectWS();
+});
+</script>
+</body>
+</html>

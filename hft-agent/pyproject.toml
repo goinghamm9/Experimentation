@@ -50,6 +50,14 @@ dependencies = [
     "pydantic-settings>=2.1.0",
     "pyyaml>=6.0.0",
     "python-dotenv>=1.0.0",
+
+    # Dashboard & API
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "jinja2>=3.1.0",
+
+    # Simulator data
+    "yfinance>=0.2.36",
 ]
 
 [project.optional-dependencies]
@@ -63,6 +71,8 @@ dev = [
 
 [project.scripts]
 hft-agent = "hft_agent.main:main"
+hft-dashboard = "dashboard.app:main"
+hft-simulator = "simulator.simulator:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
