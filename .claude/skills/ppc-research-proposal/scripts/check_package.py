@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Quality gate for a research-to-proposal package. Run it before the red team and again before handoff.
+"""Quality gate for a research-to-proposal package. Run it before review and again before handoff.
+Defaults fit the concise first proposal (body 1 to 4 pages); pass --max-body-pages for longer Stage 2 documents.
 
 Usage:
     python3 check_package.py OUT_DIR --docx 06_proposal.docx [--xlsx 04_budget_model.xlsx]
-        [--appendix-heading Appendix] [--max-body-pages 6] [--min-body-pages 4]
-        [--banned-names Samprand,OtherName] [--formula-only-tabs "Tiers,Pilot Plan"]
+        [--appendix-heading Appendix] [--max-body-pages 4] [--min-body-pages 1]
+        [--banned-names Samprand,OtherName] [--formula-only-tabs "Coverage"]
         [--render 1,3,6] [--json report.json]
 
 Checks (each prints PASS, FAIL, or NOTE with evidence):
@@ -226,10 +227,10 @@ def main():
     ap.add_argument("--docx")
     ap.add_argument("--xlsx")
     ap.add_argument("--appendix-heading", default="Appendix")
-    ap.add_argument("--min-body-pages", type=int, default=4)
-    ap.add_argument("--max-body-pages", type=int, default=6)
+    ap.add_argument("--min-body-pages", type=int, default=1)
+    ap.add_argument("--max-body-pages", type=int, default=4)
     ap.add_argument("--banned-names", default="")
-    ap.add_argument("--formula-only-tabs", default="Tiers,Pilot Plan")
+    ap.add_argument("--formula-only-tabs", default="Coverage")
     ap.add_argument("--render", default="")
     ap.add_argument("--json")
     a = ap.parse_args()

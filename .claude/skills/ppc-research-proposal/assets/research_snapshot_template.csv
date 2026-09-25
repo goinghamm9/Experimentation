@@ -1,0 +1,2 @@
+cluster,geography,keyword,searches_low,searches_high,cpc_low,cpc_high,competition,evidence_type,source,date,confidence,priority,notes
+hip_replacement,"Minneapolis-St. Paul DMA","hip replacement surgeon",,,,,,observed|forecast|third_party|benchmark|modeled,"Google Ads Keyword Planner export, 12-month avg",2026-09-25,high|medium|low,1|2|3,"one row per representative keyword or per cluster; leave numbers blank rather than inventing them"

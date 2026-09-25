@@ -19,11 +19,11 @@ SECTIONS = [
     ]},
     {"title": "2. At a glance", "blocks": [
         ("table", ["Item", "Summary"], [
-            ["Recommended entry budget", "$3,000 a month in media (range $2,000 to $4,000) plus the management fee (section 11)."],
+            ["Recommended entry budget", "$X,XXX a month in media (range from the coverage math) plus the management fee (section 7)."],
             ["Time to launch", "3 to 4 weeks from signature, dependent on account access, approvals, and tracking."],
         ], [1.8, 4.7]),
     ]},
-    {"title": "11. Management and setup fees [SENDER TO SET]", "blocks": [
+    {"title": "7. Fees and terms [AGENCY TO SET]", "blocks": [
         ("p", "[Option A, flat retainer. $X,XXX a month plus a one-time setup fee of $X,XXX.]"),
         ("bullets", ["**Term:** 90-day pilot, then month-to-month.", "**Ownership:** the client owns its ad account and data."]),
         ("sig", "Sam Rivera | Founder, Example Agency | [PHONE] | [EMAIL]"),
