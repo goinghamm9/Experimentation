@@ -4,5 +4,6 @@ from .alpaca_broker import AlpacaBroker
 from .base import Broker
 from .ibkr import IBKRBroker
 from .robinhood import RobinhoodBroker
+from .robinhood_mcp import RobinhoodMCPBroker
 
-__all__ = ["Broker", "RobinhoodBroker", "AlpacaBroker", "IBKRBroker"]
+__all__ = ["Broker", "RobinhoodBroker", "RobinhoodMCPBroker", "AlpacaBroker", "IBKRBroker"]

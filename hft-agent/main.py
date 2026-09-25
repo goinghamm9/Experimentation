@@ -37,6 +37,7 @@ from brokers.alpaca_broker import AlpacaBroker
 from brokers.base import Broker
 from brokers.ibkr import IBKRBroker
 from brokers.robinhood import RobinhoodBroker
+from brokers.robinhood_mcp import RobinhoodMCPBroker
 from core.risk.manager import RiskManager
 from core.signals.aggregator import SignalAggregator
 from data.feeds.alpaca_feed import AlpacaDataFeed
@@ -178,7 +179,14 @@ class HFTAgent:
         """Create the appropriate broker instance."""
         primary = self._settings.brokers.primary
 
-        if primary == "robinhood":
+        if primary == "robinhood_mcp":
+            cfg = self._settings.brokers.robinhood_mcp
+            return RobinhoodMCPBroker(
+                mcp_server_url=cfg.server_url,
+                max_retries=cfg.max_retries,
+                request_timeout=cfg.request_timeout,
+            )
+        elif primary == "robinhood":
             return RobinhoodBroker()
         elif primary == "alpaca":
             return AlpacaBroker(
@@ -330,7 +338,7 @@ def main() -> None:
         help="Path to config YAML file",
     )
     parser.add_argument(
-        "--broker", choices=["alpaca", "robinhood", "ibkr"], default=None,
+        "--broker", choices=["alpaca", "robinhood", "robinhood_mcp", "ibkr"], default=None,
         help="Override broker selection",
     )
     args = parser.parse_args()
