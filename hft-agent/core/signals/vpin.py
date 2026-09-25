@@ -58,6 +58,7 @@ class VPIN:
         self._current_bucket_volume: dict[str, float] = {}
         self._current_bucket_buy_volume: dict[str, float] = {}
         self._prev_price: dict[str, float] = {}
+        self._price_changes: dict[str, deque] = {}
 
         # Completed buckets
         self._buy_volumes: dict[str, deque] = {}
@@ -84,6 +85,7 @@ class VPIN:
             self._current_bucket_buy_volume[symbol] = 0.0
             self._buy_volumes[symbol] = deque(maxlen=self._n_buckets)
             self._sell_volumes[symbol] = deque(maxlen=self._n_buckets)
+            self._price_changes[symbol] = deque(maxlen=200)
 
         # BVC classification
         prev_price = self._prev_price.get(symbol)
@@ -91,14 +93,16 @@ class VPIN:
 
         if prev_price is not None and prev_price > 0:
             dp = price - prev_price
-            # Simple BVC: fraction of volume classified as buy
-            # Uses the sign and magnitude of price change
-            sigma = abs(dp) + 1e-10  # Avoid division by zero
+            self._price_changes[symbol].append(dp)
+            if len(self._price_changes[symbol]) >= 5:
+                arr = np.array(self._price_changes[symbol])
+                sigma = float(np.std(arr)) + 1e-10
+            else:
+                sigma = abs(dp) + 1e-10
             z = dp / sigma
-            # CDF of standard normal approximation
             buy_fraction = 0.5 * erfc(-z / sqrt(2))
         else:
-            buy_fraction = 0.5  # No directional info
+            buy_fraction = 0.5
 
         buy_volume = volume * buy_fraction
         sell_volume = volume * (1 - buy_fraction)

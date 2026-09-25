@@ -46,6 +46,7 @@ class EVTTailEstimator:
         self.metaprobability_discount = metaprobability_discount
         self._left_tail: TailEstimate | None = None
         self._right_tail: TailEstimate | None = None
+        self._n_samples: int = 0
 
     def fit(
         self,
@@ -58,6 +59,8 @@ class EVTTailEstimator:
             returns: Array of returns.
             threshold_quantile: Quantile to use as threshold (e.g., 0.95 = top 5%).
         """
+        self._n_samples = len(returns)
+
         # Left tail (losses)
         losses = -returns[returns < 0]
         if len(losses) > 20:
@@ -135,7 +138,8 @@ class EVTTailEstimator:
 
         prob = stats.genpareto.sf(excess, tail.shape, scale=tail.scale)
         # Scale by the fraction of data above threshold
-        return float(prob * (tail.n_exceedances / 1000))  # Approximate
+        n_total = max(self._n_samples, 1)
+        return float(prob * (tail.n_exceedances / n_total))
 
     def expected_shortfall_evt(
         self,

@@ -489,6 +489,12 @@ async def serve_dashboard() -> HTMLResponse:
     return HTMLResponse(content=html_path.read_text())
 
 
+@app.get("/simulator", response_class=HTMLResponse)
+async def serve_simulator() -> HTMLResponse:
+    html_path = TEMPLATE_DIR / "simulator.html"
+    return HTMLResponse(content=html_path.read_text())
+
+
 @app.get("/api/status")
 async def get_status() -> dict[str, Any]:
     return state.snapshot()
@@ -532,11 +538,13 @@ async def run_simulation(body: dict[str, Any]) -> dict[str, Any]:
         symbols=body.get("symbols", ["SPY"]),
         start_date=body.get("start_date", "2024-01-01"),
         end_date=body.get("end_date", "2024-12-31"),
-        initial_capital=body.get("initial_capital", 1_000_000),
+        initial_capital=body.get("initial_capital", 100_000),
         created_at=datetime.now(timezone.utc).isoformat(),
     )
     state.simulation_results[run_id] = result
-    task = asyncio.create_task(_run_simulation(run_id, result))
+    task = asyncio.create_task(
+        _run_real_simulation(run_id, result, body)
+    )
     state._sim_tasks[run_id] = task
     await push_update("simulation", {"run_id": run_id, "status": "running"})
     return {"run_id": run_id, "status": "running"}
@@ -547,7 +555,7 @@ async def get_simulation_results(run_id: str) -> dict[str, Any]:
     result = state.simulation_results.get(run_id)
     if result is None:
         return {"error": "not_found"}
-    return {
+    out: dict[str, Any] = {
         "run_id": result.run_id,
         "status": result.status,
         "symbols": result.symbols,
@@ -563,6 +571,10 @@ async def get_simulation_results(run_id: str) -> dict[str, Any]:
         "equity_curve": result.equity_curve,
         "created_at": result.created_at,
     }
+    extra = getattr(result, "_extra", None)
+    if extra:
+        out["result"] = extra
+    return out
 
 
 @app.post("/api/halt")
@@ -857,54 +869,136 @@ async def websocket_endpoint(ws: WebSocket) -> None:
 # ---------------------------------------------------------------------------
 
 
-async def _run_simulation(run_id: str, result: SimulationResult) -> None:
-    """Run a synthetic simulation and push progress via WebSocket."""
+async def _run_real_simulation(
+    run_id: str, result: SimulationResult, body: dict[str, Any]
+) -> None:
+    """Run a real simulation through the full signal/risk/strategy pipeline."""
     try:
-        equity = result.initial_capital
-        curve: list[dict[str, Any]] = []
-        n_steps = 252
-        wins = 0
-        total_profit = 0.0
-        total_loss = 0.0
-        total_trades = 0
-        peak = equity
+        from copy import deepcopy
 
-        for i in range(n_steps):
-            progress = (i + 1) / n_steps * 100
-            ret = random.gauss(0.0004, 0.012)
-            pnl = equity * ret * 0.25 * 4  # quarter Kelly
-            equity += pnl
-            peak = max(peak, equity)
-            curve.append({
-                "day": i + 1,
-                "equity": round(equity, 2),
-                "pnl": round(pnl, 2),
-            })
-            if random.random() < 0.3:
-                trade_pnl = round(pnl * random.uniform(0.2, 1.0), 2)
-                total_trades += 1
-                if trade_pnl > 0:
-                    wins += 1
-                    total_profit += trade_pnl
-                else:
-                    total_loss += abs(trade_pnl)
-            await asyncio.sleep(0.02)
-            if i % 10 == 0:
-                await push_update("sim_progress", {
-                    "run_id": run_id, "progress": round(progress, 1),
-                })
+        from simulator.simulator import SimulatorEngine
+        from utils.config import load_settings
 
-        total_return = (equity - result.initial_capital) / result.initial_capital * 100
-        max_dd = (peak - min(c["equity"] for c in curve)) / peak * 100 if peak > 0 else 0
+        settings = load_settings()
+        kelly_frac = body.get("kelly_fraction", 0.25)
+        settings.risk.kelly_fraction = kelly_frac
 
+        capital = body.get("initial_capital", 100_000)
+        interval = body.get("interval", "1d")
+
+        await push_update("sim_progress", {"run_id": run_id, "progress": 5})
+
+        engine = SimulatorEngine(
+            initial_capital=capital,
+            settings=settings,
+            ticks_per_bar=20,
+        )
+
+        loop = asyncio.get_event_loop()
+        sim_result = await loop.run_in_executor(
+            None,
+            lambda: engine.run(
+                symbols=result.symbols,
+                start_date=result.start_date,
+                end_date=result.end_date,
+                speed=0.0,
+                interval=interval,
+            ),
+        )
+
+        await push_update("sim_progress", {"run_id": run_id, "progress": 90})
+
+        report = sim_result.backtest_report
         result.status = "completed"
-        result.final_equity = round(equity, 2)
-        result.total_return = round(total_return, 2)
-        result.max_drawdown = round(max_dd, 2)
-        result.total_trades = total_trades
-        result.win_rate = round(wins / total_trades * 100, 1) if total_trades else 0
-        result.sharpe_ratio = round(total_return / max_dd, 2) if max_dd > 0 else 0
-        result.equity_curve = curve
+        result.equity_curve = sim_result.equity_curve
+        result.total_trades = sim_result.total_trades
+        result.final_equity = round(sim_result.equity_curve[-1], 2) if sim_result.equity_curve else capital
+        result.total_return = round(sim_result.total_return * 100, 2)
+        result.win_rate = round(sim_result.win_rate * 100, 1)
+        result.max_drawdown = round((report.max_drawdown if report else 0) * 100, 2)
+        result.sharpe_ratio = round(report.mad_ratio if report else 0, 3)
+
+        extra: dict[str, Any] = {
+            "equity_curve": sim_result.equity_curve,
+            "trades": [
+                {
+                    "timestamp": t.timestamp.isoformat() if hasattr(t.timestamp, "isoformat") else str(t.timestamp),
+                    "symbol": t.symbol,
+                    "side": t.side,
+                    "qty": t.qty,
+                    "price": t.price,
+                    "signal_strength": t.signal_strength,
+                    "regime": t.regime,
+                    "reason": t.reason,
+                }
+                for t in sim_result.trades
+            ],
+            "signals": [
+                {
+                    "timestamp": s.timestamp.isoformat() if hasattr(s.timestamp, "isoformat") else str(s.timestamp),
+                    "symbol": s.symbol,
+                    "name": s.name,
+                    "value": s.value,
+                    "strength": s.strength,
+                    "direction": s.direction,
+                }
+                for s in sim_result.signals[-500:]
+            ],
+            "decisions": [
+                {
+                    "timestamp": d.timestamp.isoformat() if hasattr(d.timestamp, "isoformat") else str(d.timestamp),
+                    "symbol": d.symbol,
+                    "should_trade": d.should_trade,
+                    "reason": d.reason,
+                    "signal_strength": d.signal_strength,
+                    "risk_approved": d.risk_approved,
+                    "kelly_size": d.kelly_size,
+                    "regime": d.regime,
+                }
+                for d in sim_result.decisions[-200:]
+            ],
+            "risk_events": [
+                {
+                    "timestamp": e.timestamp.isoformat() if hasattr(e.timestamp, "isoformat") else str(e.timestamp),
+                    "event_type": e.event_type,
+                    "approved": e.approved,
+                    "reason": e.reason,
+                    "cvar": e.cvar,
+                    "exposure_pct": e.exposure_pct,
+                    "daily_pnl": e.daily_pnl,
+                    "kelly_size": e.kelly_size,
+                }
+                for e in sim_result.risk_events
+                if not e.approved
+            ][-100:],
+        }
+
+        if report:
+            extra["backtest_report"] = {
+                "total_return": report.total_return,
+                "annualized_return": report.annualized_return,
+                "log_growth_rate": report.log_growth_rate,
+                "mad": report.mad,
+                "mad_ratio": report.mad_ratio,
+                "cvar_99": report.cvar_99,
+                "tail_exponent": report.tail_exponent,
+                "max_drawdown": report.max_drawdown,
+                "avg_drawdown": report.avg_drawdown,
+                "calmar_ratio": report.calmar_ratio,
+                "total_trades": report.total_trades,
+                "win_rate": report.win_rate,
+                "avg_win": report.avg_win,
+                "avg_loss": report.avg_loss,
+                "profit_factor": report.profit_factor,
+                "avg_trade_pnl": report.avg_trade_pnl,
+                "optimal_kelly_fraction": report.optimal_kelly_fraction,
+                "optimal_kelly_growth": report.optimal_kelly_growth,
+                "ruin_probability": report.ruin_probability,
+            }
+            extra["returns_series"] = report.returns_series[-2000:]
+            extra["trade_log"] = report.trade_log[-200:]
+
+        result._extra = extra  # type: ignore[attr-defined]
 
         await push_update("sim_complete", {
             "run_id": run_id,
@@ -913,13 +1007,18 @@ async def _run_simulation(run_id: str, result: SimulationResult) -> None:
             "max_drawdown": result.max_drawdown,
             "total_trades": result.total_trades,
             "win_rate": result.win_rate,
-            "sharpe_ratio": result.sharpe_ratio,
         })
 
     except asyncio.CancelledError:
         result.status = "failed"
-    except Exception:
+    except Exception as exc:
         result.status = "failed"
+        import traceback
+        traceback.print_exc()
+        await push_update("sim_error", {
+            "run_id": run_id,
+            "error": str(exc),
+        })
 
 
 # ---------------------------------------------------------------------------
