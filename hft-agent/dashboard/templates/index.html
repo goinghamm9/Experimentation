@@ -3,1485 +3,1143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HFT Agent Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Barbell Engine</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-/* ------------------------------------------------------------------ */
-/* Reset & base                                                       */
-/* ------------------------------------------------------------------ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-    --bg:       #0d1117;
-    --card:     #161b22;
-    --border:   #30363d;
-    --green:    #3fb950;
-    --red:      #f85149;
-    --blue:     #58a6ff;
-    --yellow:   #d29922;
-    --text:     #e6edf3;
-    --text-dim: #8b949e;
-    --text-bright: #ffffff;
-    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    --mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-    --radius: 6px;
-}
-
-html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 13px;
-    line-height: 1.45;
-    overflow-x: hidden;
-}
-
-/* ------------------------------------------------------------------ */
-/* Layout                                                             */
-/* ------------------------------------------------------------------ */
-.dashboard {
-    display: grid;
-    grid-template-rows: 48px 1fr auto;
-    grid-template-columns: 280px 1fr 300px;
-    grid-template-areas:
-        "top    top    top"
-        "left   center right"
-        "bottom bottom bottom";
-    height: 100vh;
-    gap: 1px;
-    background: var(--border);
-}
-
-@media (max-width: 1024px) {
-    .dashboard {
-        grid-template-columns: 1fr;
-        grid-template-rows: 48px auto auto auto auto;
-        grid-template-areas:
-            "top"
-            "left"
-            "center"
-            "right"
-            "bottom";
-        height: auto;
-    }
-}
-
-/* ------------------------------------------------------------------ */
-/* Card                                                               */
-/* ------------------------------------------------------------------ */
-.card {
-    background: var(--card);
-    padding: 12px;
-    overflow: hidden;
-}
-
-.card h3 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-}
-
-/* ------------------------------------------------------------------ */
-/* Top bar                                                            */
-/* ------------------------------------------------------------------ */
-.topbar {
-    grid-area: top;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 0 16px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    z-index: 10;
-}
-
-.topbar .logo {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-bright);
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-}
-
-.topbar .logo span { color: var(--blue); }
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.status-badge.running  { background: rgba(63,185,80,0.15); color: var(--green); }
-.status-badge.halted   { background: rgba(248,81,73,0.15); color: var(--red);   }
-.status-badge.idle     { background: rgba(139,148,158,0.15); color: var(--text-dim); }
-
-.status-badge .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: currentColor;
-    animation: pulse 2s infinite;
-}
-
-.status-badge.halted .dot { animation: none; }
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-.agent-dots {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.agent-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    position: relative;
-}
-
-.agent-dot.running  { background: var(--green); border-color: var(--green); }
-.agent-dot.idle     { background: var(--yellow); border-color: var(--yellow); }
-.agent-dot.error    { background: var(--red); border-color: var(--red); }
-.agent-dot.halted   { background: var(--text-dim); border-color: var(--text-dim); }
-
-.agent-dot .tooltip {
-    display: none;
-    position: absolute;
-    top: 18px; left: 50%;
-    transform: translateX(-50%);
-    background: #1c2128;
-    color: var(--text);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    white-space: nowrap;
-    z-index: 100;
-    border: 1px solid var(--border);
-}
-
-.agent-dot:hover .tooltip { display: block; }
-
-.topbar .clock {
-    margin-left: auto;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    white-space: nowrap;
-}
-
-.topbar .uptime {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    white-space: nowrap;
-}
-
-.topbar .controls {
-    display: flex;
-    gap: 6px;
-}
-
-.btn {
-    padding: 4px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: transparent;
-    color: var(--text);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.btn:hover { background: rgba(255,255,255,0.05); }
-.btn.halt  { border-color: var(--red); color: var(--red); }
-.btn.halt:hover  { background: rgba(248,81,73,0.15); }
-.btn.resume { border-color: var(--green); color: var(--green); }
-.btn.resume:hover { background: rgba(63,185,80,0.15); }
-
-/* ------------------------------------------------------------------ */
-/* Left panel -- Signal gauges                                        */
-/* ------------------------------------------------------------------ */
-.left-panel {
-    grid-area: left;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    overflow-y: auto;
-}
-
-.gauge-card {
-    background: var(--card);
-    padding: 14px;
-}
-
-.gauge-card h3 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-}
-
-.gauge-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.gauge-svg { flex-shrink: 0; }
-
-.gauge-label { flex: 1; min-width: 0; }
-
-.gauge-label .name {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 2px;
-}
-
-.gauge-label .value {
-    font-family: var(--mono);
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-bright);
-}
-
-.signal-selector {
-    background: var(--card);
-    padding: 10px 14px;
-}
-
-.signal-selector select {
-    width: 100%;
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 6px 8px;
-    font-family: var(--font);
-    font-size: 12px;
-}
-
-.regime-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: 6px;
-}
-
-.regime-badge.trending       { background: rgba(63,185,80,0.15); color: var(--green); }
-.regime-badge.mean_reverting { background: rgba(88,166,255,0.15); color: var(--blue);  }
-.regime-badge.random_walk    { background: rgba(139,148,158,0.15); color: var(--text-dim); }
-.regime-badge.toxic          { background: rgba(248,81,73,0.15); color: var(--red);    }
-
-/* ------------------------------------------------------------------ */
-/* Center panel                                                       */
-/* ------------------------------------------------------------------ */
-.center-panel {
-    grid-area: center;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    overflow: hidden;
-}
-
-.portfolio-header {
-    background: var(--card);
-    padding: 14px 16px;
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.metric-box { min-width: 100px; }
-
-.metric-box .label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-dim);
-    margin-bottom: 2px;
-}
-
-.metric-box .value {
-    font-family: var(--mono);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-bright);
-}
-
-.metric-box .value.positive { color: var(--green); }
-.metric-box .value.negative { color: var(--red); }
-
-.chart-container {
-    background: var(--card);
-    padding: 12px;
-    flex: 1;
-    min-height: 220px;
-    position: relative;
-}
-
-.chart-container canvas { width: 100% !important; height: 100% !important; }
-
-.positions-table-wrap {
-    background: var(--card);
-    padding: 12px;
-    overflow-x: auto;
-}
-
-.positions-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-.positions-table th {
-    text-align: left;
-    padding: 6px 8px;
-    color: var(--text-dim);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-}
-
-.positions-table td {
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(48,54,61,0.4);
-    font-family: var(--mono);
-    font-size: 12px;
-    white-space: nowrap;
-}
-
-.positions-table .long  { color: var(--green); }
-.positions-table .short { color: var(--red); }
-.positions-table .positive { color: var(--green); }
-.positions-table .negative { color: var(--red); }
-
-/* ------------------------------------------------------------------ */
-/* Right panel                                                        */
-/* ------------------------------------------------------------------ */
-.right-panel {
-    grid-area: right;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    overflow: hidden;
-}
-
-.activity-feed {
-    background: var(--card);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 200px;
-}
-
-.activity-feed h3 {
-    padding: 12px 12px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    flex-shrink: 0;
-}
-
-.activity-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0 12px 12px;
-}
-
-.activity-item {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(48,54,61,0.3);
-    cursor: pointer;
-}
-
-.activity-item:last-child { border-bottom: none; }
-
-.activity-item .time {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text-dim);
-}
-
-.activity-item .msg {
-    font-size: 12px;
-    color: var(--text);
-    margin-top: 2px;
-    line-height: 1.4;
-}
-
-.activity-item .detail {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 4px;
-    line-height: 1.35;
-    display: none;
-    padding: 6px 8px;
-    background: rgba(13,17,23,0.5);
-    border-radius: 4px;
-    border-left: 2px solid var(--blue);
-}
-
-.activity-item.expanded .detail { display: block; }
-
-.activity-item.warning .msg { color: var(--yellow); }
-.activity-item.critical .msg { color: var(--red); font-weight: 600; }
-
-.risk-panel {
-    background: var(--card);
-    padding: 12px;
-}
-
-.risk-gauge { margin-bottom: 10px; }
-
-.risk-gauge .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 4px;
-}
-
-.risk-gauge .header .name {
-    font-size: 11px;
-    color: var(--text-dim);
-}
-
-.risk-gauge .header .val {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.risk-bar {
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.risk-bar .fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.5s ease;
-}
-
-.risk-bar .fill.green  { background: var(--green); }
-.risk-bar .fill.yellow { background: var(--yellow); }
-.risk-bar .fill.red    { background: var(--red); }
-.risk-bar .fill.blue   { background: var(--blue); }
-
-/* ------------------------------------------------------------------ */
-/* Bottom panel -- Simulator                                          */
-/* ------------------------------------------------------------------ */
-.bottom-panel {
-    grid-area: bottom;
-    background: var(--card);
-    padding: 12px 16px;
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    border-top: 1px solid var(--border);
-}
-
-.bottom-panel h3 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    width: 100%;
-    margin-bottom: 0;
-}
-
-.sim-field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.sim-field label {
-    font-size: 10px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.sim-field input, .sim-field select {
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 5px 8px;
-    font-family: var(--mono);
-    font-size: 12px;
-    width: 140px;
-}
-
-.sim-field input:focus, .sim-field select:focus {
-    outline: none;
-    border-color: var(--blue);
-}
-
-.btn.sim-run {
-    border-color: var(--blue);
-    color: var(--blue);
-    padding: 5px 18px;
-    align-self: flex-end;
-}
-
-.btn.sim-run:hover { background: rgba(88,166,255,0.15); }
-.btn.sim-run:disabled { opacity: 0.4; cursor: default; }
-
-.sim-results {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.sim-metric { text-align: center; }
-
-.sim-metric .label {
-    font-size: 10px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-}
-
-.sim-metric .value {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-bright);
-}
-
-.sim-metric .value.positive { color: var(--green); }
-.sim-metric .value.negative { color: var(--red); }
-
-.sim-progress-bar {
-    width: 120px;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-    align-self: center;
-}
-
-.sim-progress-bar .fill {
-    height: 100%;
-    background: var(--blue);
-    border-radius: 2px;
-    transition: width 0.3s;
-    width: 0%;
-}
-
-/* ------------------------------------------------------------------ */
-/* Scrollbar                                                          */
-/* ------------------------------------------------------------------ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #484f58; }
-
-/* ------------------------------------------------------------------ */
-/* Connection indicator                                               */
-/* ------------------------------------------------------------------ */
-.ws-status {
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.ws-status .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-}
-
-.ws-status.connected .dot    { background: var(--green); }
-.ws-status.disconnected .dot { background: var(--red); }
-.ws-status.connecting .dot   { background: var(--yellow); animation: pulse 1s infinite; }
+  --bg: #0d1117;
+  --card: #161b22;
+  --card2: #1c2129;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --green: #3fb950;
+  --red: #f85149;
+  --blue: #58a6ff;
+  --amber: #d29922;
+  --purple: #bc8cff;
+  --cyan: #39c5cf;
+  --grey: #6e7681;
+  --radius: 8px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+a { color: var(--blue); }
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+code { background: var(--card2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; overflow-x: auto; white-space: pre; margin: 6px 0 0; }
+.num, td.n, th.n { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.warn { color: var(--amber); }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h2 { font-size: 15px; }
+h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+p { margin: 6px 0; }
+
+/* header */
+header { border-bottom: 1px solid var(--border); background: var(--card); position: sticky; top: 0; z-index: 10; }
+.hwrap { max-width: 1280px; margin: 0 auto; padding: 10px 16px 0; }
+.brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.brand h1 { font-size: 16px; }
+.brand .tag { color: var(--muted); font-size: 12px; }
+@media (max-width: 600px) { .brand .tag { display: none; } }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; margin-top: 8px; scrollbar-width: none; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs a { color: var(--muted); text-decoration: none; padding: 8px 12px; border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+nav.tabs a:hover { color: var(--text); }
+nav.tabs a.active { color: var(--text); border-bottom-color: var(--amber); }
+
+main { max-width: 1280px; margin: 0 auto; padding: 16px; }
+section.tab { display: none; }
+section.tab.active { display: block; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid2 > .card { margin-bottom: 0; }
+.grid2 + .card, .grid2 + .grid2 { margin-top: 16px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.grid2.gt { grid-template-columns: minmax(0, 260px) minmax(0, 1fr); }
+@media (max-width: 860px) { .grid2, .grid2.gt { grid-template-columns: minmax(0, 1fr); } }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.kpi { background: var(--card2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+.kpi .l { color: var(--muted); font-size: 12px; }
+.kpi .v { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi .s { color: var(--muted); font-size: 11.5px; }
+
+.chartbox { position: relative; height: 320px; width: 100%; }
+.chartbox.sm { height: 220px; }
+.chartbox.donut { height: 200px; max-width: 260px; margin: 0 auto; }
+@media (max-width: 600px) { .chartbox { height: 260px; } }
+
+.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 500; background: var(--card2); position: sticky; top: 0; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.reason { color: var(--muted); font-size: 12px; min-width: 260px; }
+tr.sub td { padding-top: 0; color: var(--muted); font-size: 12px; }
+tr.has-sub td { border-bottom: none; }
+table.metrics th:first-child, table.metrics td:first-child { position: sticky; left: 0; background: var(--card); z-index: 1; min-width: 190px; }
+table.metrics th:first-child { background: var(--card2); z-index: 2; }
+table.metrics td.strat { color: var(--blue); font-weight: 600; }
+th.colname { white-space: normal; min-width: 110px; text-align: right; }
+
+.alert { border-radius: 6px; padding: 10px 12px; border: 1px solid; margin-bottom: 12px; }
+.alert.err { border-color: rgba(248,81,73,.5); background: rgba(248,81,73,.1); color: #ffb1ab; }
+.alert.warnbox { border-color: rgba(210,153,34,.5); background: rgba(210,153,34,.1); }
+.alert.warnbox ul { margin: 4px 0 0; padding-left: 18px; }
+.alert.info { border-color: rgba(88,166,255,.4); background: rgba(88,166,255,.08); }
+.alert.ok { border-color: rgba(63,185,80,.45); background: rgba(63,185,80,.08); }
+.blocked { border: 2px solid var(--red); background: rgba(248,81,73,.14); color: var(--text); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.blocked strong { color: var(--red); font-size: 18px; display: block; letter-spacing: .02em; }
+
+.verdict { border-left: 4px solid var(--amber); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 14px 16px; margin-bottom: 16px; font-size: 15px; }
+.verdict.bad { border-left-color: var(--red); }
+.verdict.good { border-left-color: var(--green); }
+.verdict .headline { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+
+.empty { border: 1px dashed var(--border); border-radius: var(--radius); padding: 22px; text-align: center; color: var(--muted); }
+.empty strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+form .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+label.f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); min-width: 0; }
+label.f.grow { flex: 1 1 220px; }
+label.chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+input[type=text], input[type=number], input[type=date] {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; min-width: 0; width: 100%;
+}
+input:focus { outline: 2px solid rgba(88,166,255,.5); border-color: var(--blue); }
+label.f.w-s { width: 120px; } label.f.w-m { width: 160px; }
+button, .btn {
+  background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+}
+button:hover { border-color: var(--muted); }
+button.primary { background: #238636; border-color: rgba(240,246,252,.1); color: #fff; }
+button.primary:hover { background: #2ea043; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.link { background: none; border: none; color: var(--blue); padding: 0; }
+button.x { padding: 4px 9px; color: var(--muted); }
+button.info { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; width: 18px; height: 18px; padding: 0; font-size: 11px; line-height: 16px; text-align: center; margin-left: 5px; font-style: italic; font-family: Georgia, serif; vertical-align: 1px; }
+button.info:hover { color: var(--blue); border-color: var(--blue); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+.progress { height: 8px; background: var(--card2); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.progress > div { height: 100%; background: var(--blue); width: 0; transition: width .3s; }
+.progress.indet > div { width: 30%; animation: indet 1.2s infinite linear; }
+@keyframes indet { from { margin-left: -30%; } to { margin-left: 100%; } }
+
+details.panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
+details.panel > summary { padding: 10px 16px; cursor: pointer; font-weight: 600; }
+details.panel > .inner { padding: 0 16px 14px; }
+
+.badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11.5px; font-weight: 600; border: 1px solid; }
+.badge.buy { color: var(--green); border-color: rgba(63,185,80,.5); }
+.badge.sell { color: var(--red); border-color: rgba(248,81,73,.5); }
+.badge.neutral { color: var(--muted); border-color: var(--border); }
+
+.bars .b { display: grid; grid-template-columns: minmax(0, 1fr) 60px; gap: 4px 10px; align-items: center; margin-bottom: 10px; }
+.bars .name { grid-column: 1 / 3; font-size: 12.5px; }
+.bars .track { position: relative; height: 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 3px; }
+.bars .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; }
+.bars .mid { position: absolute; left: 50%; top: -4px; bottom: -4px; border-left: 1px dashed var(--muted); }
+.bars .val { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+
+ul.checks { list-style: none; padding: 0; margin: 0; }
+ul.checks li { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+ul.checks li:last-child { border-bottom: none; }
+ul.checks .ic { width: 18px; flex: none; font-weight: 700; text-align: center; }
+
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+.steps li { counter-increment: s; position: relative; padding: 8px 0 8px 38px; border-bottom: 1px solid var(--border); }
+.steps li:last-child { border-bottom: none; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border); text-align: center; line-height: 24px; font-weight: 600; }
+
+.concepts { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+@media (max-width: 400px) { .concepts { grid-template-columns: minmax(0, 1fr); } }
+.concept { margin-bottom: 0; }
+.concept h2 { margin-bottom: 6px; }
+.concept .why { color: var(--muted); }
+.concept .src { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 6px; margin-top: 8px; }
+.concept .key { font-size: 11px; color: var(--grey); }
+
+dialog { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); max-width: min(520px, calc(100vw - 32px)); padding: 16px 18px; }
+dialog::backdrop { background: rgba(1,4,9,.7); }
+
+.pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+.legend-note { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+footer { max-width: 1280px; margin: 0 auto; padding: 8px 16px 24px; color: var(--grey); font-size: 12px; }
 </style>
 </head>
 <body>
+<header>
+  <div class="hwrap">
+    <div class="brand">
+      <h1>Barbell Engine</h1>
+      <span class="tag">T-bills plus a small, capped trend-following sleeve sized by expected shortfall. Daily rebalancing research tool, not high-frequency trading.</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <a href="#backtest" data-tab="backtest">Backtest</a>
+      <a href="#plan" data-tab="plan">Today's plan</a>
+      <a href="#paper" data-tab="paper">Paper account</a>
+      <a href="#robinhood" data-tab="robinhood">Robinhood</a>
+      <a href="#concepts" data-tab="concepts">Concepts</a>
+    </nav>
+  </div>
+</header>
 
-<div class="dashboard">
+<main>
+  <!-- BACKTEST -->
+  <section class="tab" id="tab-backtest">
+    <details class="panel" id="bt-form-panel">
+      <summary>Run new backtest</summary>
+      <div class="inner">
+        <p class="muted small">Runs a walk-forward test: each year, parameters are picked using only the previous years, then tested on the next year they have never seen. Only those unseen years are stitched into the "out-of-sample" result. Starting a run replaces the saved result.</p>
+        <form id="bt-form" autocomplete="off">
+          <div class="row">
+            <label class="f w-m">Start date<input type="date" name="start" value="2007-06-01" required></label>
+            <label class="f w-m">End date (optional)<input type="date" name="end"></label>
+            <label class="f w-m">Capital ($)<input type="number" name="capital" value="100000" min="1" step="any" required></label>
+            <label class="f w-s">Train years<input type="number" name="train_years" value="3" min="1" max="20" step="1" required></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <label class="f grow">Symbols (comma list, optional; blank = configured universe)<input type="text" name="symbols" placeholder="e.g. SPY, QQQ, TLT, GLD"></label>
+            <label class="f grow">CSV path (optional; blank = download prices)<input type="text" name="csv_path" placeholder="/path/to/prices.csv"></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <label class="chk"><input type="checkbox" name="hedge"> Include simulated put-option tail hedge</label>
+            <span style="flex:1"></span>
+            <button type="submit" class="primary" id="bt-submit">Run backtest</button>
+          </div>
+        </form>
+        <div id="bt-progress" hidden>
+          <div class="small" id="bt-progress-msg"></div>
+          <div class="progress" id="bt-progress-bar"><div></div></div>
+        </div>
+        <div id="bt-form-err"></div>
+      </div>
+    </details>
+    <div id="bt-content"><div class="empty"><span class="spinner"></span>Loading latest backtest…</div></div>
+  </section>
 
-    <!-- ============================================================ -->
-    <!-- TOP BAR                                                       -->
-    <!-- ============================================================ -->
-    <header class="topbar">
-        <div class="logo"><span>HFT</span> Agent</div>
-        <div id="systemStatus" class="status-badge idle">
-            <span class="dot"></span>
-            <span class="label">IDLE</span>
+  <!-- PLAN -->
+  <section class="tab" id="tab-plan">
+    <div class="alert info">This page never places orders. To execute on Robinhood, open Claude Code in this folder and run the <code>robinhood-rebalance</code> skill; Claude will ask you to confirm every order.</div>
+    <div class="card">
+      <div class="card-head"><h2>Your current account</h2></div>
+      <p class="muted small">Enter what you hold now. The engine downloads the latest prices, computes the barbell target and lists the orders that would move you there, then runs safety checks.</p>
+      <form id="plan-form" autocomplete="off">
+        <div class="row">
+          <label class="f w-m">Cash ($)<input type="number" name="cash" min="0" step="any" value="0"></label>
         </div>
-        <div class="agent-dots" id="agentDots"></div>
-        <div class="ws-status disconnected" id="wsStatus">
-            <span class="dot"></span>
-            <span id="wsLabel">WS</span>
+        <div style="margin-top:12px">
+          <h3>Positions</h3>
+          <div id="pos-rows"></div>
+          <button type="button" id="pos-add" style="margin-top:6px">+ Add position</button>
         </div>
-        <div class="controls">
-            <button class="btn halt" id="btnHalt" onclick="haltTrading()">HALT</button>
-            <button class="btn resume" id="btnResume" onclick="resumeTrading()">RESUME</button>
+        <div class="row" style="margin-top:14px">
+          <button type="submit" class="primary" id="plan-submit">Build plan from these holdings</button>
+          <button type="button" id="plan-paper">Use paper account instead</button>
         </div>
-        <span class="uptime" id="uptime">00:00:00</span>
-        <span class="clock" id="clock"></span>
-    </header>
+      </form>
+      <div id="plan-status" style="margin-top:10px"></div>
+    </div>
+    <div id="plan-content"></div>
+  </section>
 
-    <!-- ============================================================ -->
-    <!-- LEFT PANEL -- Signals                                         -->
-    <!-- ============================================================ -->
-    <aside class="left-panel">
-        <div class="signal-selector">
-            <select id="symbolSelect" onchange="selectSymbol(this.value)"></select>
-        </div>
-        <div class="gauge-card">
-            <h3>Order Flow Imbalance</h3>
-            <div class="gauge-row">
-                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
-                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
-                    <path id="gaugeArcOFI" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--blue)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
-                </svg>
-                <div class="gauge-label">
-                    <div class="name">OFI</div>
-                    <div class="value" id="valOFI">0.000</div>
-                </div>
-            </div>
-        </div>
-        <div class="gauge-card">
-            <h3>Hurst Exponent</h3>
-            <div class="gauge-row">
-                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
-                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
-                    <path id="gaugeArcHurst" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--yellow)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
-                </svg>
-                <div class="gauge-label">
-                    <div class="name">Hurst</div>
-                    <div class="value" id="valHurst">0.500</div>
-                    <div class="regime-badge random_walk" id="regimeBadge">RANDOM WALK</div>
-                </div>
-            </div>
-        </div>
-        <div class="gauge-card">
-            <h3>VPIN Toxicity</h3>
-            <div class="gauge-row">
-                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
-                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
-                    <path id="gaugeArcVPIN" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
-                </svg>
-                <div class="gauge-label">
-                    <div class="name">VPIN</div>
-                    <div class="value" id="valVPIN">0.000</div>
-                </div>
-            </div>
-        </div>
-        <div class="gauge-card">
-            <h3>Multifractal Width</h3>
-            <div class="gauge-row">
-                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
-                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
-                    <path id="gaugeArcMF" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--blue)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
-                </svg>
-                <div class="gauge-label">
-                    <div class="name">Multifractal</div>
-                    <div class="value" id="valMF">0.000</div>
-                </div>
-            </div>
-        </div>
-        <div class="gauge-card">
-            <h3>Composite Signal</h3>
-            <div class="gauge-row">
-                <svg class="gauge-svg" width="80" height="50" viewBox="0 0 80 50">
-                    <path d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5" stroke-linecap="round"/>
-                    <path id="gaugeArcComp" d="M 8 46 A 36 36 0 0 1 72 46" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200"/>
-                </svg>
-                <div class="gauge-label">
-                    <div class="name">Composite</div>
-                    <div class="value" id="valComp">+0.000</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+  <!-- PAPER -->
+  <section class="tab" id="tab-paper">
+    <div id="paper-content"><div class="empty"><span class="spinner"></span>Loading paper account…</div></div>
+  </section>
 
-    <!-- ============================================================ -->
-    <!-- CENTER PANEL                                                  -->
-    <!-- ============================================================ -->
-    <main class="center-panel">
-        <div class="portfolio-header">
-            <div class="metric-box">
-                <div class="label">Total Equity</div>
-                <div class="value" id="metricEquity">$0.00</div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Daily P&amp;L</div>
-                <div class="value" id="metricPnl">$0.00</div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Daily Return</div>
-                <div class="value" id="metricReturn">0.00%</div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Cash</div>
-                <div class="value" id="metricCash">$0.00</div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Max Drawdown</div>
-                <div class="value" id="metricDrawdown">0.00%</div>
-            </div>
-        </div>
+  <!-- ROBINHOOD -->
+  <section class="tab" id="tab-robinhood">
+    <div class="card">
+      <div class="card-head"><h2>How real orders get placed</h2></div>
+      <p class="muted">This dashboard is read-only for your brokerage. Execution happens in Claude Code through Robinhood's official MCP server, with you confirming each order.</p>
+      <ol class="steps">
+        <li><strong>Fund the Agentic account.</strong> In the Robinhood app, open and fund the account Robinhood designates for agent trading. Only put in money you are prepared to have traded by this strategy.</li>
+        <li><strong>Connect Claude Code to Robinhood.</strong> In a terminal, in this folder, run:<pre>claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading</pre>Claude Code will ask you to log in to Robinhood the first time it uses it.</li>
+        <li><strong>Make a plan.</strong> Run <code>python -m engine plan</code> (or the <em>Today's plan</em> tab), or ask Claude Code to run the <code>robinhood-rebalance</code> skill, which reads your real positions and builds the same plan.</li>
+        <li><strong>Confirm each order.</strong> Claude shows every order with its reason and waits for your yes before sending it. If the plan is BLOCKED (for example, stale prices), nothing should be sent.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Robinhood MCP tools</h2></div>
+      <p class="muted small">Tool names are <strong>discovered</strong> from the Robinhood server at run time and saved here, not hard-coded in the engine. If Robinhood renames a tool, re-run discovery.</p>
+      <div id="rh-content"><div class="empty"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </section>
 
-        <div class="chart-container">
-            <canvas id="equityChart"></canvas>
-        </div>
+  <!-- CONCEPTS -->
+  <section class="tab" id="tab-concepts">
+    <p class="muted">The ideas the engine is built on, in plain language, with where they come from.</p>
+    <div id="concepts-content"><div class="empty"><span class="spinner"></span>Loading…</div></div>
+  </section>
+</main>
+<footer>Runs on your machine only. There is no login, so keep the server bound to localhost. Every number on this page comes from the engine's saved output; nothing is simulated in the browser.</footer>
 
-        <div class="positions-table-wrap">
-            <h3 style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:8px;">Open Positions</h3>
-            <table class="positions-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Side</th>
-                        <th>Qty</th>
-                        <th>Entry</th>
-                        <th>Current</th>
-                        <th>Unreal. P&amp;L</th>
-                        <th>P&amp;L %</th>
-                    </tr>
-                </thead>
-                <tbody id="positionsBody"></tbody>
-            </table>
-        </div>
-    </main>
+<dialog id="concept-dlg">
+  <div id="concept-dlg-body"></div>
+  <div style="text-align:right;margin-top:12px"><button type="button" onclick="document.getElementById('concept-dlg').close()">Close</button></div>
+</dialog>
 
-    <!-- ============================================================ -->
-    <!-- RIGHT PANEL                                                   -->
-    <!-- ============================================================ -->
-    <aside class="right-panel">
-        <div class="risk-panel">
-            <h3>Risk Metrics</h3>
-            <div class="risk-gauge">
-                <div class="header">
-                    <span class="name">Exposure</span>
-                    <span class="val" id="riskExposure">0.0%</span>
-                </div>
-                <div class="risk-bar"><div class="fill green" id="barExposure" style="width:0%"></div></div>
-            </div>
-            <div class="risk-gauge">
-                <div class="header">
-                    <span class="name">CVaR (95%)</span>
-                    <span class="val" id="riskCvar">$0</span>
-                </div>
-                <div class="risk-bar"><div class="fill yellow" id="barCvar" style="width:0%"></div></div>
-            </div>
-            <div class="risk-gauge">
-                <div class="header">
-                    <span class="name">Daily P&amp;L</span>
-                    <span class="val" id="riskDailyPnl">$0</span>
-                </div>
-                <div class="risk-bar"><div class="fill blue" id="barDailyPnl" style="width:0%"></div></div>
-            </div>
-            <div class="risk-gauge">
-                <div class="header">
-                    <span class="name">Drawdown</span>
-                    <span class="val" id="riskDrawdown">0.0%</span>
-                </div>
-                <div class="risk-bar"><div class="fill red" id="barDrawdown" style="width:0%"></div></div>
-            </div>
-            <div class="risk-gauge">
-                <div class="header">
-                    <span class="name">Sharpe Ratio</span>
-                    <span class="val" id="riskSharpe">0.00</span>
-                </div>
-                <div class="risk-bar"><div class="fill green" id="barSharpe" style="width:0%"></div></div>
-            </div>
-        </div>
-
-        <div class="activity-feed">
-            <h3>Activity Feed</h3>
-            <div class="activity-list" id="activityList"></div>
-        </div>
-    </aside>
-
-    <!-- ============================================================ -->
-    <!-- BOTTOM PANEL -- Simulator                                     -->
-    <!-- ============================================================ -->
-    <footer class="bottom-panel">
-        <h3>Backtest Simulator</h3>
-        <div class="sim-field">
-            <label>Symbols</label>
-            <input type="text" id="simSymbols" value="SPY" placeholder="SPY,QQQ">
-        </div>
-        <div class="sim-field">
-            <label>Start Date</label>
-            <input type="date" id="simStart" value="2024-01-01">
-        </div>
-        <div class="sim-field">
-            <label>End Date</label>
-            <input type="date" id="simEnd" value="2024-12-31">
-        </div>
-        <div class="sim-field">
-            <label>Capital ($)</label>
-            <input type="number" id="simCapital" value="1000000" step="100000">
-        </div>
-        <button class="btn sim-run" id="btnSimRun" onclick="runSimulation()">RUN</button>
-        <div class="sim-progress-bar" id="simProgressBar" style="display:none">
-            <div class="fill" id="simProgressFill"></div>
-        </div>
-        <div class="sim-results" id="simResults" style="display:none">
-            <div class="sim-metric"><div class="label">Return</div><div class="value" id="simReturn">--</div></div>
-            <div class="sim-metric"><div class="label">Sharpe</div><div class="value" id="simSharpe">--</div></div>
-            <div class="sim-metric"><div class="label">Max DD</div><div class="value" id="simMaxDD">--</div></div>
-            <div class="sim-metric"><div class="label">Trades</div><div class="value" id="simTrades">--</div></div>
-            <div class="sim-metric"><div class="label">Win Rate</div><div class="value" id="simWinRate">--</div></div>
-        </div>
-    </footer>
-
-</div>
-
-<!-- ================================================================ -->
-<!-- JavaScript                                                        -->
-<!-- ================================================================ -->
 <script>
-/* ------------------------------------------------------------------ */
-/* State                                                               */
-/* ------------------------------------------------------------------ */
-var ws = null;
-var reconnectTimer = null;
-var reconnectDelay = 1000;
-var selectedSymbol = 'SPY';
-var equityChart = null;
-var currentSimRunId = null;
-var simPollTimer = null;
-
-/* ------------------------------------------------------------------ */
-/* Clock                                                               */
-/* ------------------------------------------------------------------ */
-function updateClock() {
-    var now = new Date();
-    document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {
-        hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
-    }) + ' UTC';
+'use strict';
+/* ---------------- helpers ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-setInterval(updateClock, 1000);
-updateClock();
+const isNum = v => typeof v === 'number' && Number.isFinite(v);
+const DASH = '—';
+function pct(v, d = 1) { return isNum(v) ? (v * 100).toFixed(d) + '%' : DASH; }
+function spct(v, d = 1) { return isNum(v) ? (v > 0 ? '+' : '') + (v * 100).toFixed(d) + '%' : DASH; }
+function num(v, d = 2) { return isNum(v) ? v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) : DASH; }
+function usd(v, d = 2) { return isNum(v) ? (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) : DASH; }
+function signCls(v) { return isNum(v) ? (v > 0 ? 'pos' : v < 0 ? 'neg' : '') : ''; }
+function fmtDate(s) { if (!s) return DASH; const d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleString(); }
+function errBox(msg) { return `<div class="alert err"><strong>Error:</strong> ${esc(msg)}</div>`; }
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-/* ------------------------------------------------------------------ */
-/* Formatting helpers                                                  */
-/* ------------------------------------------------------------------ */
-function fmtMoney(v) {
-    if (v == null) return '--';
-    var abs = Math.abs(v);
-    var sign = v < 0 ? '-' : '';
-    if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
-    return sign + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function fmtPct(v) {
-    if (v == null) return '--';
-    return v.toFixed(2) + '%';
-}
-
-function fmtTime(iso) {
-    if (!iso) return '';
-    var d = new Date(iso);
-    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-/* ------------------------------------------------------------------ */
-/* SVG arc gauge helpers                                               */
-/* ------------------------------------------------------------------ */
-/* The arc path is a semicircle from (8,46) to (72,46) with radius 36.
-   Its total length is pi * 36 ~= 113.1 */
-var ARC_LEN = Math.PI * 36;
-
-function setGauge(id, fraction, color) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    var clamped = Math.max(0, Math.min(1, fraction));
-    var dashLen = clamped * ARC_LEN;
-    el.setAttribute('stroke-dasharray', dashLen + ' ' + ARC_LEN);
-    if (color) el.setAttribute('stroke', color);
-}
-
-function updateGaugeOFI(v) {
-    var frac = Math.abs(v);
-    var color = v > 0.3 ? 'var(--green)' : v < -0.3 ? 'var(--red)' : 'var(--blue)';
-    setGauge('gaugeArcOFI', frac, color);
-    document.getElementById('valOFI').textContent = v.toFixed(3);
-}
-
-function updateGaugeHurst(v, regime) {
-    setGauge('gaugeArcHurst', v,
-        v > 0.55 ? 'var(--green)' : v < 0.45 ? 'var(--blue)' : 'var(--yellow)');
-    document.getElementById('valHurst').textContent = v.toFixed(3);
-    var badge = document.getElementById('regimeBadge');
-    if (badge && regime) {
-        badge.textContent = regime.toUpperCase().replace(/_/g, ' ');
-        badge.className = 'regime-badge ' + regime;
-    }
-}
-
-function updateGaugeVPIN(v) {
-    setGauge('gaugeArcVPIN', v,
-        v > 0.75 ? 'var(--red)' : v > 0.5 ? 'var(--yellow)' : 'var(--green)');
-    document.getElementById('valVPIN').textContent = v.toFixed(3);
-}
-
-function updateGaugeMF(v) {
-    setGauge('gaugeArcMF', v,
-        v > 0.7 ? 'var(--yellow)' : 'var(--blue)');
-    document.getElementById('valMF').textContent = v.toFixed(3);
-}
-
-function updateGaugeComposite(v) {
-    var frac = (v + 1) / 2;
-    setGauge('gaugeArcComp', frac,
-        v > 0.3 ? 'var(--green)' : v < -0.3 ? 'var(--red)' : 'var(--text-dim)');
-    document.getElementById('valComp').textContent = (v >= 0 ? '+' : '') + v.toFixed(3);
-}
-
-/* ------------------------------------------------------------------ */
-/* Equity chart (Chart.js)                                             */
-/* ------------------------------------------------------------------ */
-function initChart() {
-    var ctx = document.getElementById('equityChart').getContext('2d');
-    equityChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Equity',
-                data: [],
-                borderColor: '#58a6ff',
-                backgroundColor: 'rgba(88,166,255,0.08)',
-                fill: true,
-                borderWidth: 1.5,
-                pointRadius: 0,
-                tension: 0.3,
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 0 },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1c2128',
-                    borderColor: '#30363d',
-                    borderWidth: 1,
-                    titleColor: '#8b949e',
-                    bodyColor: '#e6edf3',
-                    bodyFont: { family: "'SF Mono', 'Consolas', monospace", size: 12 },
-                    callbacks: {
-                        label: function(ctx) { return fmtMoney(ctx.raw); },
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    display: true,
-                    grid: { color: 'rgba(48,54,61,0.4)', drawBorder: false },
-                    ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 8 },
-                },
-                y: {
-                    display: true,
-                    grid: { color: 'rgba(48,54,61,0.4)', drawBorder: false },
-                    ticks: {
-                        color: '#8b949e',
-                        font: { size: 10 },
-                        callback: function(v) { return '$' + (v/1000).toFixed(0) + 'k'; },
-                    },
-                },
-            },
-        },
+async function api(path, opts = {}) {
+  let r;
+  try {
+    r = await fetch(path, {
+      method: opts.method || 'GET',
+      headers: opts.body !== undefined ? { 'Content-Type': 'application/json' } : {},
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     });
+  } catch (e) {
+    throw new Error('Could not reach the dashboard server. Is `python -m engine serve` still running?');
+  }
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* non-JSON */ }
+  if (!r.ok) {
+    let d = data && data.detail;
+    if (Array.isArray(d)) d = d.map(e => ((e.loc || []).slice(1).join('.') || 'input') + ': ' + e.msg).join('; ');
+    else if (d && typeof d === 'object') d = JSON.stringify(d);
+    throw new Error(d || `HTTP ${r.status} ${r.statusText}`);
+  }
+  return data;
 }
 
-function pushEquityPoint(t, equity) {
-    if (!equityChart) return;
-    var label = new Date(t).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    equityChart.data.labels.push(label);
-    equityChart.data.datasets[0].data.push(equity);
-    if (equityChart.data.labels.length > 200) {
-        equityChart.data.labels.shift();
-        equityChart.data.datasets[0].data.shift();
-    }
-    equityChart.update('none');
+/* ---------------- charts ---------------- */
+const charts = {};
+function mkChart(id, config) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const el = document.getElementById(id);
+  if (!el || typeof Chart === 'undefined') return null;
+  charts[id] = new Chart(el, config);
+  return charts[id];
 }
-
-function loadEquityCurve(curve) {
-    if (!equityChart || !curve || !curve.length) return;
-    equityChart.data.labels = curve.map(function(p) {
-        return new Date(p.t).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    });
-    equityChart.data.datasets[0].data = curve.map(function(p) { return p.equity; });
-    equityChart.update('none');
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.color = css('--muted');
+  Chart.defaults.borderColor = 'rgba(48,54,61,.8)';
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 11.5;
+  Chart.defaults.animation = false;
+  Chart.defaults.plugins.legend.labels.boxWidth = 10;
+  Chart.defaults.plugins.legend.labels.boxHeight = 10;
 }
-
-/* ------------------------------------------------------------------ */
-/* Agent dots                                                          */
-/* ------------------------------------------------------------------ */
-var AGENT_NAMES = ['market_data', 'signal', 'risk', 'execution', 'portfolio'];
-var AGENT_LABELS = ['Data Feed', 'Signal', 'Risk', 'Execution', 'Portfolio'];
-
-function initAgentDots() {
-    var container = document.getElementById('agentDots');
-    container.innerHTML = '';
-    AGENT_NAMES.forEach(function(name, i) {
-        var dot = document.createElement('div');
-        dot.className = 'agent-dot idle';
-        dot.id = 'agentDot_' + name;
-        dot.innerHTML = '<span class="tooltip">' + AGENT_LABELS[i] + ': idle</span>';
-        container.appendChild(dot);
-    });
+const STRAT = 'Strategy (out-of-sample)';
+function seriesColor(name, i) {
+  if (name === STRAT) return css('--blue');
+  if (name.startsWith('Naive barbell (matched')) return css('--amber');
+  if (name.startsWith('Naive barbell')) return css('--purple');
+  if (name.startsWith('Equal-weight')) return css('--cyan');
+  if (name.startsWith('Benchmark')) return css('--grey');
+  return [css('--green'), css('--red'), '#f778ba'][i % 3];
 }
+const dateTicks = { maxTicksLimit: 8, maxRotation: 0, autoSkip: true };
 
-function updateAgentDots(agents) {
-    if (!agents) return;
-    Object.keys(agents).forEach(function(name) {
-        var info = agents[name];
-        var dot = document.getElementById('agentDot_' + name);
-        if (!dot) return;
-        var st = info.state || 'idle';
-        dot.className = 'agent-dot ' + st;
-        var idx = AGENT_NAMES.indexOf(name);
-        var label = idx >= 0 ? AGENT_LABELS[idx] : name;
-        dot.querySelector('.tooltip').textContent = label + ': ' + st +
-            (info.messages_processed ? ' (' + info.messages_processed.toLocaleString() + ' msgs)' : '');
-    });
-}
-
-/* ------------------------------------------------------------------ */
-/* Positions table                                                     */
-/* ------------------------------------------------------------------ */
-function renderPositions(positions) {
-    var tbody = document.getElementById('positionsBody');
-    if (!tbody || !positions) return;
-    tbody.innerHTML = '';
-    positions.forEach(function(p) {
-        var pnlClass = p.unrealized_pnl >= 0 ? 'positive' : 'negative';
-        var sideClass = p.side === 'long' ? 'long' : 'short';
-        var pnlPct = p.pnl_pct || 0;
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-            '<td>' + p.symbol + '</td>' +
-            '<td class="' + sideClass + '">' + p.side.toUpperCase() + '</td>' +
-            '<td>' + p.qty + '</td>' +
-            '<td>' + fmtMoney(p.entry_price) + '</td>' +
-            '<td>' + fmtMoney(p.current_price) + '</td>' +
-            '<td class="' + pnlClass + '">' + fmtMoney(p.unrealized_pnl) + '</td>' +
-            '<td class="' + pnlClass + '">' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%</td>';
-        tbody.appendChild(tr);
-    });
-}
-
-/* ------------------------------------------------------------------ */
-/* Risk panel                                                          */
-/* ------------------------------------------------------------------ */
-function updateRisk(risk) {
-    if (!risk) return;
-
-    var exposure = risk.exposure_pct || 0;
-    document.getElementById('riskExposure').textContent = fmtPct(exposure);
-    var barExp = document.getElementById('barExposure');
-    barExp.style.width = Math.min(exposure, 100) + '%';
-    barExp.className = 'fill ' + (exposure > 80 ? 'red' : exposure > 50 ? 'yellow' : 'green');
-
-    var cvar = risk.cvar_95 || 0;
-    document.getElementById('riskCvar').textContent = fmtMoney(cvar);
-    document.getElementById('barCvar').style.width = Math.min(cvar / 50, 100) + '%';
-
-    var dailyPnl = risk.daily_pnl || 0;
-    document.getElementById('riskDailyPnl').textContent = fmtMoney(dailyPnl);
-    var barPnl = document.getElementById('barDailyPnl');
-    barPnl.style.width = Math.min(Math.abs(dailyPnl) / 20, 100) + '%';
-    barPnl.className = 'fill ' + (dailyPnl >= 0 ? 'green' : 'red');
-
-    var dd = risk.max_drawdown || risk.drawdown_pct || 0;
-    document.getElementById('riskDrawdown').textContent = fmtPct(dd);
-    var barDD = document.getElementById('barDrawdown');
-    barDD.style.width = Math.min(dd * 10, 100) + '%';
-    barDD.className = 'fill ' + (dd > 5 ? 'red' : dd > 2 ? 'yellow' : 'green');
-
-    var sharpe = risk.sharpe_ratio || 0;
-    document.getElementById('riskSharpe').textContent = sharpe.toFixed(2);
-    document.getElementById('barSharpe').style.width = Math.min(sharpe / 3 * 100, 100) + '%';
-}
-
-/* ------------------------------------------------------------------ */
-/* Activity feed                                                       */
-/* ------------------------------------------------------------------ */
-function appendActivity(entries) {
-    var list = document.getElementById('activityList');
-    if (!list || !entries) return;
-    entries.forEach(function(a) {
-        var item = document.createElement('div');
-        item.className = 'activity-item ' + (a.severity || 'info');
-        item.innerHTML =
-            '<div class="time">' + fmtTime(a.timestamp) + '</div>' +
-            '<div class="msg">' + escHtml(a.message) + '</div>' +
-            (a.detail ? '<div class="detail">' + escHtml(a.detail) + '</div>' : '');
-        item.onclick = function() { this.classList.toggle('expanded'); };
-        list.prepend(item);
-    });
-    while (list.children.length > 100) list.removeChild(list.lastChild);
-}
-
-function escHtml(s) {
-    if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-}
-
-/* ------------------------------------------------------------------ */
-/* System status badge                                                 */
-/* ------------------------------------------------------------------ */
-function updateSystemStatus(halted) {
-    var badge = document.getElementById('systemStatus');
-    if (halted) {
-        badge.className = 'status-badge halted';
-        badge.querySelector('.label').textContent = 'HALTED';
-    } else {
-        badge.className = 'status-badge running';
-        badge.querySelector('.label').textContent = 'RUNNING';
-    }
-}
-
-/* ------------------------------------------------------------------ */
-/* Uptime                                                              */
-/* ------------------------------------------------------------------ */
-var uptimeStart = null;
-function updateUptime() {
-    if (!uptimeStart) return;
-    var elapsed = (Date.now() / 1000) - uptimeStart;
-    var h = Math.floor(elapsed / 3600);
-    var m = Math.floor((elapsed % 3600) / 60);
-    var s = Math.floor(elapsed % 60);
-    document.getElementById('uptime').textContent =
-        String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-}
-setInterval(updateUptime, 1000);
-
-/* ------------------------------------------------------------------ */
-/* Symbol selector                                                     */
-/* ------------------------------------------------------------------ */
-function initSymbolSelect(symbols) {
-    var sel = document.getElementById('symbolSelect');
-    sel.innerHTML = '';
-    (symbols || []).forEach(function(s) {
-        var opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        if (s === selectedSymbol) opt.selected = true;
-        sel.appendChild(opt);
-    });
-}
-
-function selectSymbol(sym) {
-    selectedSymbol = sym;
-    refreshGaugesFromCache();
-}
-
-/* ------------------------------------------------------------------ */
-/* Signal cache                                                        */
-/* ------------------------------------------------------------------ */
-var signalCache = {};
-var regimeCache = {};
-
-function refreshGaugesFromCache() {
-    var sig = signalCache[selectedSymbol];
-    if (!sig) return;
-    updateGaugeOFI(sig.ofi || 0);
-    updateGaugeHurst(sig.hurst || 0.5, regimeCache[selectedSymbol] || 'random_walk');
-    updateGaugeVPIN(sig.vpin || 0);
-    updateGaugeMF(sig.multifractal || 0);
-    updateGaugeComposite(sig.composite || 0);
-}
-
-/* ------------------------------------------------------------------ */
-/* Portfolio metrics header                                            */
-/* ------------------------------------------------------------------ */
-function updateMetrics(portfolio) {
-    if (!portfolio) return;
-    var eq = portfolio.total_equity || 0;
-    var pnl = portfolio.daily_pnl || 0;
-    var ret = portfolio.daily_return || 0;
-    var cash = portfolio.cash || 0;
-    var dd = portfolio.max_drawdown || 0;
-
-    document.getElementById('metricEquity').textContent = fmtMoney(eq);
-
-    var pnlEl = document.getElementById('metricPnl');
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtMoney(pnl);
-    pnlEl.className = 'value ' + (pnl >= 0 ? 'positive' : 'negative');
-
-    var retEl = document.getElementById('metricReturn');
-    retEl.textContent = (ret >= 0 ? '+' : '') + fmtPct(ret);
-    retEl.className = 'value ' + (ret >= 0 ? 'positive' : 'negative');
-
-    document.getElementById('metricCash').textContent = fmtMoney(cash);
-
-    var ddEl = document.getElementById('metricDrawdown');
-    ddEl.textContent = fmtPct(dd);
-    ddEl.className = 'value ' + (dd > 5 ? 'negative' : '');
-}
-
-/* ------------------------------------------------------------------ */
-/* WebSocket                                                           */
-/* ------------------------------------------------------------------ */
-function setWsStatus(st) {
-    var el = document.getElementById('wsStatus');
-    el.className = 'ws-status ' + st;
-    document.getElementById('wsLabel').textContent =
-        st === 'connected' ? 'LIVE' : st === 'connecting' ? 'WS...' : 'WS';
-}
-
-function connectWS() {
-    if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
-
-    setWsStatus('connecting');
-    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(proto + '//' + location.host + '/ws');
-
-    ws.onopen = function() {
-        setWsStatus('connected');
-        reconnectDelay = 1000;
-    };
-
-    ws.onclose = function() {
-        setWsStatus('disconnected');
-        scheduleReconnect();
-    };
-
-    ws.onerror = function() {
-        setWsStatus('disconnected');
-    };
-
-    ws.onmessage = function(ev) {
-        try {
-            var msg = JSON.parse(ev.data);
-            handleWSMessage(msg);
-        } catch (e) { /* ignore parse errors */ }
-    };
-}
-
-function scheduleReconnect() {
-    if (reconnectTimer) clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(function() {
-        connectWS();
-        reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
-    }, reconnectDelay);
-}
-
-function handleWSMessage(msg) {
-    var type = msg.type;
-    var data = msg.data || msg;
-
-    if (type === 'init') {
-        updateSystemStatus(data.trading_halted);
-        if (data.uptime) {
-            var parts = data.uptime.split(':').map(Number);
-            uptimeStart = Date.now() / 1000 - (parts[0] * 3600 + parts[1] * 60 + parts[2]);
-        }
-        if (data.symbols) initSymbolSelect(data.symbols);
-        if (data.signals) {
-            signalCache = data.signals;
-            refreshGaugesFromCache();
-        }
-        if (data.regimes) regimeCache = data.regimes;
-        if (data.agents) updateAgentDots(data.agents);
-        if (data.portfolio) {
-            updateMetrics(data.portfolio);
-            var posObj = data.portfolio.positions;
-            if (posObj && typeof posObj === 'object') {
-                renderPositions(Array.isArray(posObj) ? posObj : Object.values(posObj));
-            }
-        }
-        if (data.risk) updateRisk(data.risk);
-        fetchInitialData();
-        return;
-    }
-
-    if (type === 'tick') {
-        if (data.equity != null && data.t != null) {
-            pushEquityPoint(data.t, data.equity);
-        }
-        if (data.signals) {
-            signalCache = data.signals;
-            refreshGaugesFromCache();
-        }
-        if (data.positions) renderPositions(data.positions);
-        if (data.risk) updateRisk(data.risk);
-        if (data.agents) updateAgentDots(data.agents);
-        if (data.activity) appendActivity(data.activity);
-        if (data.equity != null) {
-            document.getElementById('metricEquity').textContent = fmtMoney(data.equity);
-        }
-        if (data.daily_pnl != null) {
-            var pnlEl = document.getElementById('metricPnl');
-            pnlEl.textContent = (data.daily_pnl >= 0 ? '+' : '') + fmtMoney(data.daily_pnl);
-            pnlEl.className = 'value ' + (data.daily_pnl >= 0 ? 'positive' : 'negative');
-        }
-        return;
-    }
-
-    if (type === 'system') {
-        if (data.trading_halted != null) updateSystemStatus(data.trading_halted);
-        return;
-    }
-
-    if (type === 'sim_progress') {
-        var bar = document.getElementById('simProgressFill');
-        if (bar) bar.style.width = (data.progress || 0) + '%';
-        return;
-    }
-
-    if (type === 'sim_complete') {
-        showSimResults(data);
-        return;
-    }
-}
-
-/* ------------------------------------------------------------------ */
-/* REST helpers                                                        */
-/* ------------------------------------------------------------------ */
-function fetchJSON(url, opts) {
-    return fetch(url, opts).then(function(res) { return res.json(); }).catch(function() { return null; });
-}
-
-function fetchInitialData() {
-    fetchJSON('/api/portfolio').then(function(portfolio) {
-        if (!portfolio) return;
-        if (portfolio.current) updateMetrics(portfolio.current);
-        if (portfolio.positions) renderPositions(portfolio.positions);
-        if (portfolio.equity_curve) loadEquityCurve(portfolio.equity_curve);
-    });
-
-    fetchJSON('/api/activity').then(function(data) {
-        if (!data || !data.activity) return;
-        var list = document.getElementById('activityList');
-        list.innerHTML = '';
-        appendActivity(data.activity.slice().reverse());
-    });
-
-    fetchJSON('/api/risk').then(function(risk) {
-        if (risk) updateRisk(risk);
-    });
-}
-
-/* ------------------------------------------------------------------ */
-/* Control actions                                                     */
-/* ------------------------------------------------------------------ */
-function haltTrading() {
-    fetchJSON('/api/halt', { method: 'POST' });
-}
-
-function resumeTrading() {
-    fetchJSON('/api/resume', { method: 'POST' });
-}
-
-/* ------------------------------------------------------------------ */
-/* Simulator                                                           */
-/* ------------------------------------------------------------------ */
-function runSimulation() {
-    var btn = document.getElementById('btnSimRun');
-    btn.disabled = true;
-    btn.textContent = 'RUNNING...';
-
-    document.getElementById('simProgressBar').style.display = 'block';
-    document.getElementById('simProgressFill').style.width = '0%';
-    document.getElementById('simResults').style.display = 'none';
-
-    var symbols = document.getElementById('simSymbols').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-    var body = {
-        symbols: symbols,
-        start_date: document.getElementById('simStart').value,
-        end_date: document.getElementById('simEnd').value,
-        initial_capital: parseFloat(document.getElementById('simCapital').value) || 1000000,
-    };
-
-    fetchJSON('/api/simulator/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    }).then(function(result) {
-        if (result && result.run_id) {
-            currentSimRunId = result.run_id;
-            simPollTimer = setInterval(function() {
-                fetchJSON('/api/simulator/results/' + currentSimRunId).then(function(res) {
-                    if (res && res.status === 'completed') {
-                        clearInterval(simPollTimer);
-                        showSimResults(res);
-                    } else if (res && res.status === 'failed') {
-                        clearInterval(simPollTimer);
-                        btn.disabled = false;
-                        btn.textContent = 'RUN';
-                        document.getElementById('simProgressBar').style.display = 'none';
-                    }
-                });
-            }, 1000);
-        } else {
-            btn.disabled = false;
-            btn.textContent = 'RUN';
-        }
-    });
-}
-
-function showSimResults(data) {
-    var btn = document.getElementById('btnSimRun');
-    btn.disabled = false;
-    btn.textContent = 'RUN';
-    document.getElementById('simProgressBar').style.display = 'none';
-    document.getElementById('simProgressFill').style.width = '100%';
-
-    var results = document.getElementById('simResults');
-    results.style.display = 'flex';
-
-    var ret = data.total_return || 0;
-    var retEl = document.getElementById('simReturn');
-    retEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(2) + '%';
-    retEl.className = 'value ' + (ret >= 0 ? 'positive' : 'negative');
-
-    document.getElementById('simSharpe').textContent = (data.sharpe_ratio || 0).toFixed(2);
-    document.getElementById('simMaxDD').textContent = (data.max_drawdown || 0).toFixed(2) + '%';
-    document.getElementById('simTrades').textContent = data.total_trades || 0;
-    document.getElementById('simWinRate').textContent = (data.win_rate || 0).toFixed(1) + '%';
-}
-
-/* ------------------------------------------------------------------ */
-/* Init                                                                */
-/* ------------------------------------------------------------------ */
-document.addEventListener('DOMContentLoaded', function() {
-    initChart();
-    initAgentDots();
-    connectWS();
+/* ---------------- concepts + dialog ---------------- */
+let CONCEPTS = null;
+const conceptsReady = api('/api/concepts').then(c => (CONCEPTS = c)).catch(e => { CONCEPTS = { __error: e.message }; });
+function infoBtn(key) { return key ? `<button type="button" class="info" data-concept="${esc(key)}" title="What is this?" aria-label="Explain">i</button>` : ''; }
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('button[data-concept]');
+  if (!b) return;
+  await conceptsReady;
+  const k = b.dataset.concept;
+  const c = CONCEPTS && CONCEPTS[k];
+  const body = $('#concept-dlg-body');
+  if (!c) body.innerHTML = CONCEPTS && CONCEPTS.__error ? errBox(CONCEPTS.__error) : `<p class="muted">No glossary entry for "${esc(k)}".</p>`;
+  else body.innerHTML = conceptHTML(k, c, true);
+  $('#concept-dlg').showModal();
 });
+function conceptHTML(k, c, inDialog) {
+  return `${inDialog ? '' : `<div class="key mono">${esc(k)}</div>`}<h2>${esc(c.title || k)}</h2>
+    <p>${esc(c.plain)}</p>${c.why ? `<p class="why"><strong>Why it matters:</strong> ${esc(c.why)}</p>` : ''}
+    ${c.source ? `<div class="src">Source: ${esc(c.source)}</div>` : ''}`;
+}
+
+/* ---------------- routing ---------------- */
+const TABS = ['backtest', 'plan', 'paper', 'robinhood', 'concepts'];
+const loaders = { backtest: loadBacktest, plan: loadPlan, paper: loadPaper, robinhood: loadRobinhood, concepts: loadConcepts };
+const loaded = {};
+function route() {
+  let t = location.hash.replace('#', '');
+  if (!TABS.includes(t)) t = 'backtest';
+  $$('section.tab').forEach(s => s.classList.toggle('active', s.id === 'tab-' + t));
+  $$('#tabs a').forEach(a => a.classList.toggle('active', a.dataset.tab === t));
+  if (!loaded[t]) { loaded[t] = true; loaders[t](); }
+}
+window.addEventListener('hashchange', route);
+
+/* =========================================================
+   BACKTEST
+   ========================================================= */
+let BT = null;
+async function loadBacktest() {
+  const box = $('#bt-content');
+  try {
+    const r = await api('/api/backtest/latest');
+    if (!r.available || !r.result) {
+      BT = null;
+      $('#bt-form-panel').open = true;
+      box.innerHTML = `<div class="empty"><strong>No backtest has been run yet.</strong>Use "Run new backtest" above, or run <code>python -m engine backtest</code> in this folder.</div>`;
+      return;
+    }
+    BT = r.result;
+    renderBacktest(BT);
+  } catch (e) {
+    box.innerHTML = errBox(e.message);
+  }
+}
+
+const METRIC_ROWS = [
+  ['cagr', 'Growth per year (CAGR)', 'pct', 'kelly_ergodicity', 'Compound annual growth of the money actually held.'],
+  ['log_growth', 'Log growth per year', 'pct', 'kelly_ergodicity', 'What compounding really earns; the quantity the engine maximises.'],
+  ['total_return', 'Total return, whole period', 'pct', null, ''],
+  ['robust_vol', 'Volatility, robust (MAD-based)', 'pct', 'mad', 'Annualised; less fooled by a few huge days.'],
+  ['std_vol', 'Volatility, standard deviation', 'pct', 'mad', 'Annualised; the textbook measure.'],
+  ['mad_ratio', 'Std / MAD ratio', 'num', 'fat_tails', 'About 1.25 for a normal bell curve; higher means fatter tails.'],
+  ['es99_daily', 'Expected shortfall 99%, 1 day', 'pct', 'expected_shortfall', 'Average loss on the worst 1% of days.'],
+  ['worst_day', 'Worst day', 'spct', 'fat_tails', ''],
+  ['best_day', 'Best day', 'spct', null, ''],
+  ['max_drawdown', 'Worst drawdown (peak to trough)', 'pct', null, ''],
+  ['calmar', 'Calmar (CAGR / worst drawdown)', 'num', null, ''],
+  ['tail_exponent', 'Tail exponent α', 'num', 'fat_tails', 'Lower = fatter tails. Below 2, variance is not meaningful.'],
+  ['sharpe_for_reference', 'Sharpe ratio (for reference only)', 'num', 'fat_tails', 'Assumes thin tails, which markets do not have. Not used by the engine.'],
+  ['years', 'Years tested', 'num1', null, ''],
+];
+function fmtMetric(v, kind) {
+  if (kind === 'pct') return pct(v, 1);
+  if (kind === 'spct') return spct(v, 2);
+  if (kind === 'num1') return num(v, 1);
+  return num(v, 2);
+}
+
+function renderBacktest(d) {
+  const m = d.metrics || {};
+  const names = Object.keys(m);
+  const benches = names.filter(n => n !== STRAT);
+  const s = m[STRAT] || {};
+  const naiveKey = names.find(n => n.startsWith('Naive barbell (matched'));
+  const nv = naiveKey ? m[naiveKey] : null;
+  const boot = d.bootstrap || {};
+  const period = d.period || [];
+  const y0 = period[0] ? String(period[0]).slice(0, 4) : '?', y1 = period[1] ? String(period[1]).slice(0, 4) : '?';
+
+  // verdict
+  const grew = v => isNum(v) ? `${v >= 0 ? 'grew' : 'shrank'} ${pct(Math.abs(v))}/yr` : 'had unknown growth';
+  let vtxt = `Out of sample (${esc(y0)}–${esc(y1)}) the strategy ${grew(s.cagr)} with a ${pct(s.max_drawdown)} worst drawdown.`;
+  let cls = '', headline = '';
+  if (nv) {
+    vtxt += ` A naive barbell at the same average exposure ${grew(nv.cagr)} with a ${pct(nv.max_drawdown)} worst drawdown.`;
+    const p = boot[naiveKey];
+    if (isNum(p)) vtxt += ` Probability the strategy genuinely out-grows it: <strong>${pct(p, p < 0.01 && p > 0 ? 1 : 0)}</strong>.`;
+    if (isNum(s.log_growth) && isNum(nv.log_growth)) {
+      if (s.log_growth < nv.log_growth) { cls = 'bad'; headline = 'The strategy lost to a simple, signal-free benchmark.'; }
+      else if (isNum(p) && p >= 0.95) { cls = 'good'; headline = 'The strategy beat its matched naive benchmark, and the bootstrap says it is unlikely to be luck.'; }
+      else { headline = 'The strategy edged its matched benchmark, but the evidence is not strong enough to call it skill.'; }
+    }
+  }
+  const beaten = benches.filter(b => isNum(m[b].log_growth) && isNum(s.log_growth) && m[b].log_growth > s.log_growth);
+  if (benches.length) vtxt += ` It grew less than ${beaten.length} of ${benches.length} benchmarks.`;
+
+  const warnings = (d.warnings || []).filter(Boolean);
+  const hedge = d.hedge_note ? `<div class="alert info"><strong>Hedge:</strong> ${esc(d.hedge_note)}</div>` : '';
+
+  let h = `
+  <div class="verdict ${cls}">
+    ${headline ? `<div class="headline">${esc(headline)}</div>` : ''}
+    <div>${vtxt}</div>
+    <div class="muted small" style="margin-top:6px">Data: ${esc(d.data_source || DASH)} · ${esc(d.n_param_sets_tried ?? DASH)} parameter sets tried · ${esc(d.train_years ?? DASH)} training years per step · generated ${esc(fmtDate(d.generated_at))}</div>
+  </div>
+  ${warnings.length ? `<div class="alert warnbox"><strong class="warn">Warnings from the engine</strong><ul>${warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}
+  ${hedge}
+
+  <div class="card">
+    <div class="card-head"><h2>Growth of capital, out of sample</h2>
+      <label class="toggle"><input type="checkbox" id="eq-log"> Log scale</label></div>
+    <div class="chartbox"><canvas id="ch-equity"></canvas></div>
+    <p class="muted small">Every line starts with the same capital. On a log scale, equal slopes mean equal percentage growth.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Drawdown of the strategy</h2></div>
+    <div class="chartbox sm"><canvas id="ch-dd"></canvas></div>
+    <p class="muted small">How far below its previous high the strategy was on each day.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Metrics side by side</h2></div>
+    ${metricsTable(m, names)}
+    <p class="muted small">Benchmarks: "Naive barbell (matched…)" holds the same average amount of risk as the strategy but with no signals; "same budget, no signals" fills the full risky budget equally; "Equal-weight universe" holds every risky asset equally; "Benchmark buy &amp; hold" is the configured index.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head"><h2>Is it skill or luck? ${infoBtn('bootstrap')}</h2></div>
+      ${bootstrapBars(boot)}
+      <p class="muted small">Each bar: the share of bootstrap resamples (out-of-sample returns reshuffled in blocks) in which the strategy's log growth beat that benchmark. 50% is a coin flip. You would want 95% or more before believing the strategy adds something.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Fragility test ${infoBtn('convexity')}</h2></div>
+      ${convexityCard(d.convexity)}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-head"><h2>Distribution of daily returns ${infoBtn('fat_tails')}</h2>
+      <label class="toggle"><input type="checkbox" id="hist-log"> Log count scale (shows the tails)</label></div>
+    <div class="chartbox"><canvas id="ch-hist"></canvas></div>
+    <p class="small" id="hist-note"></p>
+  </div>
+
+  ${gaugeCard(d.gauge)}
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head"><h2>Walk-forward steps ${infoBtn('walk_forward')}</h2></div>
+      ${foldsTable(d.folds)}
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Trading activity</h2></div>
+      ${activityCard(d)}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-head"><h2>Latest target allocation</h2><span class="muted small">What the engine would hold at the end of the test, using the live parameters</span></div>
+    ${targetHTML(d.latest_target, 'bt')}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Trades</h2><span class="muted small" id="tr-count"></span></div>
+    <div id="tr-table"></div>
+  </div>`;
+  $('#bt-content').innerHTML = h;
+
+  drawEquity(d);
+  $('#eq-log').addEventListener('change', () => drawEquity(d));
+  drawDrawdown(d);
+  drawHist(d.daily_returns || []);
+  $('#hist-log').addEventListener('change', () => drawHist(d.daily_returns || []));
+  drawGauge(d.gauge);
+  drawTargetDonut(d.latest_target, 'bt');
+  renderTrades(d.trades || [], 0);
+}
+
+function metricsTable(m, names) {
+  if (!names.length) return `<div class="empty">No metrics in this result.</div>`;
+  const cols = [STRAT, ...names.filter(n => n !== STRAT)].filter(n => m[n]);
+  let h = `<div class="tablewrap"><table class="metrics"><thead><tr><th>Metric</th>${cols.map(c => `<th class="colname"><span class="sw" style="background:${seriesColor(c, 0)}"></span>${esc(c)}</th>`).join('')}</tr></thead><tbody>`;
+  for (const [k, label, kind, concept, hint] of METRIC_ROWS) {
+    if (!cols.some(c => k in m[c])) continue;
+    h += `<tr><td>${esc(label)}${infoBtn(concept)}${hint ? `<div class="muted small">${esc(hint)}</div>` : ''}</td>` +
+      cols.map(c => `<td class="n ${c === STRAT ? 'strat' : ''}">${fmtMetric(m[c][k], kind)}</td>`).join('') + `</tr>`;
+  }
+  return h + `</tbody></table></div>`;
+}
+
+function bootstrapBars(boot) {
+  const ks = Object.keys(boot || {});
+  if (!ks.length) return `<div class="empty">No bootstrap results in this backtest.</div>`;
+  return `<div class="bars">` + ks.map(k => {
+    const p = boot[k];
+    const w = isNum(p) ? Math.max(0, Math.min(1, p)) * 100 : 0;
+    const col = !isNum(p) ? css('--grey') : p >= 0.95 ? css('--green') : p >= 0.5 ? css('--amber') : css('--red');
+    return `<div class="b"><div class="name">Strategy beats <strong>${esc(k)}</strong></div>
+      <div class="track"><div class="fill" style="width:${w}%;background:${col}"></div><div class="mid" title="50%"></div></div>
+      <div class="val">${pct(p, 1)}</div></div>`;
+  }).join('') + `<div class="muted small">Dashed line = 50% (no better than chance).</div></div>`;
+}
+
+function convexityCard(c) {
+  if (!c) return `<div class="empty">No convexity analysis in this result.</div>`;
+  const st = String(c.state || 'unknown');
+  const col = /antifragile/i.test(st) ? 'pos' : /fragile/i.test(st) ? 'neg' : 'warn';
+  let plain;
+  if (/antifragile/i.test(st)) plain = 'The strategy tends to do better than a straight-line bet on the market when the market makes big moves in either direction. That is the shape a barbell is meant to have.';
+  else if (/fragile/i.test(st)) plain = 'The strategy tends to do worse than a straight-line bet on the market when the market makes big moves. Large shocks hurt it more than proportionally, the opposite of what a barbell aims for.';
+  else plain = 'No statistically significant curvature: big market moves neither help nor hurt it beyond its average sensitivity. Not fragile, but not antifragile either.';
+  return `<div style="font-size:18px;font-weight:600" class="${col}">${esc(st)}</div>
+    <p>${plain}</p>
+    <div class="kpis" style="margin-top:8px">
+      <div class="kpi"><div class="l">Market sensitivity (β)</div><div class="v">${num(c.beta, 2)}</div><div class="s">1.0 = moves with the market</div></div>
+      <div class="kpi"><div class="l">Curvature (γ)</div><div class="v">${num(c.convexity_gamma, 2)}</div><div class="s">t-stat ${num(c.convexity_t, 2)}; |t| &gt; 2 is significant</div></div>
+      <div class="kpi"><div class="l">In market's worst 10% of months</div><div class="v ${signCls(c.strategy_in_worst_market_months)}">${spct(c.strategy_in_worst_market_months, 1)}</div><div class="s">market averaged ${spct(c.market_worst_decile_avg, 1)}</div></div>
+    </div>
+    <p class="muted small">Method: monthly strategy returns regressed on market return and market return squared. A positive squared term (γ) means gains accelerate in big moves (convex).</p>`;
+}
+
+function gaugeCard(g) {
+  if (!g || !g.usd) return `<div class="card"><div class="card-head"><h2>Where the growth came from ${infoBtn('gauge')}</h2></div><div class="empty">No attribution in this result. Re-run the backtest to produce it.</div></div>`;
+  const u = g.usd, t = g.tbill_numeraire || {};
+  const same = k => isNum(u[k]) && isNum(t[k]) && Math.abs(u[k] - t[k]) < 1e-9;
+  const invariant = same('timing_holonomy') && same('convexity');
+  const allSame = invariant && same('exposure') && same('total_log_growth');
+  let sentence = invariant
+    ? 'Timing (holonomy) and convexity are identical in the dollar numeraire and the T-bill numeraire: they are "gauge-invariant", meaning they do not depend on what you measure money in. That is why they are the honest measure of skill; exposure can change with the numeraire.'
+    : 'Timing and convexity differ between the two numeraires here, which should not happen for gauge-invariant terms; treat this attribution with suspicion.';
+  if (allSame) sentence += ' In this run every row matches, including exposure. That is what happens when the safe sleeve earns a flat cash rate instead of a real T-bill ETF price series (check the warnings above), because then the two numeraires are the same thing.';
+  const rows = [['exposure', 'Exposure (just being in the market)'], ['timing_holonomy', 'Timing / holonomy (when risk was added or cut)'], ['convexity', 'Convexity (payoff from big moves)'], ['total_log_growth', 'Total log growth']];
+  return `<div class="card">
+    <div class="card-head"><h2>Where the growth came from ${infoBtn('gauge')}</h2><span class="muted small">Log-growth points summed over the whole test period</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Exposure</div><div class="v ${signCls(u.exposure)}">${spct(u.exposure, 2)}</div><div class="s">average risk held × market</div></div>
+      <div class="kpi"><div class="l">Timing / holonomy</div><div class="v ${signCls(u.timing_holonomy)}">${spct(u.timing_holonomy, 2)}</div><div class="s">from changing exposure over time</div></div>
+      <div class="kpi"><div class="l">Convexity</div><div class="v ${signCls(u.convexity)}">${spct(u.convexity, 2)}</div><div class="s">from nonlinear payoff</div></div>
+      <div class="kpi"><div class="l">Total</div><div class="v ${signCls(u.total_log_growth)}">${spct(u.total_log_growth, 2)}</div><div class="s">sum of the three</div></div>
+    </div>
+    <div class="chartbox sm" style="margin-top:12px"><canvas id="ch-gauge"></canvas></div>
+    <p class="muted small">Stacked: the top edge is the running total.</p>
+    <div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Component</th><th class="n">Dollar numeraire</th><th class="n">T-bill numeraire</th><th class="n">Same?</th></tr></thead><tbody>
+      ${rows.map(([k, l]) => `<tr><td>${esc(l)}</td><td class="n">${spct(u[k], 3)}</td><td class="n">${spct(t[k], 3)}</td><td class="n">${same(k) ? '<span class="pos">yes</span>' : '<span class="warn">no</span>'}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="small" style="margin-top:8px">${esc(sentence)}</p>
+  </div>`;
+}
+
+function foldsTable(f) {
+  if (!f || !f.length) return `<div class="empty">No walk-forward folds recorded.</div>`;
+  return `<div class="tablewrap"><table><thead><tr><th>Test year</th><th>Parameters chosen on prior years</th><th class="n">Train log growth</th><th class="n">Test log growth</th></tr></thead><tbody>
+    ${f.map(x => `<tr><td class="n" style="text-align:left">${esc(x.test_year)}</td><td>${esc(x.chosen)}</td><td class="n">${spct(x.train_log_growth, 2)}</td><td class="n ${signCls(x.test_log_growth)}">${spct(x.test_log_growth, 2)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="muted small">If test results are consistently worse than training results, the parameter choice is partly fitting noise.</p>`;
+}
+
+function activityCard(d) {
+  const rt = d.round_trips || {};
+  const lp = d.live_params || {};
+  return `<div class="kpis">
+    <div class="kpi"><div class="l">Trading costs paid</div><div class="v">${usd(d.costs_paid, 0)}</div><div class="s">spread + market impact model</div></div>
+    <div class="kpi"><div class="l">Round trips</div><div class="v">${isNum(rt.count) ? rt.count.toLocaleString() : DASH}</div><div class="s">buy then sell of a position</div></div>
+    <div class="kpi"><div class="l">Win rate</div><div class="v">${pct(rt.win_rate, 1)}</div><div class="s">share of round trips that made money</div></div>
+    <div class="kpi"><div class="l">Avg round-trip return</div><div class="v ${signCls(rt.avg_return)}">${spct(rt.avg_return, 2)}</div><div class="s">per position, not per portfolio</div></div>
+  </div>
+  <h3 style="margin-top:14px">Live parameters (chosen on the most recent window)</h3>
+  <div class="tablewrap"><table><tbody>
+    <tr><td>Risky budget ${infoBtn('barbell')}</td><td class="n">${pct(lp.risky_budget, 0)}</td></tr>
+    <tr><td>Trend horizons (trading days) ${infoBtn('trend')}</td><td class="n">${Array.isArray(lp.horizons) ? esc(lp.horizons.join(', ')) : DASH}</td></tr>
+    <tr><td>Hurst sizing ${infoBtn('hurst')}</td><td class="n">${lp.use_hurst === true ? 'on' : lp.use_hurst === false ? 'off' : DASH}</td></tr>
+    <tr><td>Kelly fraction ${infoBtn('kelly_ergodicity')}</td><td class="n">${num(lp.kelly_fraction, 2)}</td></tr>
+  </tbody></table></div>`;
+}
+
+function drawEquity(d) {
+  const eq = d.equity || {};
+  const dates = eq.dates || [];
+  const logY = $('#eq-log') && $('#eq-log').checked;
+  const keys = Object.keys(eq).filter(k => k !== 'dates' && Array.isArray(eq[k]));
+  keys.sort((a, b) => (a === STRAT ? -1 : b === STRAT ? 1 : 0));
+  const ds = keys.map((k, i) => ({
+    label: k, data: eq[k].map(v => (isNum(v) && (!logY || v > 0) ? v : null)),
+    borderColor: seriesColor(k, i), backgroundColor: seriesColor(k, i),
+    borderWidth: k === STRAT ? 2.2 : 1.2, pointRadius: 0, spanGaps: true, order: k === STRAT ? 0 : 1,
+  }));
+  mkChart('ch-equity', {
+    type: 'line', data: { labels: dates, datasets: ds },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      scales: { x: { ticks: dateTicks }, y: { type: logY ? 'logarithmic' : 'linear', ticks: { callback: v => usd(Number(v), 0) } } },
+      plugins: { tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${usd(c.parsed.y, 0)}` } } },
+    },
+  });
+}
+
+function drawDrawdown(d) {
+  const dates = (d.equity && d.equity.dates) || [];
+  const dd = (d.drawdown || []).map(v => (isNum(v) ? -Math.abs(v) * 100 : null));
+  mkChart('ch-dd', {
+    type: 'line',
+    data: { labels: dates.slice(0, dd.length), datasets: [{ label: 'Drawdown', data: dd, borderColor: css('--red'), backgroundColor: 'rgba(248,81,73,.18)', fill: 'origin', pointRadius: 0, borderWidth: 1.2, spanGaps: true }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      scales: { x: { ticks: dateTicks }, y: { max: 0, ticks: { callback: v => Number(v).toFixed(1) + '%' } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.parsed.y.toFixed(2)}% below peak` } } },
+    },
+  });
+}
+
+/* histogram with normal + Student-t(3) at the same median / MAD */
+function median(a) { const s = [...a].sort((x, y) => x - y); const n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }
+function normCdf(x) { // Abramowitz-Stegun 7.1.26 via erf
+  const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x / 2);
+  return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+}
+function t3Cdf(t) { return 0.5 + (t / (Math.sqrt(3) * (1 + t * t / 3)) + Math.atan(t / Math.sqrt(3))) / Math.PI; }
+const T3_MAD = 0.7648923; // median |T| for Student-t with 3 degrees of freedom
+function drawHist(raw) {
+  const r = raw.filter(isNum);
+  const note = $('#hist-note');
+  if (r.length < 20) {
+    if (charts['ch-hist']) charts['ch-hist'].destroy();
+    note.innerHTML = '<span class="muted">Not enough daily returns to draw a distribution. Run a backtest.</span>';
+    return;
+  }
+  const med = median(r);
+  const mad = median(r.map(x => Math.abs(x - med)));
+  if (!(mad > 0)) { note.textContent = 'Returns have zero spread (MAD = 0); cannot fit curves.'; return; }
+  const sig = 1.4826 * mad;            // robust sigma
+  const tScale = mad / T3_MAD;         // t(3) scale with the same MAD
+  const lo = Math.min(...r), hi = Math.max(...r);
+  const nb = 61, w = (hi - lo) / nb || 1e-6;
+  const counts = new Array(nb).fill(0);
+  for (const x of r) counts[Math.min(nb - 1, Math.floor((x - lo) / w))]++;
+  const centers = counts.map((_, i) => lo + (i + 0.5) * w);
+  const n = r.length;
+  const normal = centers.map(x => n * w * Math.exp(-0.5 * ((x - med) / sig) ** 2) / (sig * Math.sqrt(2 * Math.PI)));
+  const t3 = centers.map(x => { const z = (x - med) / tScale; return n * w * (2 / (Math.PI * Math.sqrt(3) * (1 + z * z / 3) ** 2)) / tScale; });
+  const logY = $('#hist-log').checked;
+  const clean = a => a.map(v => (logY && v < 0.05 ? null : v));
+  mkChart('ch-hist', {
+    data: {
+      labels: centers.map(x => (x * 100).toFixed(2) + '%'),
+      datasets: [
+        { type: 'bar', label: 'Actual days', data: logY ? counts.map(c => c || null) : counts, backgroundColor: 'rgba(88,166,255,.55)', borderWidth: 0, barPercentage: 1, categoryPercentage: 1, order: 2 },
+        { type: 'line', label: 'Normal (same median & MAD)', data: clean(normal), borderColor: css('--amber'), borderWidth: 1.8, pointRadius: 0, order: 1, spanGaps: false },
+        { type: 'line', label: 'Student-t, 3 df (same median & MAD)', data: clean(t3), borderColor: css('--purple'), borderWidth: 1.8, pointRadius: 0, borderDash: [5, 3], order: 0, spanGaps: false },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      scales: { x: { ticks: { maxTicksLimit: 9, maxRotation: 0 }, title: { display: true, text: 'daily return' } },
+        y: { type: logY ? 'logarithmic' : 'linear', min: logY ? 0.1 : 0, title: { display: true, text: 'number of days' },
+          ticks: { callback: v => (Number(v) >= 1 || !logY ? Number(v).toLocaleString() : '') } } },
+      plugins: { tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${isNum(c.parsed.y) ? c.parsed.y.toFixed(c.datasetIndex ? 1 : 0) : DASH}` } } },
+    },
+  });
+  const k = 4;
+  const beyond = r.filter(x => Math.abs(x - med) > k * sig).length;
+  const pNorm = 2 * (1 - normCdf(k));
+  const tThresh = k * sig / tScale;
+  const pT = 2 * (1 - t3Cdf(tThresh));
+  const ratio = n * pNorm > 0 ? beyond / (n * pNorm) : NaN;
+  note.innerHTML = `Days more than 4 robust-σ from the median: <strong>${beyond.toLocaleString()}</strong> of ${n.toLocaleString()}. ` +
+    `A normal distribution predicts <strong>${num(n * pNorm, 2)}</strong>; a Student-t with 3 df predicts <strong>${num(n * pT, 1)}</strong>. ` +
+    (beyond > 0 && isNum(ratio) ? `That is ${num(ratio, 0)}× what the bell curve expects. ` : '') +
+    `<span class="muted">Robust σ = 1.4826 × MAD = ${pct(sig, 3)} per day; median ${spct(med, 3)}.</span>`;
+}
+
+function drawGauge(g) {
+  const c = g && g.cumulative;
+  if (!c || !Array.isArray(c.dates) || !c.dates.length) return;
+  const mk = (label, arr, col, fill) => ({ label, data: (arr || []).map(v => (isNum(v) ? v * 100 : null)), borderColor: col, backgroundColor: col + '40', fill, pointRadius: 0, borderWidth: 1.2, spanGaps: true });
+  mkChart('ch-gauge', {
+    type: 'line',
+    data: { labels: c.dates, datasets: [mk('Exposure', c.exposure, css('--grey'), 'origin'), mk('Timing / holonomy', c.timing, css('--purple'), '-1'), mk('Convexity', c.convexity, css('--cyan'), '-1')] },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      scales: { x: { ticks: dateTicks }, y: { stacked: true, ticks: { callback: v => Number(v).toFixed(0) + '%' }, title: { display: true, text: 'cumulative log growth' } } },
+      plugins: { tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } } },
+    },
+  });
+}
+
+/* target allocation, shared by backtest and plan */
+function targetHTML(t, pfx) {
+  if (!t) return `<div class="empty">No target allocation available.</div>`;
+  const assets = [...(t.assets || [])].sort((a, b) => (b.weight || 0) - (a.weight || 0) || String(a.symbol).localeCompare(String(b.symbol)));
+  const risky = Object.values(t.weights || {}).filter(isNum).reduce((a, b) => a + b, 0);
+  const vetoes = (t.vetoes || []).filter(Boolean);
+  return `<div class="grid2 gt">
+    <div>
+      <div class="chartbox donut"><canvas id="ch-${pfx}-donut"></canvas></div>
+    </div>
+    <div class="kpis" style="align-content:start">
+      <div class="kpi"><div class="l">Safe sleeve ${infoBtn('barbell')}</div><div class="v">${pct(t.safe_weight, 1)}</div><div class="s">T-bills (or cash if none available)</div></div>
+      <div class="kpi"><div class="l">Risky sleeve</div><div class="v">${pct(risky, 1)}</div><div class="s">${Object.keys(t.weights || {}).length} position(s)</div></div>
+      <div class="kpi"><div class="l">Portfolio ES99, 1 day ${infoBtn('expected_shortfall')}</div><div class="v">${pct(t.portfolio_es99, 2)}</div><div class="s">average loss on worst 1% of days</div></div>
+      <div class="kpi"><div class="l">Kelly cap ${infoBtn('kelly_ergodicity')}</div><div class="v">${pct(t.kelly_cap, 0)}</div><div class="s">max risky share growth math allows</div></div>
+    </div>
+  </div>
+  ${vetoes.length ? `<div class="alert warnbox" style="margin-top:12px"><strong class="warn">Vetoes</strong><ul>${vetoes.map(v => `<li>${esc(typeof v === 'string' ? v : JSON.stringify(v))}</li>`).join('')}</ul></div>` : `<p class="muted small" style="margin-top:10px">No vetoes: no asset was blocked by a risk rule.</p>`}
+  ${assets.length ? `<div class="tablewrap" style="margin-top:10px"><table><thead><tr>
+      <th>Symbol</th><th class="n">Weight</th><th class="n">Trend ${infoBtn('trend')}</th><th class="n">Hurst ${infoBtn('hurst')}</th><th class="n">Size ×</th><th class="n">Tail α ${infoBtn('fat_tails')}</th><th class="n">ES99 ${infoBtn('expected_shortfall')}</th><th>Reason</th></tr></thead><tbody>
+    ${assets.map(a => `<tr><td><strong>${esc(a.symbol)}</strong></td><td class="n ${a.weight > 0 ? 'pos' : 'muted'}">${pct(a.weight, 2)}</td><td class="n ${signCls(a.trend)}">${isNum(a.trend) ? (a.trend > 0 ? '+' : '') + a.trend.toFixed(2) : DASH}</td><td class="n">${num(a.hurst, 2)}</td><td class="n">${num(a.hurst_mult, 2)}</td><td class="n">${num(a.tail_exponent, 2)}</td><td class="n">${pct(a.es99, 1)}</td><td class="reason">${esc(a.reason)}</td></tr>`).join('')}
+  </tbody></table></div>` : ''}`;
+}
+function drawTargetDonut(t, pfx) {
+  if (!t) return;
+  const risky = Object.values(t.weights || {}).filter(isNum).reduce((a, b) => a + b, 0);
+  const safe = isNum(t.safe_weight) ? t.safe_weight : Math.max(0, 1 - risky);
+  mkChart(`ch-${pfx}-donut`, {
+    type: 'doughnut',
+    data: { labels: ['Safe (T-bills / cash)', 'Risky sleeve'], datasets: [{ data: [safe * 100, risky * 100], backgroundColor: [css('--grey'), css('--amber')], borderColor: css('--card'), borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` } } } },
+  });
+}
+
+/* trades */
+const TR_PAGE = 50;
+function renderTrades(trades, page) {
+  const sorted = [...trades].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const box = $('#tr-table');
+  if (!sorted.length) { box.innerHTML = `<div class="empty">No trades recorded.</div>`; $('#tr-count').textContent = ''; return; }
+  const pages = Math.ceil(sorted.length / TR_PAGE);
+  page = Math.max(0, Math.min(page, pages - 1));
+  const rows = sorted.slice(page * TR_PAGE, (page + 1) * TR_PAGE);
+  $('#tr-count').textContent = `${sorted.length.toLocaleString()} trades saved in the result, newest first`;
+  box.innerHTML = `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th class="n">Shares</th><th class="n">Price</th><th class="n">Notional</th><th class="n">Cost</th></tr></thead><tbody>
+    ${rows.map(t => `<tr><td class="n" style="text-align:left">${esc(t.date)}</td><td><strong>${esc(t.symbol)}</strong></td><td>${sideBadge(t.side)}</td><td class="n">${num(t.shares, 4)}</td><td class="n">${usd(t.price)}</td><td class="n">${usd(t.notional)}</td><td class="n">${usd(t.cost)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="pager"><button type="button" data-tp="${page - 1}" ${page === 0 ? 'disabled' : ''}>← Newer</button><span class="muted small">Page ${page + 1} of ${pages}</span><button type="button" data-tp="${page + 1}" ${page >= pages - 1 ? 'disabled' : ''}>Older →</button></div>`;
+  $$('button[data-tp]', box).forEach(b => b.addEventListener('click', () => renderTrades(trades, Number(b.dataset.tp))));
+}
+function sideBadge(s) { const v = String(s || '').toLowerCase(); return `<span class="badge ${v === 'buy' ? 'buy' : v === 'sell' ? 'sell' : 'neutral'}">${esc(v || '?')}</span>`; }
+
+/* run backtest form + polling */
+let pollTimer = null;
+$('#bt-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const f = ev.target;
+  $('#bt-form-err').innerHTML = '';
+  const body = {
+    start: f.start.value,
+    capital: Number(f.capital.value),
+    train_years: parseInt(f.train_years.value, 10),
+    hedge: f.hedge.checked,
+  };
+  if (f.end.value) body.end = f.end.value;
+  const syms = f.symbols.value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+  if (syms.length) body.symbols = syms;
+  if (f.csv_path.value.trim()) body.csv_path = f.csv_path.value.trim();
+  if (!body.start) { $('#bt-form-err').innerHTML = errBox('Start date is required.'); return; }
+  if (!(body.capital > 0)) { $('#bt-form-err').innerHTML = errBox('Capital must be a positive number.'); return; }
+  setRunning(true, 'Starting…', 0, 0);
+  try {
+    await api('/api/backtest', { method: 'POST', body });
+    pollStatus();
+  } catch (e) {
+    setRunning(false);
+    $('#bt-form-err').innerHTML = errBox(e.message);
+    if (/already running/i.test(e.message)) pollStatus();
+  }
+});
+function setRunning(on, msg, done, total) {
+  const btn = $('#bt-submit');
+  btn.disabled = on;
+  btn.textContent = on ? 'Running…' : 'Run backtest';
+  $$('#bt-form input').forEach(i => (i.disabled = on));
+  const p = $('#bt-progress');
+  p.hidden = !on && !msg;
+  if (msg !== undefined) $('#bt-progress-msg').innerHTML = on ? `<span class="spinner"></span>${esc(msg)}` : esc(msg);
+  const bar = $('#bt-progress-bar');
+  const known = total > 0;
+  bar.classList.toggle('indet', on && !known);
+  bar.firstElementChild.style.width = known ? `${Math.round((done / total) * 100)}%` : (on ? '' : '100%');
+}
+async function pollStatus() {
+  clearTimeout(pollTimer);
+  let st;
+  try { st = await api('/api/backtest/status'); } catch (e) {
+    $('#bt-form-err').innerHTML = errBox(e.message);
+    pollTimer = setTimeout(pollStatus, 3000);
+    return;
+  }
+  if (st.state === 'running') {
+    $('#bt-form-panel').open = true;
+    const extra = st.total ? ` (${st.done} of ${st.total} steps)` : '';
+    setRunning(true, (st.message || 'Running') + extra, st.done, st.total);
+    pollTimer = setTimeout(pollStatus, 1000);
+  } else if (st.state === 'done') {
+    setRunning(false);
+    $('#bt-progress').hidden = true;
+    $('#bt-form-err').innerHTML = `<div class="alert ok" style="margin-top:10px">Backtest complete. Results below have been reloaded.</div>`;
+    await loadBacktest();
+  } else if (st.state === 'error') {
+    setRunning(false);
+    $('#bt-progress').hidden = true;
+    $('#bt-form-err').innerHTML = errBox('Backtest failed: ' + (st.error || st.message || 'unknown error'));
+  } else {
+    setRunning(false);
+    $('#bt-progress').hidden = true;
+  }
+}
+
+/* =========================================================
+   PLAN
+   ========================================================= */
+const PLAN_KEY = 'barbell.planForm';
+function addPosRow(sym = '', sh = '') {
+  const row = document.createElement('div');
+  row.className = 'row pos-row';
+  row.style.marginBottom = '6px';
+  row.innerHTML = `<label class="f w-s">Symbol<input type="text" class="p-sym" maxlength="12" placeholder="AAPL"></label>
+    <label class="f w-s">Shares<input type="number" class="p-sh" step="any" min="0" placeholder="0"></label>
+    <button type="button" class="x" title="Remove">✕</button>`;
+  $('.p-sym', row).value = sym;
+  $('.p-sh', row).value = sh;
+  $('button.x', row).addEventListener('click', () => row.remove());
+  $('#pos-rows').appendChild(row);
+}
+$('#pos-add').addEventListener('click', () => addPosRow());
+function restorePlanForm() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { saved = null; }
+  const f = $('#plan-form');
+  if (saved && typeof saved === 'object') {
+    if (isNum(saved.cash)) f.cash.value = saved.cash;
+    for (const [s, n] of Object.entries(saved.positions || {})) addPosRow(s, n);
+  }
+  if (!$$('.pos-row').length) addPosRow();
+}
+restorePlanForm();
+$('#plan-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const f = ev.target;
+  const cash = Number(f.cash.value || 0);
+  const positions = {};
+  const problems = [];
+  for (const row of $$('.pos-row')) {
+    const s = $('.p-sym', row).value.trim().toUpperCase();
+    const raw = $('.p-sh', row).value.trim();
+    if (!s && !raw) continue;
+    const n = Number(raw);
+    if (!s) problems.push('A position row has shares but no symbol.');
+    else if (!/^[A-Z0-9.\-]{1,12}$/.test(s)) problems.push(`"${s}" does not look like a ticker symbol.`);
+    else if (!Number.isFinite(n) || n < 0) problems.push(`Shares for ${s} must be a number of 0 or more.`);
+    else positions[s] = (positions[s] || 0) + n;
+  }
+  if (!Number.isFinite(cash) || cash < 0) problems.push('Cash must be 0 or more.');
+  if (problems.length) { $('#plan-status').innerHTML = errBox(problems.join(' ')); return; }
+  try { localStorage.setItem(PLAN_KEY, JSON.stringify({ cash, positions })); } catch (e) { /* storage unavailable */ }
+  await buildPlan({ cash, positions, use_paper: false });
+});
+$('#plan-paper').addEventListener('click', () => buildPlan({ cash: 0, positions: {}, use_paper: true }));
+async function buildPlan(body) {
+  const st = $('#plan-status');
+  $$('#plan-form button').forEach(b => (b.disabled = true));
+  st.innerHTML = `<div class="muted"><span class="spinner"></span>Downloading latest prices and building the plan… this can take a little while.</div>`;
+  try {
+    const r = await api('/api/plan', { method: 'POST', body });
+    st.innerHTML = `<div class="alert ok">Plan built ${body.use_paper ? 'from the paper account' : 'from the holdings above'}.</div>`;
+    renderPlan(r.plan, false);
+  } catch (e) {
+    st.innerHTML = errBox(e.message) + `<p class="muted small">Building a plan needs current prices from the internet. If you are offline or the data provider is down, it cannot run. Nothing was changed.</p>`;
+  } finally {
+    $$('#plan-form button').forEach(b => (b.disabled = false));
+  }
+}
+async function loadPlan() {
+  try {
+    const r = await api('/api/plan');
+    if (!r.available || !r.plan) {
+      $('#plan-content').innerHTML = `<div class="empty"><strong>No plan has been made yet.</strong>Fill in your holdings above and press "Build plan", or run <code>python -m engine plan</code>.</div>`;
+      return;
+    }
+    renderPlan(r.plan, true);
+  } catch (e) {
+    $('#plan-content').innerHTML = errBox(e.message);
+  }
+}
+function planBody(p, pfx) {
+  const orders = p.orders || [];
+  const checks = p.checks || [];
+  return `
+    ${p.blocked ? `<div class="blocked"><strong>BLOCKED — do not execute</strong>One or more safety checks failed (see below). The orders are shown only so you can see what the engine would do.</div>` : ''}
+    ${p.summary ? `<p style="font-size:15px">${esc(p.summary)}</p>` : ''}
+    <div class="grid2" style="margin-top:10px">
+      <div><h3>Safety checks</h3>${checks.length ? `<ul class="checks">${checks.map(c => `<li><span class="ic ${c.ok ? 'pos' : 'neg'}">${c.ok ? '✓' : '✗'}</span><span>${esc(c.message)}</span></li>`).join('')}</ul>` : '<p class="muted">No checks reported.</p>'}</div>
+      <div><h3>Account</h3><div class="tablewrap"><table><tbody>
+        <tr><td>Equity</td><td class="n">${usd(p.equity)}</td></tr>
+        <tr><td>Cash</td><td class="n">${usd(p.cash)}</td></tr>
+        <tr><td>Drawdown from peak</td><td class="n">${pct(p.drawdown, 1)}</td></tr>
+        <tr><td>Safe asset</td><td class="n">${p.safe_asset ? esc(p.safe_asset) : '<span class="warn">none available, held as cash</span>'}</td></tr>
+        <tr><td>Price data through</td><td class="n">${esc(p.data_last_date || DASH)}</td></tr>
+        <tr><td>Data source</td><td class="n">${esc(p.data_source || DASH)}</td></tr>
+        <tr><td>Parameters from</td><td class="n" style="white-space:normal">${esc(p.params_source || DASH)}</td></tr>
+      </tbody></table></div></div>
+    </div>
+    <h3 style="margin-top:16px">Orders (${orders.length}) — in execution order, sells first</h3>
+    ${orders.length ? `<div class="tablewrap"><table><thead><tr><th>#</th><th>Side</th><th>Symbol</th><th class="n">Amount</th><th class="n">Est. shares</th><th class="n">Ref. price</th></tr></thead><tbody>
+      ${orders.map((o, i) => `<tr class="has-sub"><td class="n">${i + 1}</td><td>${sideBadge(o.side)}${o.sell_all ? ' <span class="badge neutral">sell all</span>' : ''}</td><td><strong>${esc(o.symbol)}</strong></td><td class="n">${usd(o.notional_usd)}</td><td class="n">${num(o.est_shares, 4)}</td><td class="n">${usd(o.ref_price)}</td></tr>
+        <tr class="sub"><td></td><td colspan="5">${esc(o.reason)}</td></tr>`).join('')}
+    </tbody></table></div>` : `<p class="muted">No orders needed: holdings are already within the no-trade band of the target.</p>`}
+    <h3 style="margin-top:16px">Target allocation</h3>
+    ${targetHTML(p.target, pfx)}`;
+}
+function renderPlan(p, fromSaved) {
+  $('#plan-content').innerHTML = `<div class="card">
+    <div class="card-head"><h2>${fromSaved ? 'Last saved plan' : 'Plan'}</h2><span class="muted small">made ${esc(fmtDate(p.as_of))}</span></div>
+    ${planBody(p, 'plan')}</div>`;
+  drawTargetDonut(p.target, 'plan');
+}
+
+/* =========================================================
+   PAPER
+   ========================================================= */
+async function loadPaper(extraHTML) {
+  const box = $('#paper-content');
+  try {
+    const r = await api('/api/paper');
+    if (!r.available || !r.ledger) { renderPaperEmpty(); return; }
+    renderPaper(r.ledger, extraHTML);
+  } catch (e) {
+    box.innerHTML = errBox(e.message);
+  }
+}
+function paperInitForm(reset) {
+  return `<form id="paper-init" class="row" style="justify-content:center;margin-top:10px">
+    <label class="f w-m">Starting capital ($)<input type="number" name="capital" value="10000" min="1" step="any" required></label>
+    <button type="submit" class="${reset ? '' : 'primary'}">${reset ? 'Reset paper account' : 'Create paper account'}</button></form>`;
+}
+function bindPaperInit(reset) {
+  const f = $('#paper-init');
+  if (!f) return;
+  f.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const capital = Number(f.capital.value);
+    if (reset && !confirm('Reset the paper account? Its history and fills will be erased.')) return;
+    $$('button', f).forEach(b => (b.disabled = true));
+    try {
+      await api('/api/paper/init', { method: 'POST', body: { capital } });
+      await loadPaper();
+    } catch (e) {
+      $$('button', f).forEach(b => (b.disabled = false));
+      f.insertAdjacentHTML('afterend', errBox(e.message));
+    }
+  });
+}
+function renderPaperEmpty() {
+  $('#paper-content').innerHTML = `<div class="card"><div class="empty"><strong>No paper account yet.</strong>
+    A paper account trades imaginary money with the same engine and real prices, once per day, so you can watch it before risking anything.
+    You can also create one with <code>python -m engine paper init</code>.${paperInitForm(false)}</div></div>`;
+  bindPaperInit(false);
+}
+function renderPaper(L, extraHTML) {
+  const hist = (L.history || []).filter(h => h && isNum(h.equity));
+  const eq = hist.length ? hist[hist.length - 1].equity : L.starting_capital;
+  const ret = isNum(eq) && L.starting_capital > 0 ? eq / L.starting_capital - 1 : null;
+  const dd = isNum(eq) && L.peak_equity > 0 ? Math.max(0, 1 - eq / L.peak_equity) : null;
+  const holdings = Object.entries(L.holdings || {});
+  const fills = [...(L.fills || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  $('#paper-content').innerHTML = `
+    <div class="card">
+      <div class="card-head"><h2>Paper account</h2><span class="muted small">created ${esc(fmtDate(L.created_at))} · last trade ${esc(L.last_trade_date || 'never')}</span></div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Equity</div><div class="v">${usd(eq)}</div><div class="s">at last recorded prices</div></div>
+        <div class="kpi"><div class="l">Return since start</div><div class="v ${signCls(ret)}">${spct(ret, 2)}</div><div class="s">from ${usd(L.starting_capital, 0)}</div></div>
+        <div class="kpi"><div class="l">Drawdown from peak</div><div class="v ${dd > 0 ? 'neg' : ''}">${pct(dd, 2)}</div><div class="s">peak ${usd(L.peak_equity)}</div></div>
+        <div class="kpi"><div class="l">Cash</div><div class="v">${usd(L.cash)}</div><div class="s">${holdings.length} holding(s)</div></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button type="button" class="primary" id="paper-step">Step (fetch latest prices and trade once for today)</button>
+      </div>
+      <div id="paper-step-out" style="margin-top:12px">${extraHTML || ''}</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Equity history</h2></div>
+      ${hist.length >= 2 ? `<div class="chartbox sm"><canvas id="ch-paper"></canvas></div>` : `<div class="empty">Only ${hist.length} data point${hist.length === 1 ? '' : 's'} so far. The chart appears after the account has been stepped on at least two different days.</div>`}
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h2>Holdings</h2></div>
+        ${holdings.length ? `<div class="tablewrap"><table><thead><tr><th>Symbol</th><th class="n">Shares</th></tr></thead><tbody>${holdings.map(([s, n]) => `<tr><td><strong>${esc(s)}</strong></td><td class="n">${num(n, 4)}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">No holdings; the account is all cash.</div>`}
+      </div>
+      <div class="card"><div class="card-head"><h2>Fills</h2><span class="muted small">${fills.length} total, newest first</span></div>
+        ${fills.length ? `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Side</th><th>Symbol</th><th class="n">Shares</th><th class="n">Price</th><th class="n">Cost</th><th>Reason</th></tr></thead><tbody>
+          ${fills.slice(0, 200).map(f => `<tr><td class="n" style="text-align:left">${esc(f.date)}</td><td>${sideBadge(f.side)}</td><td><strong>${esc(f.symbol)}</strong></td><td class="n">${num(f.shares, 4)}</td><td class="n">${usd(f.price)}</td><td class="n">${usd(f.cost)}</td><td class="reason">${esc(f.reason)}</td></tr>`).join('')}
+        </tbody></table></div>` : `<div class="empty">No fills yet. Press Step to let the engine trade once.</div>`}
+      </div>
+    </div>
+    <details class="panel" style="margin-top:16px"><summary>Reset paper account</summary><div class="inner">${paperInitForm(true)}</div></details>`;
+  bindPaperInit(true);
+  if (hist.length >= 2) {
+    mkChart('ch-paper', {
+      type: 'line',
+      data: { labels: hist.map(h => h.date), datasets: [{ label: 'Equity', data: hist.map(h => h.equity), borderColor: css('--blue'), backgroundColor: 'rgba(88,166,255,.12)', fill: true, pointRadius: hist.length < 40 ? 2 : 0, borderWidth: 1.6 }] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        scales: { x: { ticks: dateTicks }, y: { ticks: { callback: v => usd(Number(v), 0) } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + usd(c.parsed.y) } } } },
+    });
+  }
+  $('#paper-step').addEventListener('click', paperStep);
+}
+async function paperStep() {
+  const btn = $('#paper-step'), out = $('#paper-step-out');
+  btn.disabled = true;
+  out.innerHTML = `<div class="muted"><span class="spinner"></span>Fetching prices and building today's plan…</div>`;
+  try {
+    const r = await api('/api/paper/step', { method: 'POST' });
+    const p = r.plan;
+    const head = r.traded
+      ? `<div class="alert ok"><strong>Traded.</strong> The paper account executed the orders below at the latest prices.</div>`
+      : `<div class="alert warnbox"><strong class="warn">No trades were made this step.</strong> ${p && p.blocked ? 'The plan was blocked by a safety check.' : 'Either nothing needed to change or the account already traded for this date.'}</div>`;
+    const html = `<div class="card" style="background:var(--card2)"><div class="card-head"><h2>Result of this step</h2><span class="muted small">${p ? 'plan made ' + esc(fmtDate(p.as_of)) : ''}</span></div>${head}${p ? planBody(p, 'paperstep') : ''}</div>`;
+    renderPaper(r.ledger, html);
+    if (p) drawTargetDonut(p.target, 'paperstep');
+  } catch (e) {
+    btn.disabled = false;
+    out.innerHTML = errBox(e.message) + `<p class="muted small">A step needs current prices from the internet. If you are offline or the data provider is down, it cannot run. The paper account was not changed.</p>`;
+  }
+}
+
+/* =========================================================
+   ROBINHOOD + CONCEPTS
+   ========================================================= */
+async function loadRobinhood() {
+  const box = $('#rh-content');
+  try {
+    const r = await api('/api/robinhood/tools');
+    const tools = Array.isArray(r.tools) ? r.tools : (r.tools && Array.isArray(r.tools.tools) ? r.tools.tools : []);
+    if (!r.available || !tools.length) {
+      box.innerHTML = `<div class="empty"><strong>No tool list saved yet.</strong>After connecting (step 2), run <code>python -m engine robinhood inspect</code> in this folder. It asks the Robinhood MCP server which tools it offers and saves the list here.</div>`;
+      return;
+    }
+    box.innerHTML = `<p class="small">${tools.length} tool(s) discovered.</p><div class="tablewrap"><table><thead><tr><th>Tool name</th><th>What it does</th></tr></thead><tbody>
+      ${tools.map(t => `<tr><td><code>${esc(t.name)}</code></td><td>${esc(t.description || '')}${t.input_schema ? `<details><summary class="muted small" style="cursor:pointer">input schema</summary><pre>${esc(JSON.stringify(t.input_schema, null, 2))}</pre></details>` : ''}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  } catch (e) {
+    box.innerHTML = errBox(e.message);
+  }
+}
+async function loadConcepts() {
+  await conceptsReady;
+  const box = $('#concepts-content');
+  if (!CONCEPTS || CONCEPTS.__error) { box.innerHTML = errBox((CONCEPTS && CONCEPTS.__error) || 'Could not load concepts'); return; }
+  const ks = Object.keys(CONCEPTS);
+  if (!ks.length) { box.innerHTML = `<div class="empty">The glossary is empty.</div>`; return; }
+  box.innerHTML = `<div class="concepts">${ks.map(k => `<div class="card concept" id="concept-${esc(k)}">${conceptHTML(k, CONCEPTS[k], false)}</div>`).join('')}</div>`;
+}
+
+/* ---------------- boot ---------------- */
+if (typeof Chart === 'undefined') {
+  document.querySelector('main').insertAdjacentHTML('afterbegin', errBox('Chart library failed to load (no internet?). Tables still work; charts will be empty.'));
+}
+route();
+api('/api/backtest/status').then(st => { if (st && st.state === 'running') pollStatus(); }).catch(() => {});
 </script>
 </body>
 </html>
