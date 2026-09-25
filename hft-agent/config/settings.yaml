@@ -1,5 +1,5 @@
-# HFT Agent Configuration
-# ========================
+# EXPERIMENTAL intraday research runner configuration (research/intraday_main.py).
+# The main engine is configured in config/engine.yaml.
 
 app:
   name: "hft-agent"
@@ -9,17 +9,7 @@ app:
 
 # Broker Configuration
 brokers:
-  primary: "alpaca"  # alpaca | robinhood | ibkr
-  robinhood:
-    # Legacy robin_stocks mode (requires ROBINHOOD_USERNAME, ROBINHOOD_PASSWORD)
-    account_type: "cash"  # cash | margin
-    mode: "robin_stocks"  # robin_stocks | mcp
-  robinhood_mcp:
-    # Agentic Trading via MCP (requires ROBINHOOD_OAUTH_TOKEN)
-    # Set primary: "robinhood_mcp" and complete OAuth in Robinhood app first
-    server_url: "https://agent.robinhood.com/mcp/trading"
-    request_timeout: 30.0
-    max_retries: 3
+  primary: "alpaca"  # alpaca | ibkr
   alpaca:
     # ALPACA_API_KEY, ALPACA_SECRET_KEY
     base_url: "https://paper-api.alpaca.markets"  # paper trading default

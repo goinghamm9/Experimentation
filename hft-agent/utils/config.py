@@ -11,17 +11,6 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
 
-class BrokerRobinhoodConfig(BaseModel):
-    account_type: Literal["cash", "margin"] = "cash"
-    mode: Literal["robin_stocks", "mcp"] = "robin_stocks"
-
-
-class BrokerRobinhoodMCPConfig(BaseModel):
-    server_url: str = "https://agent.robinhood.com/mcp/trading"
-    request_timeout: float = 30.0
-    max_retries: int = 3
-
-
 class BrokerAlpacaConfig(BaseModel):
     base_url: str = "https://paper-api.alpaca.markets"
     data_feed: Literal["iex", "sip"] = "iex"
@@ -34,9 +23,7 @@ class BrokerIBKRConfig(BaseModel):
 
 
 class BrokersConfig(BaseModel):
-    primary: Literal["alpaca", "robinhood", "robinhood_mcp", "ibkr"] = "alpaca"
-    robinhood: BrokerRobinhoodConfig = BrokerRobinhoodConfig()
-    robinhood_mcp: BrokerRobinhoodMCPConfig = BrokerRobinhoodMCPConfig()
+    primary: Literal["alpaca", "ibkr"] = "alpaca"
     alpaca: BrokerAlpacaConfig = BrokerAlpacaConfig()
     ibkr: BrokerIBKRConfig = BrokerIBKRConfig()
 

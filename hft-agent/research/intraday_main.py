@@ -1,23 +1,11 @@
 """
-HFT Agent — Main Application Entry Point
+EXPERIMENTAL intraday microstructure runner (research only, not validated).
 
-High-Frequency Trading Agent with Fat-Tail Aware Risk Management.
-Built on the research framework from Taleb, Cont, Peters, Mandelbrot et al.
+Streams Alpaca quotes into OFI/VPIN/Hurst signals and trades through Alpaca or IBKR.
+It has not been walk-forward tested and is not wired to Robinhood: Robinhood's agent
+interface is far too slow for intraday microstructure trading. Use Alpaca paper keys.
 
-Architecture:
-    Data Feed → Signal Aggregator → Strategy → Risk Manager → Execution Engine → Broker
-         ↓              ↓                                              ↓
-    TimescaleDB     Redis Cache                                  Order Tracking
-
-Usage:
-    # Paper trading (default)
-    python main.py
-
-    # Live trading (requires explicit flag)
-    python main.py --mode live
-
-    # Backtest mode
-    python main.py --backtest --start 2024-01-01 --end 2024-12-31
+    python research/intraday_main.py --broker alpaca
 """
 
 from __future__ import annotations
@@ -30,14 +18,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from brokers.alpaca_broker import AlpacaBroker
 from brokers.base import Broker
 from brokers.ibkr import IBKRBroker
-from brokers.robinhood import RobinhoodBroker
-from brokers.robinhood_mcp import RobinhoodMCPBroker
 from core.risk.manager import RiskManager
 from core.signals.aggregator import SignalAggregator
 from data.feeds.alpaca_feed import AlpacaDataFeed
@@ -179,16 +165,7 @@ class HFTAgent:
         """Create the appropriate broker instance."""
         primary = self._settings.brokers.primary
 
-        if primary == "robinhood_mcp":
-            cfg = self._settings.brokers.robinhood_mcp
-            return RobinhoodMCPBroker(
-                mcp_server_url=cfg.server_url,
-                max_retries=cfg.max_retries,
-                request_timeout=cfg.request_timeout,
-            )
-        elif primary == "robinhood":
-            return RobinhoodBroker()
-        elif primary == "alpaca":
+        if primary == "alpaca":
             return AlpacaBroker(
                 base_url=self._settings.brokers.alpaca.base_url,
             )
@@ -338,7 +315,7 @@ def main() -> None:
         help="Path to config YAML file",
     )
     parser.add_argument(
-        "--broker", choices=["alpaca", "robinhood", "robinhood_mcp", "ibkr"], default=None,
+        "--broker", choices=["alpaca", "ibkr"], default=None,
         help="Override broker selection",
     )
     args = parser.parse_args()

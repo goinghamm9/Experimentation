@@ -24,8 +24,6 @@ from enum import Enum
 import numpy as np
 from numpy.typing import NDArray
 
-from core.probability.distributions import mean_absolute_deviation
-
 
 class FragilityState(Enum):
     FRAGILE = "fragile"          # Negative vega — exposed to vol spikes
@@ -46,9 +44,8 @@ class FragilityReport:
 class FragilityDetector:
     """Detects fragility/antifragility of the agent's strategy.
 
-    Measures the sensitivity of realized P&L to realized volatility
-    changes — the practical implementation of Taleb & Douady's
-    mathematical fragility framework.
+    Taleb & Douady (2013): a payoff is fragile when it responds concavely to
+    stress, so large moves hurt more than small moves help.
     """
 
     def __init__(self, vol_sensitivity_threshold: float = -0.5):
@@ -64,21 +61,14 @@ class FragilityDetector:
         return_series: NDArray[np.float64],
         window: int = 50,
     ) -> FragilityReport:
-        """Assess strategy fragility from P&L and return series.
+        """Assess fragility as the curvature of P&L against same-period market moves.
 
-        Method:
-        1. Compute rolling realized volatility
-        2. Compute rolling P&L
-        3. Measure correlation between vol changes and P&L changes
-        4. Measure convexity (gamma) of the P&L-to-vol relationship
-
-        Args:
-            pnl_series: Daily or per-trade P&L values.
-            return_series: Corresponding market returns.
-            window: Rolling window for volatility computation.
+        vol_sensitivity is the correlation of P&L with the size of the move: negative
+        means the strategy loses when moves are large (fragile). `window` is unused and
+        kept for call compatibility.
         """
         n = min(len(pnl_series), len(return_series))
-        if n < window + 10:
+        if n < 30:
             return FragilityReport(
                 state=FragilityState.ROBUST,
                 vega=0.0,
@@ -87,64 +77,22 @@ class FragilityDetector:
                 recommendation="Insufficient data for fragility assessment",
             )
 
-        pnl = pnl_series[:n]
-        returns = return_series[:n]
+        pnl = np.asarray(pnl_series[:n], dtype=np.float64)
+        returns = np.asarray(return_series[:n], dtype=np.float64)
 
-        # Rolling realized volatility (MAD-based for fat-tail robustness)
-        vol_series = np.array([
-            mean_absolute_deviation(returns[max(0, i - window):i])
-            for i in range(window, n)
-        ])
+        # Taleb-Douady: fragility is a concave response to the size of a move.
+        # Fit pnl = a + b*r + g*r^2; g is the convexity (gamma), and the response to
+        # the move's magnitude |r| (dispersion) plays the role of vega.
+        x = np.column_stack([np.ones(n), returns, returns ** 2])
+        coeffs, *_ = np.linalg.lstsq(x, pnl, rcond=None)
+        gamma = float(2 * coeffs[2])
 
-        # Corresponding P&L for each vol observation
-        pnl_windowed = pnl[window:]
+        size = np.abs(returns - np.median(returns))
+        size_c = size - size.mean()
+        vega = float(size_c @ (pnl - pnl.mean()) / (size_c @ size_c)) if size_c @ size_c > 0 else 0.0
 
-        # Trim to same length
-        min_len = min(len(vol_series), len(pnl_windowed))
-        vol_series = vol_series[:min_len]
-        pnl_windowed = pnl_windowed[:min_len]
-
-        if len(vol_series) < 10:
-            return FragilityReport(
-                state=FragilityState.ROBUST,
-                vega=0.0,
-                gamma=0.0,
-                vol_sensitivity=0.0,
-                recommendation="Insufficient data",
-            )
-
-        # Vega: dPnL/dVol (first derivative)
-        # Use changes to avoid level effects
-        dvol = np.diff(vol_series)
-        dpnl = np.diff(pnl_windowed)
-
-        # Avoid division by zero
-        mask = np.abs(dvol) > 1e-10
-        if np.sum(mask) < 5:
-            return FragilityReport(
-                state=FragilityState.ROBUST,
-                vega=0.0,
-                gamma=0.0,
-                vol_sensitivity=0.0,
-                recommendation="Insufficient volatility variation",
-            )
-
-        # Linear regression: dPnL = vega * dVol + epsilon
-        vega = float(np.sum(dpnl[mask] * dvol[mask]) / np.sum(dvol[mask] ** 2))
-
-        # Gamma: d²PnL/dVol² (convexity)
-        # Fit quadratic: PnL = a * vol^2 + b * vol + c
-        if len(vol_series) > 20:
-            coeffs = np.polyfit(vol_series, pnl_windowed, 2)
-            gamma = float(2 * coeffs[0])  # Second derivative of quadratic
-        else:
-            gamma = 0.0
-
-        # Normalize vega to [-1, 1]
-        pnl_std = np.std(dpnl)
-        vol_std = np.std(dvol)
-        if pnl_std > 0 and vol_std > 0:
-            vol_sensitivity = float(np.corrcoef(dpnl[mask], dvol[mask])[0, 1])
+        if np.std(pnl) > 0 and np.std(size) > 0:
+            vol_sensitivity = float(np.corrcoef(pnl, size)[0, 1])
         else:
             vol_sensitivity = 0.0
 

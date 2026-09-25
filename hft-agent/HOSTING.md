@@ -1,130 +1,32 @@
-# HFT Agent — Hosting & Deployment Guide
+# Hosting
 
-## Recommended Hosting Options (Ranked by Latency)
+The engine makes one decision per trading day, so it needs no special infrastructure.
 
-### 1. Equinix NY5 / NJ2 (Colocation) — Best for True HFT
-- **Latency**: <1ms to NYSE/NASDAQ
-- **Cost**: $2,000-5,000/month for a cabinet
-- **When to use**: If you need sub-millisecond execution and are trading
-  at institutional scale with IBKR FIX protocol
-- **Setup**: Bare metal server, dedicated network, FPGA optional
+## Your own computer (recommended to start)
 
-### 2. AWS us-east-1 (N. Virginia) — Best Balance of Cost & Performance
-- **Latency**: 1-5ms to major exchanges
-- **Cost**: ~$200-500/month
-- **Recommended instance**: `c6i.xlarge` (4 vCPU, 8GB RAM) or `c7g.xlarge` (ARM, cheaper)
-- **Why us-east-1**: Closest AWS region to NYSE (Mahwah, NJ) and NASDAQ
-- **Setup**:
-  ```bash
-  # Use EC2 with docker-compose
-  sudo yum install docker docker-compose-plugin -y
-  sudo systemctl start docker
-  git clone <your-repo>
-  cd hft-agent
-  cp .env.example .env  # Fill in credentials
-  docker compose -f deploy/docker-compose.yml up -d
-  ```
+Run `python -m engine serve` when you want the dashboard, and `python -m engine paper step`
+after each market close. Execution on Robinhood happens in Claude Code on your desktop anyway.
 
-### 3. Google Cloud us-east4 (Ashburn, VA) — Alternative Cloud
-- **Latency**: 1-5ms to exchanges
-- **Cost**: Similar to AWS
-- **Instance**: `c2-standard-4` (4 vCPU, 16GB)
+## Always-on paper trading on a small server
 
-### 4. Hetzner Ashburn DC — Budget Option
-- **Latency**: 2-10ms
-- **Cost**: ~$50-100/month for dedicated server
-- **Good for**: Paper trading, backtesting, medium-frequency strategies
-
-### 5. DigitalOcean NYC — Budget Cloud
-- **Latency**: 5-15ms
-- **Cost**: ~$50-100/month
-- **Good for**: Development, paper trading
-
-## Production Deployment Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│                AWS us-east-1                 │
-│                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐ │
-│  │ HFT Agent│  │TimescaleDB│  │  Redis    │ │
-│  │ (EC2)    │──│  (RDS)    │  │(Elasticache│ │
-│  └────┬─────┘  └───────────┘  └──────────┘ │
-│       │                                      │
-│  ┌────┴─────┐  ┌───────────┐               │
-│  │Prometheus │  │  Grafana  │               │
-│  │(EC2/ECS) │──│ (EC2/ECS) │               │
-│  └──────────┘  └───────────┘               │
-└─────────────────────────────────────────────┘
-        │
-        │ WebSocket (Alpaca/Polygon data feed)
-        │ REST API (Broker execution)
-        ▼
-┌───────────────┐
-│ Exchange APIs  │
-│ (NYSE/NASDAQ)  │
-└───────────────┘
-```
-
-## Quick Start (Local Development)
+Any $5-10/month VPS (Hetzner, DigitalOcean, Lightsail) is plenty.
 
 ```bash
-# 1. Clone and configure
-git clone <repo-url>
-cd hft-agent
-cp .env.example .env
-# Edit .env with your API keys
-
-# 2. Start infrastructure
-docker compose -f deploy/docker-compose.yml up -d timescaledb redis
-
-# 3. Install Python dependencies
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-
-# 4. Run in paper trading mode
-python main.py --mode paper --broker alpaca
-
-# 5. Run tests
-pytest tests/ -v
+git clone <your-repo> && cd hft-agent
+python3 -m venv .venv && . .venv/bin/activate && pip install -e .
+python -m engine backtest
+python -m engine paper init --capital 10000
+crontab -e
+# 30 22 * * 1-5  cd /path/to/hft-agent && .venv/bin/python -m engine paper step >> state/paper.log 2>&1
 ```
 
-## Quick Start (Docker — Full Stack)
+(22:30 UTC is after the US close year-round.) To view the dashboard from your laptop without
+exposing it: `ssh -L 8000:127.0.0.1:8000 you@server` and open http://127.0.0.1:8000.
+
+## Docker
 
 ```bash
-cp .env.example .env
-# Edit .env with credentials
-docker compose -f deploy/docker-compose.yml up -d
+docker compose -f deploy/docker-compose.yml up -d --build
 ```
 
-## Database Choice Rationale
-
-### TimescaleDB (Primary — Tick Data & Analytics)
-- **Why not InfluxDB?** TimescaleDB offers full SQL, JOINs, and better
-  compression. InfluxDB's query language (Flux) is limited for complex
-  analytics. TimescaleDB's continuous aggregates auto-compute OHLCV bars.
-- **Why not QuestDB?** QuestDB is faster for ingestion but lacks the
-  mature ecosystem, compression policies, and continuous aggregates.
-- **Why not plain PostgreSQL?** TimescaleDB adds 10-20x compression and
-  automatic time-partitioning that makes range queries orders of magnitude faster.
-
-### Redis (Cache Layer — Real-time State)
-- Sub-millisecond reads for order book state
-- Pub/sub for event-driven architecture
-- Rate limiting for API calls
-- No persistence needed (cache only)
-
-## Monitoring
-
-- **Grafana**: http://localhost:3000 (admin/admin)
-- **Prometheus**: http://localhost:9091
-- **Health Check**: http://localhost:8080/health
-
-## Security Notes
-
-- Never commit `.env` files
-- Use AWS Secrets Manager or HashiCorp Vault for production credentials
-- Enable VPC and security groups in cloud deployments
-- Use read-only API keys where possible (data feeds)
-- Enable 2FA on all broker accounts
+The container serves the dashboard on 127.0.0.1:8000 and keeps `state/` on the host.

@@ -1,0 +1,46 @@
+# Barbell engine configuration. Defaults suit a Robinhood agentic account:
+# cash-only, long-only, fractional shares, daily decisions.
+
+universe: [SPY, QQQ, IWM, EFA, EEM, TLT, IEF, GLD, DBC, VNQ]
+safe_asset: SGOV              # 0-3 month T-bill ETF (the "safe" end of the barbell)
+safe_asset_fallbacks: [BIL, SHV]  # longer histories for backtests before SGOV existed
+benchmark: SPY
+
+rebalance_every_days: 5
+no_trade_band: 0.25           # trade only when a position is 25% away from target
+min_order_usd: 1.0
+
+params:                       # used until a walk-forward backtest selects its own
+  risky_budget: 0.25
+  horizons: [21, 63, 126, 252]
+  use_hurst: true
+  kelly_fraction: 0.25
+
+param_grid:                   # the walk-forward search space (kept small on purpose)
+  risky_budget: [0.15, 0.25, 0.35]
+  horizons: [[21, 63, 126, 252], [63, 126, 252]]
+  use_hurst: [true, false]
+
+risk:
+  max_weight_per_asset: 0.10
+  max_cvar_99_daily: 0.015    # portfolio 1-day expected shortfall cap
+  max_drawdown_brake: 0.15    # halve the risky sleeve beyond this drawdown
+  tail_exponent_floor: 2.0
+  metaprobability_discount: 0.85
+  lookback_days: 504
+
+costs:
+  half_spread_bps: 2.0
+  impact_coef: 0.1
+  cash_rate_annual: 0.0       # only used on days no T-bill ETF price exists
+
+hedge:                        # model-priced OTM put overlay (backtest analysis only)
+  enabled: false
+  underlying: SPY
+  annual_budget: 0.01
+  moneyness: 0.90
+  tenor_days: 21
+  vol_markup: 1.25
+
+data_source: auto             # auto (Alpaca if keys set, else Yahoo) | yahoo | alpaca | csv
+csv_path: null

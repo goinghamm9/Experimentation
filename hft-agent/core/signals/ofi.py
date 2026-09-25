@@ -90,12 +90,10 @@ class OrderFlowImbalance:
         weights /= weights.sum()
         smoothed_ofi = float(np.dot(weights, history))
 
-        # Normalize to [-1, 1] using recent range
-        ofi_std = np.std(history)
-        if ofi_std > 0:
-            normalized = np.clip(smoothed_ofi / (3 * ofi_std), -1, 1)
-        else:
-            normalized = 0.0
+        # Normalize by mean absolute flow, not std: a steady one-sided flow has zero std
+        # but is the strongest possible pressure.
+        scale = float(np.mean(np.abs(history)))
+        normalized = float(np.clip(smoothed_ofi / (2 * scale), -1, 1)) if scale > 0 else 0.0
 
         # Direction
         direction = None

@@ -39,3 +39,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Engine state: account holdings, plans, paper ledger, OAuth tokens. Never commit.
+state/
+.cache/
